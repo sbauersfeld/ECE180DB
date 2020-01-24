@@ -14,6 +14,7 @@ TIMEOUT = 5
 class Player:
     def __init__(self, name, lives=5, ammo=0):
         self.name = name
+        self.ready = threading.Event()
         self.lives = lives
         self.ammo = ammo
 
@@ -26,6 +27,15 @@ class Player:
     def get_hit(self):
         lives = lives - 1
 
+    def wait(self):
+        self.ready.wait()
+
+    def clear(self):
+        self.ready.clear()
+
+    def set(self):
+        self.ready.set()
+
 def on_message_setup(client, userdata, msg):
     message = msg.payload.decode()
     print("Received for setup: " + message)
@@ -37,6 +47,7 @@ def on_message(client, userdata, msg):
     print("Received!")
     # print(message)
     actions[message[0]].put_nowait(message)
+    players[message[0]].set()
 
 def process_actions(name):
     player = players[name]
@@ -68,11 +79,10 @@ def main():
     round_num = 0
     while True:
         round_num += 1
-        print("Starting round {0}".format(round_num))
-        input("Press Enter to continue...\n")
-
-        for name in actions:
-            print(name + " with "+ str(actions[name].qsize()))
+        print("\nStarting round {0}".format(round_num))
+        print("Waiting for input...")
+        for name, player in players.items():
+            player.wait()
 
         for name in players:
             t = threading.Thread(target=process_actions, args=[name])
@@ -81,6 +91,9 @@ def main():
 
         for t in threads:
             t.join()
+
+        for name, player in players.items():
+            player.clear()
 
 if __name__ == '__main__':
     main()
