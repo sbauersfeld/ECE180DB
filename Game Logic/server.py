@@ -35,22 +35,22 @@ def on_message_setup(client, userdata, msg):
 def on_message(client, userdata, msg):
     message = msg.payload.decode().split('_')
     print("Received!")
-    print(message)
-    actions[message[0]].put(message, timeout=TIMEOUT)
+    # print(message)
+    actions[message[0]].put_nowait(message)
 
 def process_actions(name):
     player = players[name]
     q = actions[name]
     try:
         while True:
-            item = q.get(timeout=TIMEOUT)
+            item = q.get_nowait()
 
             # Process string here
             print(item)
 
             q.task_done()
     except queue.Empty:
-        print("finished")
+        print("Finished processing " + name)
 
 def main():
     client = mqtt.Client()
@@ -78,6 +78,9 @@ def main():
             t = threading.Thread(target=process_actions, args=[name])
             t.start()
             threads.append(t)
+
+        for t in threads:
+            t.join()
 
 if __name__ == '__main__':
     main()
