@@ -4,13 +4,9 @@ import sys
 import time
 
 def send_msg(client, name, action, target=""):
-    if action is Act.PASS:
-        print("Not taking any action")
-        return
-
     print("Sending message...")
 
-    topic = "ee180d/hp_shotgun"
+    topic = "ee180d/hp_shotgun/action"
     message = '_'.join([name, action.name, target])
     ret = client.publish(topic, message)
 
@@ -28,7 +24,7 @@ def register_action():
         return action
     else:
         print("That's not an action!")
-        return Act.PASS
+        return register_action()
 
 def main():
     client = mqtt.Client()

@@ -36,6 +36,10 @@ class Player:
     def set(self):
         self.ready.set()
 
+def on_message(client, userdata, msg):
+    message = msg.payload.decode()
+    print("Received unexpected message: " + message)
+
 def on_message_setup(client, userdata, msg):
     message = msg.payload.decode()
     if message in players:
@@ -52,12 +56,23 @@ def on_message_setup(client, userdata, msg):
     if len(players) >= NUM_PLAYERS:
         P_LOCK.set()
 
-def on_message(client, userdata, msg):
-    message = msg.payload.decode().split('_')
+def on_message_action(client, userdata, msg):
+    message = msg.payload.decode()
     print("Received!")
-    # print(message)
-    actions[message[0]].put_nowait(message)
-    players[message[0]].set()
+
+    msg_list = message.split('_')
+    if msg_list[0] not in players or len(msg_list) != 3:
+        print("Unexpected message: {}".format(message))
+        return
+
+    name = msg_list[0]
+    action = Act[msg_list[1]]
+    target = msg_list[2]
+
+    actions[name].put_nowait([action, target])
+
+    if action is Act.PASS:
+        players[name].set()
 
 def process_actions(name):
     player = players[name]
@@ -76,9 +91,11 @@ def process_actions(name):
 def main():
     client = mqtt.Client()
     client.on_message = on_message
+    client.message_callback_add("ee180d/hp_shotgun/action", on_message_action)
     client.message_callback_add("ee180d/hp_shotgun/setup", on_message_setup)
     client.connect("broker.hivemq.com")
     client.subscribe("ee180d/hp_shotgun")
+    client.subscribe("ee180d/hp_shotgun/action")
     client.subscribe("ee180d/hp_shotgun/setup")
 
     if len(sys.argv) == 2:
