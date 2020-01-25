@@ -7,25 +7,50 @@ import queue
 
 threads = []
 players = {}
-actions = {}
 P_LOCK = threading.Event()
 NUM_PLAYERS = 2
 
 class Player:
     def __init__(self, name, lives=5, ammo=0):
         self.name = name
-        self.ready = threading.Event()
         self.lives = lives
         self.ammo = ammo
+        self.defense = 0.5
+
+        # Using a Queue here
+        self.actions = queue.Queue()
+        self.ready = threading.Event()
 
     def __str__(self):
-        return "Player " + str(self.name)
+        return "Player {} with lives: {} and ammo: {}".format(self.name, self.lives, self.ammo)
+
+    def run(self, act_list):
+        # TODO
+        pass
+
+    def reload(self):
+        print("Action: Player {} reloaded!".format(self.name))
+        ammo += 1
 
     def shoot(self):
-        ammo = ammo - 1
+        if self.ammo > 0:
+            print("Action: Player {} shot his shot!".format(self.name))
+            ammo -= 1
+        else:
+            print("Action: Player {} tried to shoot, but failed".format(self.name))
+
+    def block(self):
+        print("Action: Player {} blocked!".format(self.name))
+        # TODO
 
     def get_hit(self):
-        lives = lives - 1
+        # TODO
+        print("Action: Player {} was hit!".format(self.name))
+        lives -= 1
+
+        if (self.lives <= 0):
+            # TODO
+            pass
 
     def wait(self):
         self.ready.wait()
@@ -51,7 +76,6 @@ def on_message_setup(client, userdata, msg):
 
     print("Received for setup: " + message)
     players[message] = Player(message)
-    actions[message] = queue.Queue()
 
     if len(players) >= NUM_PLAYERS:
         P_LOCK.set()
@@ -69,23 +93,25 @@ def on_message_action(client, userdata, msg):
     action = Act[msg_list[1]]
     target = msg_list[2]
 
-    actions[name].put_nowait([action, target])
-
     if action is Act.PASS:
         players[name].set()
+        return
+
+    players[name].actions.put_nowait([action, target])
 
 def process_actions(name):
     player = players[name]
-    q = actions[name]
+    q = player.actions
     try:
         while True:
             item = q.get_nowait()
 
-            # Process string here
+            # TODO: Compile actions here
             print("Player {} with {}".format(name,item))
 
             q.task_done()
     except queue.Empty:
+        # TODO: Call Player.run() here
         print("Finished processing " + name)
 
 def main():
