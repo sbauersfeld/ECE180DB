@@ -11,14 +11,14 @@ P_LOCK = threading.Event()
 NUM_PLAYERS = 2
 
 class Player:
-    def __init__(self, name, lives=5, ammo=0):
+    def __init__(self, name, lives=5, ammo=0, q_size=0):
         self.name = name
         self.lives = lives
         self.ammo = ammo
         self.defense = 0.5
 
         # Using a Queue here
-        self.actions = queue.Queue()
+        self.actions = queue.Queue(q_size)
         self.ready = threading.Event()
 
     def __str__(self):
@@ -67,15 +67,17 @@ def on_message(client, userdata, msg):
 
 def on_message_setup(client, userdata, msg):
     message = msg.payload.decode()
-    if message in players:
-        print("Player {} already set up".format(message))
+    name = message
+
+    if name in players:
+        print("Player {} already set up".format(name))
         return
     elif P_LOCK.isSet():
         print("Max number of players already registered")
         return
 
-    print("Received for setup: " + message)
-    players[message] = Player(message)
+    print("Received for setup: " + name)
+    players[name] = Player(name)
 
     if len(players) >= NUM_PLAYERS:
         P_LOCK.set()
@@ -97,19 +99,27 @@ def on_message_action(client, userdata, msg):
         players[name].set()
         return
 
-    players[name].actions.put_nowait([action, target])
+    actions = players[name].actions
+
+    try:
+        actions.put_nowait([action, target])
+    except queue.Full:
+        print("Extra action received for {}: {}".format(name, action))
+
+    if actions.full():
+        players[name].set()
 
 def process_actions(name):
     player = players[name]
-    q = player.actions
+    actions = player.actions
     try:
         while True:
-            item = q.get_nowait()
+            item = actions.get_nowait()
 
             # TODO: Compile actions here
             print("Player {} with {}".format(name,item))
 
-            q.task_done()
+            actions.task_done()
     except queue.Empty:
         # TODO: Call Player.run() here
         print("Finished processing " + name)
@@ -131,7 +141,7 @@ def main():
     print("Listening...")
     client.loop_start()
 
-    print("Waiting to register all {} players...\n".format(NUM_PLAYERS))
+    print("Waiting to register {} players...\n".format(NUM_PLAYERS))
     P_LOCK.wait()
 
     round_num = 0
