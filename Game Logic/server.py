@@ -5,11 +5,11 @@ import time
 import threading
 import queue
 
-# Currently using Queue, but should consider other data structures
 threads = []
 players = {}
 actions = {}
-TIMEOUT = 5
+P_LOCK = threading.Event()
+NUM_PLAYERS = 2
 
 class Player:
     def __init__(self, name, lives=5, ammo=0):
@@ -38,9 +38,19 @@ class Player:
 
 def on_message_setup(client, userdata, msg):
     message = msg.payload.decode()
+    if message in players:
+        print("Player {} already set up".format(message))
+        return
+    elif P_LOCK.isSet():
+        print("Max number of players already registered")
+        return
+
     print("Received for setup: " + message)
     players[message] = Player(message)
     actions[message] = queue.Queue()
+
+    if len(players) >= NUM_PLAYERS:
+        P_LOCK.set()
 
 def on_message(client, userdata, msg):
     message = msg.payload.decode().split('_')
@@ -57,7 +67,7 @@ def process_actions(name):
             item = q.get_nowait()
 
             # Process string here
-            print(item)
+            print("Player {} with {}".format(name,item))
 
             q.task_done()
     except queue.Empty:
@@ -71,10 +81,15 @@ def main():
     client.subscribe("ee180d/hp_shotgun")
     client.subscribe("ee180d/hp_shotgun/setup")
 
+    if len(sys.argv) == 2:
+        global NUM_PLAYERS
+        NUM_PLAYERS = int(sys.argv[1])
+
     print("Listening...")
     client.loop_start()
 
-    input("Please register all players...\n")
+    print("Waiting to register all {} players...\n".format(NUM_PLAYERS))
+    P_LOCK.wait()
 
     round_num = 0
     while True:
