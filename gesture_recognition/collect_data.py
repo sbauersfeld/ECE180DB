@@ -1,14 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.7
 # import busio
 import time
 import datetime
-# import pandas as pd
+import pandas as pd
 import os
 
-
-
-# QUATERNION_SCALE = (1.0 / (1<<14))
-# test = 0    # set test to 1 for test data
+datatype = "training" # set datatype to 'test/training' for test/training data
 
 # i = 0
 # header = ["time_ms", "delta_ms"]
@@ -23,7 +20,7 @@ import os
 ###					create/locate directory for storing data 				###
 ###############################################################################
 member_name = input("Enter name: ")
-parent_dir = "training_data/" + member_name # change to test_data for testing data
+parent_dir = datatype + "_data/" + member_name # change to test_data for testing data
 filename = input("Name the folder where the data will be stored: ")
 path = os.path.join(parent_dir, filename)
 if not os.path.exists(path):
@@ -48,10 +45,7 @@ while True:
 			print("trace discarded")
 			input("Press 'Enter' to continue...")
 
-
-# # TODO: Add option to delete just recorded trace if it's bad
-# # TODO: Add option to save notes per recorded trace
-# i = starting_index
+i = starting_index
 # while True:
 #   input("Collecting file " + str(i)+ ". Press Enter to continue...")
 #   start = datetime.datetime.now()
