@@ -143,33 +143,34 @@ def on_message_action(client, userdata, msg):
     message = msg.payload.decode()
     print("Received!")
 
-    msg_list = message.split('_')
-    if msg_list[0] not in players or len(msg_list) != 3:
+    try:
+        msg_list = message.split('_')
+
+        name = msg_list[0]
+        action = Act[msg_list[1]]
+        target = msg_list[2]
+
+        player = players[name]
+    except (KeyError, IndexError):
         print("Unexpected message: {}".format(message))
         return
 
-    name = msg_list[0]
-    action = Act[msg_list[1]]
-    target = msg_list[2]
-
-    if players[name].is_dead():
+    if player.is_dead():
         return
-    if players[name].is_processing():
-        print("Player {}'s actions for this round has already been chosen".format(name))
+    if player.is_processing():
+        print("Player {}'s actions have already been chosen".format(name))
         return
     if action is Act.PASS:
-        players[name].start_processing()
+        player.start_processing()
         return
 
-    actions = players[name].actions
-
     try:
-        actions.put_nowait([action, target])
+        player.actions.put_nowait([action, target])
     except queue.Full:
         print("Extra action received for {}: {}".format(name, action))
 
-    if actions.full():
-        players[name].start_processing()
+    if player.actions.full():
+        player.start_processing()
 
 
 ####################
@@ -233,7 +234,6 @@ def main():
         for t in threads:
             t.join()
 
-        # TODO: End game here
         alive = [player for (name,player) in players.items() if not player.is_dead()]
         if len(alive) == 1:
             print("\nWINNER! {} has won the game!".format(alive[0]))
