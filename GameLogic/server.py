@@ -4,62 +4,119 @@ import sys
 import time
 import threading
 import queue
+import random
 
-threads = []
 players = {}
 P_LOCK = threading.Event()
 NUM_PLAYERS = 2
 
 class Player:
-    def __init__(self, name, lives=5, ammo=0, q_size=0):
+    def __init__(self, name, lives=2, ammo=0, q_size=0):
         self.name = name
         self.lives = lives
         self.ammo = ammo
-        self.defense = 0.5
+        self.defense = 0.75
 
         # Using a Queue here
         self.actions = queue.Queue(q_size)
         self.ready = threading.Event()
 
-    def __str__(self):
-        return "Player {} with lives: {} and ammo: {}".format(self.name, self.lives, self.ammo)
+        # State variables
+        self.is_hit = False
+        self.is_blocking = False
+        self.curr_acts = set()
 
-    def run(self, act_list):
-        # TODO
-        pass
+    def __str__(self):
+        return "Player {}".format(self.name)
+
+
+    ####################
+    ##  Game State functions
+    ####################
+
+    def status(self):
+        return "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
+
+    def is_dead(self):
+        if self.lives <= 0:
+            return True
+        
+        return False
+
+    def run(self):
+        if self.is_dead():
+            return
+
+        if Act.BLOCK in self.curr_acts:
+            self.block()
+        elif Act.RELOAD in self.curr_acts:
+            self.reload()
+        elif Act.SHOOT in self.curr_acts:
+            self.shoot()
+
+        if Act.HIT in self.curr_acts:
+            self.get_hit()
+        if self.is_hit:
+            if self.is_blocking and random.random() < self.defense:
+                print("{} managed to avoid the shot!".format(self.name))
+            else:
+                print("{} took damage!".format(self.name))
+                self.lives -= 1
+
+        print(self.status())
+        if self.lives <= 0:
+            print("{} has died!".format(self.name))
+
+
+    ####################
+    ##  Player Actions
+    ####################
 
     def reload(self):
-        print("Action: Player {} reloaded!".format(self.name))
-        ammo += 1
+        print("Action: {} reloaded!".format(self.name))
+        self.ammo += 1
 
     def shoot(self):
         if self.ammo > 0:
-            print("Action: Player {} shot his shot!".format(self.name))
-            ammo -= 1
+            print("Action: {} shot his shot!".format(self.name))
+            self.ammo -= 1
         else:
-            print("Action: Player {} tried to shoot, but failed".format(self.name))
+            print("Action: {} tried to shoot, but failed".format(self.name))
 
     def block(self):
-        print("Action: Player {} blocked!".format(self.name))
-        # TODO
+        print("Action: {} tried to block!".format(self.name))
+        self.is_blocking = True
 
     def get_hit(self):
-        # TODO
-        print("Action: Player {} was hit!".format(self.name))
-        lives -= 1
+        print("{} was shot at!".format(self.name))
+        self.is_hit = True
 
-        if (self.lives <= 0):
-            # TODO
-            pass
 
-    def wait(self):
+    ####################
+    ##  Event object wrapper functions
+    ####################
+
+    def wait_to_process(self):
+        if self.is_dead():
+            return
         self.ready.wait()
 
-    def clear(self):
+    def stop_processing(self):
+        self.is_hit = False
+        self.is_blocking = False
+        self.curr_acts.clear()
         self.ready.clear()
 
-    def set(self):
+    def start_processing(self):
         self.ready.set()
+
+    def is_processing(self):
+        return self.ready.isSet()
+
+
+####################
+##  MQTT callback functions
+####################
 
 def on_message(client, userdata, msg):
     message = msg.payload.decode()
@@ -72,7 +129,7 @@ def on_message_setup(client, userdata, msg):
     if name in players:
         print("Player {} already set up".format(name))
         return
-    elif P_LOCK.isSet():
+    if P_LOCK.isSet():
         print("Max number of players already registered")
         return
 
@@ -95,8 +152,13 @@ def on_message_action(client, userdata, msg):
     action = Act[msg_list[1]]
     target = msg_list[2]
 
+    if players[name].is_dead():
+        return
+    if players[name].is_processing():
+        print("Player {}'s actions for this round has already been chosen".format(name))
+        return
     if action is Act.PASS:
-        players[name].set()
+        players[name].start_processing()
         return
 
     actions = players[name].actions
@@ -107,7 +169,12 @@ def on_message_action(client, userdata, msg):
         print("Extra action received for {}: {}".format(name, action))
 
     if actions.full():
-        players[name].set()
+        players[name].start_processing()
+
+
+####################
+##  Threaded function
+####################
 
 def process_actions(name):
     player = players[name]
@@ -116,13 +183,18 @@ def process_actions(name):
         while True:
             item = actions.get_nowait()
 
-            # TODO: Compile actions here
             print("Player {} with {}".format(name,item))
+            player.curr_acts.add(item[0])
 
             actions.task_done()
     except queue.Empty:
-        # TODO: Call Player.run() here
+        player.run()
         print("Finished processing " + name)
+
+
+####################
+##  Main function
+####################
 
 def main():
     client = mqtt.Client()
@@ -144,13 +216,14 @@ def main():
     print("Waiting to register {} players...\n".format(NUM_PLAYERS))
     P_LOCK.wait()
 
+    threads = []
     round_num = 0
     while True:
         round_num += 1
         print("\nStarting round {0}".format(round_num))
         print("Waiting for input...")
         for name, player in players.items():
-            player.wait()
+            player.wait_to_process()
 
         for name in players:
             t = threading.Thread(target=process_actions, args=[name])
@@ -160,8 +233,17 @@ def main():
         for t in threads:
             t.join()
 
+        # TODO: End game here
+        alive = [player for (name,player) in players.items() if not player.is_dead()]
+        if len(alive) == 1:
+            print("\nWINNER! {} has won the game!".format(alive[0]))
+            break
+        elif len(alive) <= 0:
+            print("\nDRAW! There are no remaining players.")
+            break
+
         for name, player in players.items():
-            player.clear()
+            player.stop_processing()
 
 if __name__ == '__main__':
     main()
