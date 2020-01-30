@@ -38,19 +38,24 @@ index = starting_index
 while True:
 	try:
 		input("Trace for " + filename + "{0:03d}".format(index) + "\nPress 'Enter' to start tracing...")
+		start = datetime.datetime.now()
+		elapsed_ms = 0
+		previous_elapsed_ms = 0
 		data = []
 		while True:
-			row = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-			data.append(row)
 			print("tracing...")
+			row = [elapsed_ms, elapsed_ms - previous_elapsed_ms, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+			data.append(row)
+			previous_elapsed_ms = elapsed_ms
+			elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
 	except KeyboardInterrupt:
 		key = input("\nTracing stopped:\n(d) --> discard recorded trace\n(s) --> save recorded trace\n(e) --> exit\n")
 		if key is "e": # exit
 			exit(0)
 		elif key is "s": # save tracing
-			file_name = filename + "{0:03d}".format(index) + ".csv" #include parent directory
+			file_name = filename + "{0:03d}".format(index) + ".csv"
 			file_name = os.path.join(path, file_name)
-			print(filename_name)
 			df = pd.DataFrame(data, columns = header)
 			df.to_csv(file_name, header=True)
 			index += 1
