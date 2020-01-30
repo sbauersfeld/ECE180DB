@@ -6,3 +6,4 @@ class Act(Enum):
     SHOOT = 2
     BLOCK = 3
     HIT = 4
+    DIST = 5
