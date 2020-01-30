@@ -1,4 +1,4 @@
-#!/usr/bin/python3.7
+#!/home/pi/berryconda3/bin/python
 # import busio
 import time
 import datetime
@@ -7,45 +7,59 @@ import os
 
 datatype = "training" # set datatype to 'test/training' for test/training data
 
-# i = 0
-# header = ["time_ms", "delta_ms"]
-# for sensor in ["accel_ms2", "mag_uT", "gyro_degs", "euler_deg", "quaternion", "lin_accel_ms2", "gravity_ms2"]:
-#   if sensor is "quaternion":
-#     header.append(sensor + "_w")
-#   header.append(sensor + "_x")
-#   header.append(sensor + "_y")
-#   header.append(sensor + "_z")
-
 ###############################################################################
 ###					create/locate directory for storing data 				###
 ###############################################################################
 member_name = input("Enter name: ")
 parent_dir = datatype + "_data/" + member_name # change to test_data for testing data
+if not os.path.exists(parent_dir):
+	os.mkdir(parent_dir + '/')
 filename = input("Name the folder where the data will be stored: ")
 path = os.path.join(parent_dir, filename)
 if not os.path.exists(path):
   os.mkdir(path + '/')
-starting_index = int(input("What number should we start on? "))
 
 ###############################################################################
-###					create/locate directory for storing data 				###
+###									setup 									###
 ###############################################################################
+header = ["time_ms", "delta_ms"]
+for sensor in ["Accel", "Gyro", "Mag"]:
+	header.append(sensor + "_x")
+	header.append(sensor + "_y")
+	header.append(sensor + "_z")
+
+starting_index = int(input("What number should we start on? "))
+
+
+###############################################################################
+###									tracing 								###
+###############################################################################
+index = starting_index
 while True:
 	try:
+		input("Trace for " + filename + "{0:03d}".format(index) + "\nPress 'Enter' to start tracing...")
+		data = []
 		while True:
+			row = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+			data.append(row)
 			print("tracing...")
 	except KeyboardInterrupt:
 		key = input("\nTracing stopped:\n(d) --> discard recorded trace\n(s) --> save recorded trace\n(e) --> exit\n")
-		if key is "e":
+		if key is "e": # exit
 			exit(0)
-		elif key is "s":
+		elif key is "s": # save tracing
+			file_name = filename + "{0:03d}".format(index) + ".csv" #include parent directory
+			file_name = os.path.join(path, file_name)
+			print(filename_name)
+			df = pd.DataFrame(data, columns = header)
+			df.to_csv(file_name, header=True)
+			index += 1
 			print("trace saved")
-			input("Press 'Enter' to continue...")
-		elif key is "d":
+		elif key is "d": # discard tracing
 			print("trace discarded")
-			input("Press 'Enter' to continue...")
 
-i = starting_index
+
+i = 0
 # while True:
 #   input("Collecting file " + str(i)+ ". Press Enter to continue...")
 #   start = datetime.datetime.now()
@@ -71,8 +85,4 @@ i = starting_index
 #     data.append(row)
 #     previous_elapsed_ms = elapsed_ms
 #     elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
-#
-#   file_name = filename + "/" + filename + '{0:03d}'.format(i) + ".csv"
-#   df = pd.DataFrame(data, columns = header)
-#   df.to_csv(file_name, header=True)
-#   i += 1
+
