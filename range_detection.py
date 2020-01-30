@@ -48,13 +48,13 @@ def distance_to_camera(knownWidth, focalLength, perWidth):
 KNOWN_DISTANCE = 12.0
 	
 # initialize the known object width
-KNOWN_HEIGHT = 3.0
+KNOWN_HEIGHT = 2.8
 
 FPS = 30 # is this true?
-INIT_TIME = 2 # seconds
+INIT_TIME = 10 # seconds
 INIT_COUNT = FPS * INIT_TIME
 
-# focalLength = (450 * KNOWN_DISTANCE) / KNOWN_HEIGHT
+focalLength = 500 #precomputed
 
 cap = cv2.VideoCapture(0)
 idx = 0
@@ -85,15 +85,15 @@ while(True):
 	measured_height = marker[1][1]
 	# print(measured_height)
 
-	if idx < INIT_COUNT:
-		init_pixels[idx] = measured_height
-	elif idx == INIT_COUNT:
-		focalLength = np.mean(init_pixels) * KNOWN_DISTANCE / KNOWN_HEIGHT ## TODO: remove calibration stage
-		print("focal length:", focalLength)
-	else:
-		dist = distance_to_camera(KNOWN_HEIGHT, focalLength, measured_height)
-		if idx % int(FPS*0.5) == 0:
-			print("distance:", dist)
+	# if idx < INIT_COUNT:
+	# 	init_pixels[idx] = measured_height
+	# elif idx == INIT_COUNT:
+	# 	focalLength = np.mean(init_pixels) * KNOWN_DISTANCE / KNOWN_HEIGHT ## TODO: remove calibration stage
+	# 	print("focal length:", focalLength)
+	# else:
+	dist = distance_to_camera(KNOWN_HEIGHT, focalLength, measured_height)
+	if idx % int(FPS*0.5) == 0:
+		print("distance:", dist)
 
 	# Display the resulting frame
 	cv2.imshow('frame', frame)
