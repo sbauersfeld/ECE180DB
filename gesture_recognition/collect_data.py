@@ -1,8 +1,11 @@
+#!/usr/bin/python3
 # import busio
 import time
 import datetime
 # import pandas as pd
 import os
+
+
 
 # QUATERNION_SCALE = (1.0 / (1<<14))
 # test = 0    # set test to 1 for test data
@@ -19,17 +22,33 @@ import os
 ###############################################################################
 ###					create/locate directory for storing data 				###
 ###############################################################################
-parent_dir = "training_data" # change to test_data for testing data
-filename = input("Name the folder where data will be stored: ")
+member_name = input("Enter name: ")
+parent_dir = "training_data/" + member_name # change to test_data for testing data
+filename = input("Name the folder where the data will be stored: ")
 path = os.path.join(parent_dir, filename)
 if not os.path.exists(path):
   os.mkdir(path + '/')
 starting_index = int(input("What number should we start on? "))
 
+###############################################################################
+###					create/locate directory for storing data 				###
+###############################################################################
+while True:
+	try:
+		while True:
+			print("tracing...")
+	except KeyboardInterrupt:
+		key = input("\nTracing stopped:\n(d) --> discard recorded trace\n(s) --> save recorded trace\n(e) --> exit\n")
+		if key is "e":
+			exit(0)
+		elif key is "s":
+			print("trace saved")
+			input("Press 'Enter' to continue...")
+		elif key is "d":
+			print("trace discarded")
+			input("Press 'Enter' to continue...")
 
 
-# duration_s = float(input("Please input how long should a sensor trace be in seconds (floats OK): "))
-#
 # # TODO: Add option to delete just recorded trace if it's bad
 # # TODO: Add option to save notes per recorded trace
 # i = starting_index
