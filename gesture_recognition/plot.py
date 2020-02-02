@@ -3,6 +3,7 @@ import time
 import datetime
 import os
 import matplotlib
+from sensor import *
 matplotlib.use('Agg') # for rpi OS
 import matplotlib.pyplot as plt
 plt.subplots_adjust(hspace = 0.5)
@@ -23,7 +24,9 @@ if not os.path.exists(path):
 ###									setup 									###
 ###############################################################################
 starting_index = int(input("Starting index: "))
-duration_s = int(input("Sensor trace duration: "))
+duration_s = float(input("Sensor trace duration: "))
+IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
+IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
 sensor_data = [0,0,0,0,0,0,0,0,0]
 
 ###############################################################################
@@ -44,8 +47,9 @@ while True:
 
 		#TODO: track sensor values
 			# sensor returns list gyro(x/y/z), accl(x/y/z), mag(x/y/z)
+		sensor_data = read_sensor()
+
 		for i in range(len(sensor_data)):
-			sensor_data[i] += i
 			data[i].append(sensor_data[i])
 		time.append(elapsed_ms)
 		elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
@@ -73,7 +77,7 @@ while True:
 			
 			index += 1
 			print("Trace saved")
-			if key[1] is "e": #exit
+			if len(key) > 1 and key[1] is "e": #exit
 				exit(0)
 			break
 		elif key is "d": # discard plot
