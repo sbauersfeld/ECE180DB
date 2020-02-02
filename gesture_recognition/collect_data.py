@@ -1,5 +1,4 @@
-#!/home/pi/berryconda3/bin/python
-# import busio
+#!/home/pi/berryconda3/bin/python3
 import time
 import datetime
 import pandas as pd
@@ -28,7 +27,8 @@ for sensor in ["Accel", "Gyro", "Mag"]:
 	header.append(sensor + "_y")
 	header.append(sensor + "_z")
 
-starting_index = int(input("What number should we start on? "))
+starting_index = int(input("Starting index: "))
+duration_s = int(input("Sensor trace duration: "))
 
 
 ###############################################################################
@@ -36,35 +36,43 @@ starting_index = int(input("What number should we start on? "))
 ###############################################################################
 index = starting_index
 while True:
-	try:
-		input("Trace for " + filename + "{0:03d}".format(index) + "\nPress 'Enter' to start tracing...")
-		start = datetime.datetime.now()
-		elapsed_ms = 0
-		previous_elapsed_ms = 0
-		data = []
-		while True:
-			print("tracing...")
-			row = [elapsed_ms, elapsed_ms - previous_elapsed_ms, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+	input("Trace for " + filename + "{0:03d}".format(index) + "\nPress 'Enter' to start tracing...")
+	start = datetime.datetime.now()
+	elapsed_ms = 0
+	previous_elapsed_ms = 0
+	data = []
 
-			data.append(row)
-			previous_elapsed_ms = elapsed_ms
-			elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
-	except KeyboardInterrupt:
-		key = input("\nTracing stopped:\n(d) --> discard recorded trace\n(s) --> save recorded trace\n(e) --> exit\n")
+	while elapsed_ms < duration_s * 1000:
+		print("tracing...")
+
+		#TODO: track sensor values
+
+		row = [elapsed_ms, elapsed_ms - previous_elapsed_ms, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+		data.append(row)
+		previous_elapsed_ms = elapsed_ms
+		elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
+
+	# save or discard or exit or save and exit
+	print("\nTracing finished:")
+	while True:
+		key = input("\n(d)  --> discard recorded trace\n(s)  --> save recorded trace\n(e)  --> exit\n(se) --> save and exit\n")
 		if key is "e": # exit
 			exit(0)
-		elif key is "s": # save tracing
+		elif key[0] is "s": # save tracing
 			file_name = filename + "{0:03d}".format(index) + ".csv"
 			file_name = os.path.join(path, file_name)
 			df = pd.DataFrame(data, columns = header)
 			df.to_csv(file_name, header=True)
 			index += 1
-			print("trace saved")
+			print("Trace saved")
+			if key[1] is "e":
+				exit(0)
+			break
 		elif key is "d": # discard tracing
-			print("trace discarded")
-
-
-i = 0
+			print("Trace discarded")
+			break
+		else:
+			print("Invalid input")
 # while True:
 #   input("Collecting file " + str(i)+ ". Press Enter to continue...")
 #   start = datetime.datetime.now()
@@ -91,3 +99,32 @@ i = 0
 #     previous_elapsed_ms = elapsed_ms
 #     elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
 
+
+
+# while True:
+# 	try:
+# 		input("Trace for " + filename + "{0:03d}".format(index) + "\nPress 'Enter' to start tracing...")
+# 		start = datetime.datetime.now()
+# 		elapsed_ms = 0
+# 		previous_elapsed_ms = 0
+# 		data = []
+# 		while True:
+# 			print("tracing...")
+# 			row = [elapsed_ms, elapsed_ms - previous_elapsed_ms, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# 			data.append(row)
+# 			previous_elapsed_ms = elapsed_ms
+# 			elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
+# 	except KeyboardInterrupt:
+# 		key = input("\nTracing stopped:\n(d) --> discard recorded trace\n(s) --> save recorded trace\n(e) --> exit\n")
+# 		if key is "e": # exit
+# 			exit(0)
+# 		elif key is "s": # save tracing
+# 			file_name = filename + "{0:03d}".format(index) + ".csv"
+# 			file_name = os.path.join(path, file_name)
+# 			df = pd.DataFrame(data, columns = header)
+# 			df.to_csv(file_name, header=True)
+# 			index += 1
+# 			print("trace saved")
+# 		elif key is "d": # discard tracing
+# 			print("trace discarded")
