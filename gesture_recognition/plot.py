@@ -1,4 +1,12 @@
 #!/home/pi/berryconda3/bin/python3
+# duration = 1.5s
+# make sure to input correct index to not overwrite existing files
+# starting position for all gestures: hand right next to hips
+# Gestures:
+# 	shoot: extend arm forward
+# 	reload: bent arm with hand pointing upwards
+# 	shield: make an X with arms (moving just the arm with the sensor is enough)
+
 import time
 import datetime
 import os
@@ -12,7 +20,8 @@ plt.subplots_adjust(hspace = 0.5)
 ###############################################################################
 ###					create/locate directory for storing data 				###
 ###############################################################################
-parent_dir = "data_plots"
+member_name = input("Enter name: ")
+parent_dir = "data_plots/" + member_name
 if not os.path.exists(parent_dir):
 	os.mkdir(parent_dir + '/')
 filename = input("Name the gesture that will be traced: ")
