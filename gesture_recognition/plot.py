@@ -54,8 +54,6 @@ while True:
 	while elapsed_ms < duration_s * 1000:
 		print("tracing...")
 
-		#TODO: track sensor values
-			# sensor returns list gyro(x/y/z), accl(x/y/z), mag(x/y/z)
 		sensor_data = read_sensor()
 
 		for i in range(len(sensor_data)):
@@ -70,7 +68,7 @@ while True:
 		if key is "e": # exit
 			exit(0)
 		elif key[0] is "s": # save plot
-			sensors = ["Gyroscope", "Accelerometer", "Magnetometer"]
+			sensors = ["Accelerometer", "Gyroscope", "Magnetometer"]
 			axis = ['x', 'y', 'z']
 			for i in range(len(sensors)):
 				for j in range(len(axis)): # for x,y,z axis

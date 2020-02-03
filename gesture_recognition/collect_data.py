@@ -3,6 +3,7 @@ import time
 import datetime
 import pandas as pd
 import os
+from sensor import *
 
 datatype = "training" # set datatype to 'test/training' for test/training data
 
@@ -29,7 +30,9 @@ for sensor in ["Accel", "Gyro", "Mag"]:
 
 starting_index = int(input("Starting index: "))
 duration_s = int(input("Sensor trace duration: "))
-
+IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
+IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
+sensor_data = [0,0,0,0,0,0,0,0,0]
 
 ###############################################################################
 ###									tracing 								###
@@ -45,9 +48,9 @@ while True:
 	while elapsed_ms < duration_s * 1000:
 		print("tracing...")
 
-		#TODO: track sensor values
-
-		row = [elapsed_ms, elapsed_ms - previous_elapsed_ms, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+		sensor_data = read_sensor()
+		row = [elapsed_ms, elapsed_ms - previous_elapsed_ms]
+		row.extend(sensor_data)
 		data.append(row)
 		previous_elapsed_ms = elapsed_ms
 		elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000

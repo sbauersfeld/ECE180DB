@@ -41,7 +41,7 @@ def read_sensor():
 	MAGy = IMU.readMAGy()
 	MAGz = IMU.readMAGz()
 
-	return [GYRx, GYRy, GYRz, ACCx, ACCy, ACCz, MAGx, MAGy, MAGz]
+	return [ACCx, ACCy, ACCz, GYRx, GYRy, GYRz, MAGx, MAGy, MAGz]
 
 # def read_sensor():
 # 	# global variables
