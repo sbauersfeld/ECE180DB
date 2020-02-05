@@ -3,72 +3,29 @@ import cv2
 import imutils
 
 def filter_color(frame):
-	# lower_red = np.array([])
-
-	# gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	# blurred = cv2.GaussianBlur(gray, (7, 7), 0)
-	# thresh = cv2.threshold(blurred, 100, 155, cv2.THRESH_BINARY)[1]
-	# mask3 = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
-	# res = cv2.bitwise_and(frame, frame, mask=thresh)
-	# return res
-
-	# lower_red = np.array([150, 150, 100])
-	# upper_red = np.array([255, 255, 255])
-
-	# mask = cv2.inRange(frame, lower_red, upper_red)
-
-	# res = cv2.bitwise_and(frame, frame, mask=mask)
-	# return res
-
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-
-	# lower_red = np.array([30,150,50])
-	# upper_red = np.array([255,255,180])
-	lower_red = np.array([30,150,50])
-	upper_red = np.array([255,255,255])
+	lower_red = np.array([30,150,100])
+	upper_red = np.array([255,255,225])
 	mask = cv2.inRange(hsv, lower_red, upper_red)
 
-	# upper mask (170-180)
-	# lower_red = np.array([160,0,200])
-	# upper_red = np.array([180,255,225])
-	# mask1 = cv2.inRange(hsv, lower_red, upper_red)
-
-	# # join my masks
-	# mask = mask0 + mask1
 	res = cv2.bitwise_and(frame, frame, mask=mask)
 	return res
  
 def find_marker(image):
-	# convert the image to grayscale, blur it, and detect edges
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	gray = cv2.GaussianBlur(gray, (3, 3), 0)
-	edged = imutils.auto_canny(gray)
+	gray = cv2.GaussianBlur(gray, (15, 15), 0)
  
-	# find the contours in the edged image and keep the largest one;
-	# we'll assume that this is our piece of paper in the image
-	cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+	cnts = cv2.findContours(gray.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 	cnts = imutils.grab_contours(cnts)
 	if len(cnts) == 0:
 		return [], []
 
 	c = max(cnts, key = cv2.contourArea)
- 
-	# compute the bounding box of the of the paper region and return it
 	return cv2.minAreaRect(c), c
-
-# dark_red  = np.uint8([[[12,22,121]]])
-# dark_red = cv2.cvtColor(dark_red,cv2.COLOR_BGR2HSV)
-
-def distance_to_camera(knownWidth, focalLength, perWidth):
-	# compute and return the distance from the maker to the camera
-	return (knownWidth * focalLength) / perWidth
-
-# initialize the known distance from the camera to the object # neopixel from adafruit
-KNOWN_DISTANCE = 12.0
 	
 # initialize the known object width
-KNOWN_HEIGHT = 2.8
+KNOWN_HEIGHT = 4.0
 
 FPS = 30 # is this true?
 INIT_TIME = 10 # seconds
@@ -80,50 +37,26 @@ cap = cv2.VideoCapture(0)
 idx = 0
 init_pixels = np.zeros(INIT_COUNT)
 while(True):
-	# Capture frame-by-frame
+	idx += 1
 	ret, frame = cap.read()
 
-	# Our operations on the frame come here
 	filtered_frame = filter_color(frame)
 	marker, cnt = find_marker(filtered_frame)
-	# cv2.drawContours(frame, [cnt], -1, (0, 255, 0), 2)
 
 	if len(marker) != 0:
 		box = cv2.cv.BoxPoints(marker) if imutils.is_cv2() else cv2.boxPoints(marker)
 		box = np.int0(box)
 		cv2.drawContours(filtered_frame, [box], -1, (0, 255, 0), 2)
 
-	# min_y, min_x = np.Infinity, np.Infinity
-	# max_y, max_x = 0, 0
-	# print(box)
-	# for point in box:
-	# 	min_y = min(min_y, point[1])
-	# 	max_y = max(max_y, point[1])
-	# 	min_x = min(min_x, point[0])
-	# 	max_x = max(max_x, point[0])
-	# print(max_y - min_y)
+		measured_height = marker[1][1]
+		# print(measured_height)
 
-	# measured_height = marker[1][1]
-	# print(measured_height)
+		dist = (KNOWN_HEIGHT * focalLength) / measured_height
+		print("distance:", dist)
 
-	# if idx < INIT_COUNT:
-	# 	init_pixels[idx] = measured_height
-	# elif idx == INIT_COUNT:
-	# 	focalLength = np.mean(init_pixels) * KNOWN_DISTANCE / KNOWN_HEIGHT ## TODO: remove calibration stage
-	# 	print("focal length:", focalLength)
-	# else:
-
-	# dist = distance_to_camera(KNOWN_HEIGHT, focalLength, measured_height)
-	# if idx % int(FPS*0.5) == 0:
-	# 	print("distance:", dist)
-
-	# Display the resulting frame
 	cv2.imshow('frame', filtered_frame)
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
 
-	idx += 1
-
-# When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
