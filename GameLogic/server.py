@@ -24,7 +24,7 @@ class Player:
         # State variables
         self.is_hit = False
         self.is_blocking = False
-        self.curr_acts = set()
+        self.curr_acts = {}
 
     def __str__(self):
         return "Player {}".format(self.name)
@@ -46,6 +46,13 @@ class Player:
     def run(self):
         if self.is_dead():
             return
+
+        if Act.DIST in self.curr_acts:
+            try:
+                new_defense = float(self.curr_acts[Act.DIST])
+                self.update_distance(new_defense)
+            except ValueError:
+                print("DIST message for {} had non-float value".format(self.name))
 
         if Act.BLOCK in self.curr_acts:
             self.block()
@@ -90,6 +97,10 @@ class Player:
     def get_hit(self):
         print("{} was shot at!".format(self.name))
         self.is_hit = True
+
+    def update_distance(self, value):
+        self.defense = value
+        print("{}'s defense updated to {}".format(self.name, self.defense))
 
 
     ####################
@@ -148,7 +159,7 @@ def on_message_action(client, userdata, msg):
 
         name = msg_list[0]
         action = Act[msg_list[1]]
-        target = msg_list[2]
+        value = msg_list[2]
 
         player = players[name]
     except (KeyError, IndexError):
@@ -165,7 +176,7 @@ def on_message_action(client, userdata, msg):
         return
 
     try:
-        player.actions.put_nowait([action, target])
+        player.actions.put_nowait([action, value])
     except queue.Full:
         print("Extra action received for {}: {}".format(name, action))
 
@@ -185,7 +196,7 @@ def process_actions(name):
             item = actions.get_nowait()
 
             print("Player {} with {}".format(name,item))
-            player.curr_acts.add(item[0])
+            player.curr_acts[item[0]] = item[1]
 
             actions.task_done()
     except queue.Empty:

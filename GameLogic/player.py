@@ -3,11 +3,11 @@ import paho.mqtt.client as mqtt
 import sys
 import time
 
-def send_msg(client, name, action, target=""):
+def send_msg(client, name, action, value=""):
     print("Sending message...")
 
     topic = "ee180d/hp_shotgun/action"
-    message = '_'.join([name, action.name, target])
+    message = '_'.join([name, action.name, value])
     ret = client.publish(topic, message)
 
     # print(topic)
