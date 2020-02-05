@@ -3,22 +3,39 @@ import cv2
 import imutils
 
 def filter_color(frame):
+	# lower_red = np.array([])
+
+	# gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	# blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+	# thresh = cv2.threshold(blurred, 100, 155, cv2.THRESH_BINARY)[1]
+	# mask3 = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
+	# res = cv2.bitwise_and(frame, frame, mask=thresh)
+	# return res
+
+	# lower_red = np.array([150, 150, 100])
+	# upper_red = np.array([255, 255, 255])
+
+	# mask = cv2.inRange(frame, lower_red, upper_red)
+
+	# res = cv2.bitwise_and(frame, frame, mask=mask)
+	# return res
+
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
 
 	# lower_red = np.array([30,150,50])
 	# upper_red = np.array([255,255,180])
-	lower_red = np.array([0,150,100])
-	upper_red = np.array([10,255,200])
-	mask0 = cv2.inRange(hsv, lower_red, upper_red)
+	lower_red = np.array([30,150,50])
+	upper_red = np.array([255,255,255])
+	mask = cv2.inRange(hsv, lower_red, upper_red)
 
 	# upper mask (170-180)
-	lower_red = np.array([170,150,100])
-	upper_red = np.array([180,255,200])
-	mask1 = cv2.inRange(hsv, lower_red, upper_red)
+	# lower_red = np.array([160,0,200])
+	# upper_red = np.array([180,255,225])
+	# mask1 = cv2.inRange(hsv, lower_red, upper_red)
 
-	# join my masks
-	mask = mask0 + mask1
-
+	# # join my masks
+	# mask = mask0 + mask1
 	res = cv2.bitwise_and(frame, frame, mask=mask)
 	return res
  
@@ -32,6 +49,9 @@ def find_marker(image):
 	# we'll assume that this is our piece of paper in the image
 	cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 	cnts = imutils.grab_contours(cnts)
+	if len(cnts) == 0:
+		return [], []
+
 	c = max(cnts, key = cv2.contourArea)
  
 	# compute the bounding box of the of the paper region and return it
@@ -68,9 +88,10 @@ while(True):
 	marker, cnt = find_marker(filtered_frame)
 	# cv2.drawContours(frame, [cnt], -1, (0, 255, 0), 2)
 
-	box = cv2.cv.BoxPoints(marker) if imutils.is_cv2() else cv2.boxPoints(marker)
-	box = np.int0(box)
-	cv2.drawContours(frame, [box], -1, (0, 255, 0), 2)
+	if len(marker) != 0:
+		box = cv2.cv.BoxPoints(marker) if imutils.is_cv2() else cv2.boxPoints(marker)
+		box = np.int0(box)
+		cv2.drawContours(filtered_frame, [box], -1, (0, 255, 0), 2)
 
 	# min_y, min_x = np.Infinity, np.Infinity
 	# max_y, max_x = 0, 0
@@ -82,7 +103,7 @@ while(True):
 	# 	max_x = max(max_x, point[0])
 	# print(max_y - min_y)
 
-	measured_height = marker[1][1]
+	# measured_height = marker[1][1]
 	# print(measured_height)
 
 	# if idx < INIT_COUNT:
@@ -91,12 +112,13 @@ while(True):
 	# 	focalLength = np.mean(init_pixels) * KNOWN_DISTANCE / KNOWN_HEIGHT ## TODO: remove calibration stage
 	# 	print("focal length:", focalLength)
 	# else:
-	dist = distance_to_camera(KNOWN_HEIGHT, focalLength, measured_height)
-	if idx % int(FPS*0.5) == 0:
-		print("distance:", dist)
+
+	# dist = distance_to_camera(KNOWN_HEIGHT, focalLength, measured_height)
+	# if idx % int(FPS*0.5) == 0:
+	# 	print("distance:", dist)
 
 	# Display the resulting frame
-	cv2.imshow('frame', frame)
+	cv2.imshow('frame', filtered_frame)
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
 
