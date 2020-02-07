@@ -1,6 +1,5 @@
 #!/home/pi/berryconda3/bin/python3
 import sys
-sys.path.insert(1, '/home/pi/ECE180DB/gesture_recognition/sensor')
 import IMU
 
 MAG_LPF_FACTOR = 0.4 	# Low pass filter constant magnetometer
@@ -69,17 +68,6 @@ def read_sensor():
 # 	global mag_medianTable2X
 # 	global mag_medianTable2Y
 # 	global mag_medianTable2Z
-
-# 	#Read the accelerometer,gyroscope and magnetometer values
-# 	GYRx = IMU.readGYRx()
-# 	GYRy = IMU.readGYRy()
-# 	GYRz = IMU.readGYRz()
-# 	ACCx = IMU.readACCx()
-# 	ACCy = IMU.readACCy()
-# 	ACCz = IMU.readACCz()
-# 	MAGx = IMU.readMAGx()
-# 	MAGy = IMU.readMAGy()
-# 	MAGz = IMU.readMAGz()
 
 # 	############################################### 
 # 	#### Apply low pass filter ####
