@@ -5,6 +5,7 @@ import time
 import threading
 import queue
 import random
+import json
 
 players = {}
 P_LOCK = threading.Event()
@@ -34,8 +35,19 @@ class Player:
     ##  Game State functions
     ####################
 
-    def status(self):
-        return "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
+    def status(self, console_output=False):
+        if console_output:
+            output = "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
+            return output
+
+        status = {}
+        status["name"] = self.name
+        status["lives"] = self.lives
+        status["ammo"] = self.ammo
+        status["defense"] = self.defense
+
+        output = json.dumps(status)
+        return output
 
     def is_dead(self):
         if self.lives <= 0:
@@ -70,7 +82,7 @@ class Player:
                 print("{} took damage!".format(self.name))
                 self.lives -= 1
 
-        print(self.status())
+        print(self.status(True))
         if self.lives <= 0:
             print("{} has died!".format(self.name))
 
@@ -188,7 +200,7 @@ def on_message_action(client, userdata, msg):
 ##  Threaded function
 ####################
 
-def process_actions(name):
+def process_actions(name, client):
     player = players[name]
     actions = player.actions
     try:
@@ -201,6 +213,7 @@ def process_actions(name):
             actions.task_done()
     except queue.Empty:
         player.run()
+        client.publish("ee180d/hp_shotgun/status", player.status())
         print("Finished processing " + name)
 
 
@@ -238,7 +251,7 @@ def main():
             player.wait_to_process()
 
         for name in players:
-            t = threading.Thread(target=process_actions, args=[name])
+            t = threading.Thread(target=process_actions, args=[name, client])
             t.start()
             threads.append(t)
 

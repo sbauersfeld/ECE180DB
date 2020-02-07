@@ -3,7 +3,7 @@ import paho.mqtt.client as mqtt
 import sys
 import time
 
-def send_msg(client, name, action, value=""):
+def send_action(client, name, action, value=""):
     print("Sending message...")
 
     topic = "ee180d/hp_shotgun/action"
@@ -41,7 +41,7 @@ def main():
     while True:
         # Extend loop to register detected actions
         action = register_action()
-        send_msg(client, name, action)
+        send_action(client, name, action)
 
 if __name__ == '__main__':
     main()
