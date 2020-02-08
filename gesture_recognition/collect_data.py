@@ -1,11 +1,11 @@
 #!/home/pi/berryconda3/bin/python3
 # duration = 1.5s
-# make sure to input correct index to not overwrite existing files
 # starting position for all gestures: hand right next to hips
 # Gestures:
 # 	shoot: extend arm forward
-# 	reload: bent arm with hand pointing upwards
-# 	shield: make an X with arms (moving just the arm with the sensor is enough)
+# 	shield: bent both arms with hand pointing upwards (moving just the arm with the sensor is enough)
+# 	reload: move hand behind butt
+
 
 import time
 import datetime
@@ -13,6 +13,7 @@ import pandas as pd
 import os
 from sensor import *
 import process_data
+import glob
 
 datatype = "training" # set datatype to 'test/training' for test/training data
 
@@ -23,7 +24,7 @@ member_name = input("Enter name: ")
 parent_dir = datatype + "_data/" + member_name # change to test_data for testing data
 if not os.path.exists(parent_dir):
 	os.mkdir(parent_dir + '/')
-filename = input("Name the folder where the data will be stored: ")
+filename = input("Name the gesture that will be traced: ")
 path = os.path.join(parent_dir, filename)
 if not os.path.exists(path):
   os.mkdir(path + '/')
@@ -32,11 +33,18 @@ if not os.path.exists(path):
 ###									setup 									###
 ###############################################################################
 header = ["time_ms"] + process_data.get_header()
-starting_index = int(input("Starting index: "))
 duration_s = float(input("Sensor trace duration: "))
+
+#look for gestures latest index
+file_list = glob.glob(path + '/*.csv')
+if not file_list:
+	starting_index = 0
+else:
+	newest_file = max(file_list)
+	starting_index = int(newest_file[-7:-4]) + 1
+
 IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
 IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
-sensor_data = [0,0,0,0,0,0,0,0,0]
 
 ###############################################################################
 ###									tracing 								###
@@ -68,7 +76,7 @@ while True:
 			df.to_csv(file_name, header=True)
 			index += 1
 			print("Trace saved")
-			if key[1] is "e":
+			if len(key) > 1 and key[1] is "e": #exit
 				exit(0)
 			break
 		elif key is "d": # discard tracing
