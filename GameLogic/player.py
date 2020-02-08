@@ -4,6 +4,7 @@ import sys
 import time
 import threading
 
+done = False
 P_LOCK = threading.Event()
 
 def on_message(client, userdata, msg):
@@ -12,13 +13,15 @@ def on_message(client, userdata, msg):
 
     if message == "start_action":
         P_LOCK.set()
+    elif message == "stop_game":
+        global done
+        done = True
 
 def send_action(client, name, action, value=""):
     print("Sending message...")
 
-    topic = "ee180d/hp_shotgun/action"
     message = '_'.join([name, action.name, value])
-    ret = client.publish(topic, message)
+    ret = client.publish(TOPIC_ACTION, message)
 
     print(message)
     # print(ret.is_published())
@@ -45,19 +48,19 @@ def main():
     client = mqtt.Client()
     client.on_message = on_message
     client.connect("broker.hivemq.com")
-    client.subscribe("ee180d/hp_shotgun/player")
+    client.subscribe(TOPIC_PLAYER)
 
     if len(sys.argv) == 2:
         name = sys.argv[1]
         time.sleep(0.25)
     else:
         name = input("Please enter your name: ")
-    client.publish("ee180d/hp_shotgun/setup", name)
+    client.publish(TOPIC_SETUP, name)
 
     print("Listening...")
     client.loop_start()
 
-    while True:
+    while not done:
         P_LOCK.wait()
         
         ### EDIT HERE FOR GESTURE RECOGNITION ###
@@ -66,6 +69,8 @@ def main():
             send_action(client, name, action)
 
         P_LOCK.clear()
+
+    print("Finished game!")
 
 if __name__ == '__main__':
     main()

@@ -229,12 +229,12 @@ def process_actions(name, client):
 def main():
     client = mqtt.Client()
     client.on_message = on_message
-    client.message_callback_add("ee180d/hp_shotgun/action", on_message_action)
-    client.message_callback_add("ee180d/hp_shotgun/setup", on_message_setup)
+    client.message_callback_add(TOPIC_ACTION, on_message_action)
+    client.message_callback_add(TOPIC_SETUP, on_message_setup)
     client.connect("broker.hivemq.com")
-    client.subscribe("ee180d/hp_shotgun")
-    client.subscribe("ee180d/hp_shotgun/action")
-    client.subscribe("ee180d/hp_shotgun/setup")
+    client.subscribe(TOPIC_GLOBAL)
+    client.subscribe(TOPIC_ACTION)
+    client.subscribe(TOPIC_SETUP)
 
     if len(sys.argv) == 2:
         global NUM_PLAYERS
@@ -252,7 +252,7 @@ def main():
         print("\nStarting round {0}".format(round_num))
 
         # Listen to players
-        client.publish("ee180d/hp_shotgun/player", "start_action")
+        client.publish(TOPIC_PLAYER, "start_action")
         print("Waiting for input...")
         for name, player in players.items():
             player.wait_to_process()
@@ -281,6 +281,8 @@ def main():
         # Prepare next round
         for name, player in players.items():
             player.stop_processing()
+
+    client.publish(TOPIC_PLAYER, "stop_game")
 
 if __name__ == '__main__':
     main()

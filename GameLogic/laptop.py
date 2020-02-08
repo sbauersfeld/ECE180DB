@@ -74,9 +74,8 @@ def on_message(client, userdata, msg):
 def send_action(client, name, action, value=""):
     print("Sending message...")
 
-    topic = "ee180d/hp_shotgun/action"
     message = '_'.join([name, action.name, value])
-    ret = client.publish(topic, message)
+    ret = client.publish(TOPIC_ACTION, message)
 
     # print(topic)
     print(message)
@@ -115,7 +114,7 @@ def main():
     client = mqtt.Client()
     client.on_message = on_message
     client.connect("broker.hivemq.com")
-    client.subscribe("ee180d/hp_shotgun/status")
+    client.subscribe(TOPIC_STATUS)
 
     if len(sys.argv) == 2:
         # Sleep necessary if no code present before publish
@@ -123,7 +122,7 @@ def main():
         name = sys.argv[1]
     else:
         name = input("Please enter your name: ")
-    client.publish("ee180d/hp_shotgun/setup", name)
+    client.publish(TOPIC_SETUP, name)
 
     print("Listening...")
     client.loop_start()
@@ -144,16 +143,13 @@ def main():
     done = False
     while not done:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
                 done = True
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 global player_win
                 player_win = True
                 done = True
-
-        # # Extend loop to register detected actions
-        # action = register_action()
-        # send_action(client, name, action)
 
         # Visuals
         draw_main(name, all_sprites)
