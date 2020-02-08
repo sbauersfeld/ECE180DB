@@ -22,7 +22,7 @@ def get_model_features(trace):
     features = []
     # normalize
     trace["Accel"] = np.linalg.norm(
-        (trace["Accel_x"], trace["Accle_y"], trace["Accel_z"]),
+        (trace["Accel_x"], trace["Accel_y"], trace["Accel_z"]),
         axis=0)
     trace["Gyro"] = np.linalg.norm(
         (trace["Gyro_x"], trace["Gyro_y"], trace["Gyro_z"]),
