@@ -16,6 +16,7 @@ def on_message(client, userdata, msg):
     elif message == "stop_game":
         global done
         done = True
+        P_LOCK.set()
 
 def send_action(client, name, action, value=""):
     print("Sending message...")
@@ -27,8 +28,7 @@ def send_action(client, name, action, value=""):
     # print(ret.is_published())
     return ret
 
-### REMOVE THIS AFTER GESTURE RECOGNTION ###
-def register_action():
+def register_action_commandline():
     actions = []
 
     while True:
@@ -60,15 +60,18 @@ def main():
     print("Listening...")
     client.loop_start()
 
+    P_LOCK.wait()
     while not done:
-        P_LOCK.wait()
-        
-        ### EDIT HERE FOR GESTURE RECOGNITION ###
-        actions = register_action()
+        ################
+        ### EDIT HERE FOR GESTURE RECOGNITION
+        actions = register_action_commandline()
         for action in actions:
             send_action(client, name, action)
+        ### EDIT HERE FOR GESTURE RECOGNITION
+        ################################
 
         P_LOCK.clear()
+        P_LOCK.wait()
 
     print("Finished game!")
 
