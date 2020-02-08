@@ -2,7 +2,8 @@ from config import *
 import paho.mqtt.client as mqtt
 import sys
 import time
-import pygame, sys, time
+import threading
+import pygame
 from pygame.locals import *
 
 
@@ -24,8 +25,8 @@ surface_rect = main_surface.get_rect()
 player_win = False
 
 ### Music ###
-pygame.mixer.music.load("music/zelda.ogg")
-sound_effect = pygame.mixer.Sound("music/dada.ogg")
+pygame.mixer.music.load("music/Nimbus2000.ogg")
+sound_effect = pygame.mixer.Sound("music/SoundEffect.ogg")
 
 ### Misc ###
 WHITE = (255, 255, 255)
@@ -141,7 +142,6 @@ def main():
     pygame.mixer.music.play(-1, 0.5)
 
     done = False
-
     while not done:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -166,32 +166,34 @@ def main():
     ##  End Game
     ####################
 
-    pygame.mixer.music.load("music/end.ogg")
+    pygame.mixer.music.load("music/LeavingHogwarts.ogg")
     pygame.mixer.music.play(-1, 0.5)
 
     # Visuals
     game_over = font_big.render("GAME OVER", True, WHITE, BLACK)
-    if player_win == True:
-        winner = font_small.render("Player Wins", True, WHITE, BLACK)
-
     g_o_rect = game_over.get_rect()
     g_o_rect.centerx = surface_rect.centerx
     g_o_rect.centery = surface_rect.centery - 50
-    win_rect = winner.get_rect()
-    win_rect.centerx = g_o_rect.centerx
-    win_rect.centery = g_o_rect.centery + 75
+
+    if player_win:
+        winner = font_small.render("Player Wins", True, WHITE, BLACK)
+        win_rect = winner.get_rect()
+        win_rect.centerx = g_o_rect.centerx
+        win_rect.centery = g_o_rect.centery + 75
 
     main_surface.fill(BLACK)
     main_surface.blit(game_over, g_o_rect)
-    main_surface.blit(winner, win_rect)
+    if player_win:
+        main_surface.blit(winner, win_rect)
 
-    while True:
+    done = False
+    while not done:
         # Quit conditions
         for event in pygame.event.get():
             if event.type == QUIT:
-                break
+                done = True
             if event.type == KEYDOWN and event.key == K_ESCAPE:
-                break
+                done = True
 
         # Visuals
         pygame.display.update()
