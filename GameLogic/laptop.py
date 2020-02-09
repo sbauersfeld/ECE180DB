@@ -22,7 +22,8 @@ main_surface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 surface_rect = main_surface.get_rect()
 
 ### GameStuff ###
-player_win = False
+GAME_OVER = False
+D_LOCK = threading.Event()
 
 ### Music ###
 pygame.mixer.music.load("music/Nimbus2000.ogg")
@@ -61,9 +62,13 @@ class Status(pygame.sprite.Sprite):
     def update(self, new_val):
         self.value = new_val
 
+ammo = Status(xpos=-250)
+lives = Status()
+defense = Status(xpos=250)
+
 
 ####################
-##  Functions
+##  MQTT callback functions
 ####################
 
 def on_message(client, userdata, msg):
@@ -72,21 +77,29 @@ def on_message(client, userdata, msg):
 
 def on_message_status(client, userdata, msg):
     message = msg.payload.decode()
-    print("Received message: " + message)
+    print("Status: " + message)
 
     # Update status here through pygame
     pass
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
-    print("Received message: " + message)
+    print("Order: " + message)
 
     if message == START_ACTION:
         # Inform Player to do action here through pygame
         pass
     elif message == START_DIST:
-        # Read distance here
-        pass
+        D_LOCK.set()
+    elif message == STOP_GAME:
+        global GAME_OVER
+        GAME_OVER = True
+        D_LOCK.set()
+
+
+####################
+##  Functions
+####################
 
 def send_action(client, name, action, value=""):
     message = '_'.join([name, action.name, value])
@@ -94,6 +107,21 @@ def send_action(client, name, action, value=""):
 
     print("Sent: {}".format(message))
     return ret
+
+def process_distance(client, name):
+    D_LOCK.wait()
+    while not GAME_OVER:
+
+        ################
+        ### EDIT HERE FOR CAMERA STUFF
+        value = input("Input a distance between 0.00 and 1.00: ")
+        ### EDIT HERE FOR CAMERA STUFF
+        ################################
+        send_action(client, name, Act.DIST, value)
+
+        if not GAME_OVER:
+            D_LOCK.clear()
+        D_LOCK.wait()
 
 def draw_main(name, all_sprites):
     player = font_basic.render(name, True, WHITE, BLACK) 
@@ -105,7 +133,6 @@ def draw_main(name, all_sprites):
     main_surface.blit(player, player_rect)
 
     all_sprites.draw(main_surface)
-
 
 
 ####################
@@ -135,29 +162,29 @@ def main():
     print("Listening...")
     client.loop_start()
 
+    t = threading.Thread(target=process_distance, args=[client, name])
+    t.start()
+
 
     ####################
     ##  Start Game
     ####################
 
-    ammo = Status(xpos=-250)
-    lives = Status()
-    defense = Status(xpos=250)
     all_sprites = pygame.sprite.RenderPlain(ammo, lives, defense)
 
     time.sleep(1.5)
-    pygame.mixer.music.play(-1, 0.5)
+    # pygame.mixer.music.play(-1, 0.5)
 
-    done = False
-    while not done:
+    player_win = False
+    global GAME_OVER
+    while not GAME_OVER:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
-                done = True
+                GAME_OVER = True
                 sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                global player_win
+                GAME_OVER = True
                 player_win = True
-                done = True
 
         # Visuals
         draw_main(name, all_sprites)
@@ -171,7 +198,7 @@ def main():
     ####################
 
     pygame.mixer.music.load("music/LeavingHogwarts.ogg")
-    pygame.mixer.music.play(-1, 0.5)
+    # pygame.mixer.music.play(-1, 0.5)
 
     # Visuals
     game_over = font_big.render("GAME OVER", True, WHITE, BLACK)

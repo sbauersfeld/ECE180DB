@@ -23,7 +23,7 @@ def on_message(client, userdata, msg):
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
-    print("Received message: " + message)
+    print("Order: " + message)
 
     if message == START_ACTION:
         A_LOCK.set()
@@ -85,12 +85,13 @@ def main():
         ################
         ### EDIT HERE FOR GESTURE RECOGNITION
         actions = register_actions_commandline()
-        for action in actions:
-            send_action(client, name, action)
         ### EDIT HERE FOR GESTURE RECOGNITION
         ################################
+        for action in actions:
+            send_action(client, name, action)
 
-        A_LOCK.clear()
+        if not GAME_OVER:
+            A_LOCK.clear()
         A_LOCK.wait()
 
     print("Finished game!")
