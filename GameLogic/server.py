@@ -263,8 +263,8 @@ def main():
         round_num += 1
         print("\nStarting round {0}".format(round_num))
 
-        # Listen to players
-        client.publish(TOPIC_PLAYER, "start_action")
+        # Ask for player actions
+        client.publish(TOPIC_PLAYER, START_ACTION)
         print("Waiting for input...")
         for name, player in players.items():
             player.wait_to_process()
@@ -294,7 +294,7 @@ def main():
         for name, player in players.items():
             player.stop_processing()
 
-    client.publish(TOPIC_PLAYER, "stop_game")
+    client.publish(TOPIC_PLAYER, STOP_GAME)
 
 if __name__ == '__main__':
     main()

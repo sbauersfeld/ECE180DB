@@ -25,9 +25,9 @@ def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
     print("Received message: " + message)
 
-    if message == "start_action":
+    if message == START_ACTION:
         A_LOCK.set()
-    elif message == "stop_game":
+    elif message == STOP_GAME:
         global GAME_OVER
         GAME_OVER = True
         A_LOCK.set()

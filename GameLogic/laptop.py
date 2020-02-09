@@ -81,10 +81,10 @@ def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
     print("Received message: " + message)
 
-    if message == "start_action":
+    if message == START_ACTION:
         # Inform Player to do action here through pygame
         pass
-    if message == "start_dist":
+    elif message == START_DIST:
         # Read distance here
         pass
 
