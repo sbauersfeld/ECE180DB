@@ -5,7 +5,10 @@ import time
 import threading
 import pygame
 from pygame.locals import *
-
+import numpy as np
+import cv2
+import imutils
+from range_detection import GetDistance
 
 ####################
 ##  Global Variables
@@ -114,10 +117,10 @@ def process_distance(client, name):
 
         ################
         ### EDIT HERE FOR CAMERA STUFF
-        value = input("Input a distance between 0.00 and 1.00: ")
+        dist = GetDistance()
         ### EDIT HERE FOR CAMERA STUFF
         ################################
-        send_action(client, name, Act.DIST, value)
+        send_action(client, name, Act.DIST, dist)
 
         if not GAME_OVER:
             D_LOCK.clear()
