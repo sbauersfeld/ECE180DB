@@ -5,8 +5,8 @@ import imutils
 def filter_color(frame):
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-	lower_red = np.array([30,150,100])
-	upper_red = np.array([255,255,225])
+	lower_red = np.array([0,150,150])
+	upper_red = np.array([20,255,255])
 	mask = cv2.inRange(hsv, lower_red, upper_red)
 
 	res = cv2.bitwise_and(frame, frame, mask=mask)
@@ -14,7 +14,7 @@ def filter_color(frame):
  
 def find_marker(image):
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	gray = cv2.GaussianBlur(gray, (15, 15), 0)
+	gray = cv2.GaussianBlur(gray, (9, 9), 0)
  
 	cnts = cv2.findContours(gray.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 	cnts = imutils.grab_contours(cnts)
