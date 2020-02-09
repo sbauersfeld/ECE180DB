@@ -5,10 +5,21 @@ import time
 import threading
 import queue
 import random
+import json
+
+
+####################
+##  Global Variables
+####################
 
 players = {}
 P_LOCK = threading.Event()
 NUM_PLAYERS = 2
+
+
+####################
+##  Classes
+####################
 
 class Player:
     def __init__(self, name, lives=2, ammo=0, q_size=0):
@@ -19,7 +30,8 @@ class Player:
 
         # Using a Queue here
         self.actions = queue.Queue(q_size)
-        self.ready = threading.Event()
+        self.action_ready = threading.Event()
+        self.listen_ready = threading.Event()
 
         # State variables
         self.is_hit = False
@@ -29,13 +41,23 @@ class Player:
     def __str__(self):
         return "Player {}".format(self.name)
 
-
     ####################
     ##  Game State functions
     ####################
 
-    def status(self):
-        return "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
+    def status(self, console_output=False):
+        if console_output:
+            output = "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
+            return output
+
+        status = {}
+        status["name"] = self.name
+        status["lives"] = self.lives
+        status["ammo"] = self.ammo
+        status["defense"] = self.defense
+
+        output = json.dumps(status)
+        return output
 
     def is_dead(self):
         if self.lives <= 0:
@@ -46,13 +68,6 @@ class Player:
     def run(self):
         if self.is_dead():
             return
-
-        if Act.DIST in self.curr_acts:
-            try:
-                new_defense = float(self.curr_acts[Act.DIST])
-                self.update_distance(new_defense)
-            except ValueError:
-                print("DIST message for {} had non-float value".format(self.name))
 
         if Act.BLOCK in self.curr_acts:
             self.block()
@@ -70,10 +85,9 @@ class Player:
                 print("{} took damage!".format(self.name))
                 self.lives -= 1
 
-        print(self.status())
-        if self.lives <= 0:
+        print(self.status(True))
+        if self.is_dead():
             print("{} has died!".format(self.name))
-
 
     ####################
     ##  Player Actions
@@ -98,31 +112,48 @@ class Player:
         print("{} was shot at!".format(self.name))
         self.is_hit = True
 
-    def update_distance(self, value):
-        self.defense = value
-        print("{}'s defense updated to {}".format(self.name, self.defense))
-
+    def update_distance(self, val_string):
+        try:
+            new_defense = float(val_string)
+            self.defense = new_defense
+            print("{}'s defense updated to {}".format(self.name, self.defense))
+        except ValueError:
+            print("DIST message for {} had non-float value".format(self.name))
 
     ####################
-    ##  Event object wrapper functions
+    ##  Wrapper functions
     ####################
 
-    def wait_to_process(self):
+    def wait_for_actions(self):
         if self.is_dead():
             return
-        self.ready.wait()
+        self.action_ready.wait()
 
-    def stop_processing(self):
+    def listen_for_actions(self):
         self.is_hit = False
         self.is_blocking = False
         self.curr_acts.clear()
-        self.ready.clear()
+        self.action_ready.clear()
 
-    def start_processing(self):
-        self.ready.set()
+    def finish_for_actions(self):
+        self.action_ready.set()
 
-    def is_processing(self):
-        return self.ready.isSet()
+    def is_listening_to_action(self):
+        return not self.action_ready.isSet()
+
+    def wait_for_distance(self):
+        if self.is_dead():
+            return
+        self.listen_ready.wait()
+
+    def listen_for_distance(self):
+        self.listen_ready.clear()
+
+    def finish_for_distance(self):
+        self.listen_ready.set()
+
+    def is_listening_to_distance(self):
+        return not self.listen_ready.isSet()
 
 
 ####################
@@ -141,7 +172,7 @@ def on_message_setup(client, userdata, msg):
         print("Player {} already set up".format(name))
         return
     if P_LOCK.isSet():
-        print("Max number of players already registered")
+        print("All players already registered")
         return
 
     print("Received for setup: " + name)
@@ -152,7 +183,7 @@ def on_message_setup(client, userdata, msg):
 
 def on_message_action(client, userdata, msg):
     message = msg.payload.decode()
-    print("Received!")
+    print("Action received!")
 
     try:
         msg_list = message.split('_')
@@ -168,11 +199,20 @@ def on_message_action(client, userdata, msg):
 
     if player.is_dead():
         return
-    if player.is_processing():
+
+    # Handle for distance messages
+    if action is Act.DIST:
+        if player.is_listening_to_distance():
+            player.update_distance(value)
+            player.finish_for_distance()
+        return
+
+    # Check if correct phase
+    if not player.is_listening_to_action():
         print("Player {}'s actions have already been chosen".format(name))
         return
     if action is Act.PASS:
-        player.start_processing()
+        player.finish_for_actions()
         return
 
     try:
@@ -181,14 +221,14 @@ def on_message_action(client, userdata, msg):
         print("Extra action received for {}: {}".format(name, action))
 
     if player.actions.full():
-        player.start_processing()
+        player.finish_for_actions()
 
 
 ####################
 ##  Threaded function
 ####################
 
-def process_actions(name):
+def process_actions(client, name):
     player = players[name]
     actions = player.actions
     try:
@@ -197,10 +237,12 @@ def process_actions(name):
 
             print("Player {} with {}".format(name,item))
             player.curr_acts[item[0]] = item[1]
+            ### Figure out better action processing here
 
             actions.task_done()
     except queue.Empty:
         player.run()
+        client.publish(TOPIC_LAPTOP, player.status())
         print("Finished processing " + name)
 
 
@@ -211,12 +253,12 @@ def process_actions(name):
 def main():
     client = mqtt.Client()
     client.on_message = on_message
-    client.message_callback_add("ee180d/hp_shotgun/action", on_message_action)
-    client.message_callback_add("ee180d/hp_shotgun/setup", on_message_setup)
+    client.message_callback_add(TOPIC_SETUP, on_message_setup)
+    client.message_callback_add(TOPIC_ACTION, on_message_action)
     client.connect("broker.hivemq.com")
-    client.subscribe("ee180d/hp_shotgun")
-    client.subscribe("ee180d/hp_shotgun/action")
-    client.subscribe("ee180d/hp_shotgun/setup")
+    client.subscribe(TOPIC_GLOBAL)
+    client.subscribe(TOPIC_SETUP)
+    client.subscribe(TOPIC_ACTION)
 
     if len(sys.argv) == 2:
         global NUM_PLAYERS
@@ -228,23 +270,33 @@ def main():
     print("Waiting to register {} players...\n".format(NUM_PLAYERS))
     P_LOCK.wait()
 
-    threads = []
     round_num = 0
     while True:
+        # Start new round
+        ### SPEECH DETECTION STUFF HERE ###
+        input("Press Enter to continue...")
+
         round_num += 1
         print("\nStarting round {0}".format(round_num))
-        print("Waiting for input...")
-        for name, player in players.items():
-            player.wait_to_process()
 
+        # Ask for player actions
+        for name, player in players.items():
+            player.listen_for_actions()
+        client.publish(TOPIC_PLAYER, START_ACTION)
+        print("Waiting for actions...")
+        for name, player in players.items():
+            player.wait_for_actions()
+
+        # Process received actions
+        threads = []
         for name in players:
-            t = threading.Thread(target=process_actions, args=[name])
+            t = threading.Thread(target=process_actions, args=[client, name])
             t.start()
             threads.append(t)
-
         for t in threads:
             t.join()
 
+        # Check game state
         alive = [player for (name,player) in players.items() if not player.is_dead()]
         if len(alive) == 1:
             print("\nWINNER! {} has won the game!".format(alive[0]))
@@ -252,9 +304,18 @@ def main():
         elif len(alive) <= 0:
             print("\nDRAW! There are no remaining players.")
             break
+        time.sleep(3)
 
+        # Ask for distance data
         for name, player in players.items():
-            player.stop_processing()
+            player.listen_for_distance()
+        client.publish(TOPIC_LAPTOP, START_DIST)
+        print("Waiting for distances...")
+        for name, player in players.items():
+            player.wait_for_distance()
+
+    # End Game
+    client.publish(TOPIC_PLAYER, STOP_GAME)
 
 if __name__ == '__main__':
     main()
