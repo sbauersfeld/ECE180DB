@@ -7,6 +7,11 @@ import queue
 import random
 import json
 
+
+####################
+##  Global Variables
+####################
+
 players = {}
 P_LOCK = threading.Event()
 NUM_PLAYERS = 2
@@ -121,7 +126,7 @@ class Player:
             print("DIST message for {} had non-float value".format(self.name))
 
     ####################
-    ##  Event object wrapper functions
+    ##  Wrapper functions
     ####################
 
     def wait_to_process(self):
@@ -152,13 +157,20 @@ def on_message(client, userdata, msg):
 
 def on_message_setup(client, userdata, msg):
     message = msg.payload.decode()
-    name = message
+
+    try:
+        msg_list = message.split('_')
+        name = msg_list[0]
+        role = msg_list[1]
+    except (KeyError, IndexError):
+        print("Unexpected message: {}".format(message))
+        return
 
     if name in players:
         print("Player {} already set up".format(name))
         return
     if P_LOCK.isSet():
-        print("Max number of players already registered")
+        print("All players already registered")
         return
 
     print("Received for setup: " + name)
@@ -229,12 +241,12 @@ def process_actions(name, client):
 def main():
     client = mqtt.Client()
     client.on_message = on_message
-    client.message_callback_add(TOPIC_ACTION, on_message_action)
     client.message_callback_add(TOPIC_SETUP, on_message_setup)
+    client.message_callback_add(TOPIC_ACTION, on_message_action)
     client.connect("broker.hivemq.com")
     client.subscribe(TOPIC_GLOBAL)
-    client.subscribe(TOPIC_ACTION)
     client.subscribe(TOPIC_SETUP)
+    client.subscribe(TOPIC_ACTION)
 
     if len(sys.argv) == 2:
         global NUM_PLAYERS

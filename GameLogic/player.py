@@ -4,35 +4,45 @@ import sys
 import time
 import threading
 
-done = False
-P_LOCK = threading.Event()
+
+####################
+##  Global Variables
+####################
+
+GAME_OVER = False
+A_LOCK = threading.Event()
+
+
+####################
+##  Functions
+####################
 
 def on_message(client, userdata, msg):
+    message = msg.payload.decode()
+    print("Received unexpected message: " + message)
+
+def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
     print("Received message: " + message)
 
     if message == "start_action":
-        P_LOCK.set()
+        A_LOCK.set()
     elif message == "stop_game":
-        global done
-        done = True
-        P_LOCK.set()
+        global GAME_OVER
+        GAME_OVER = True
+        A_LOCK.set()
 
 def send_action(client, name, action, value=""):
-    print("Sending message...")
-
     message = '_'.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
-    print(message)
-    # print(ret.is_published())
+    print("Sent: {}".format(message))
     return ret
 
-def register_action_commandline():
+def register_actions_commandline():
     actions = []
-
     while True:
-        msg = input("Enter the desired action: ").upper()
+        msg = input("Enter action: ").upper()
         if msg in Act.__members__.keys():
             action = Act.__members__[msg]
             actions.append(action)
@@ -44,10 +54,17 @@ def register_action_commandline():
 
     return actions
 
+
+####################
+##  Main function
+####################
+
 def main():
     client = mqtt.Client()
     client.on_message = on_message
+    client.message_callback_add(TOPIC_PLAYER, on_message_player)
     client.connect("broker.hivemq.com")
+    client.subscribe(TOPIC_GLOBAL)
     client.subscribe(TOPIC_PLAYER)
 
     if len(sys.argv) == 2:
@@ -55,23 +72,26 @@ def main():
         time.sleep(0.25)
     else:
         name = input("Please enter your name: ")
-    client.publish(TOPIC_SETUP, name)
+    role = "player"
+    setup_message = "{}_{}".format(name, role)
+    client.publish(TOPIC_SETUP, setup_message)
 
     print("Listening...")
     client.loop_start()
 
-    P_LOCK.wait()
-    while not done:
+    A_LOCK.wait()
+    while not GAME_OVER:
+
         ################
         ### EDIT HERE FOR GESTURE RECOGNITION
-        actions = register_action_commandline()
+        actions = register_actions_commandline()
         for action in actions:
             send_action(client, name, action)
         ### EDIT HERE FOR GESTURE RECOGNITION
         ################################
 
-        P_LOCK.clear()
-        P_LOCK.wait()
+        A_LOCK.clear()
+        A_LOCK.wait()
 
     print("Finished game!")
 
