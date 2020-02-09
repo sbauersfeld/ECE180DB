@@ -1,5 +1,5 @@
-import smbus
-bus = smbus.SMBus(1)
+import smbus2
+bus = smbus2.SMBus(1)
 from LSM9DS0 import *
 from LSM9DS1 import *
 import time
