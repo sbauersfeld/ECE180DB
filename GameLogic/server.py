@@ -7,9 +7,19 @@ import queue
 import random
 import json
 
+
+####################
+##  Global Variables
+####################
+
 players = {}
 P_LOCK = threading.Event()
 NUM_PLAYERS = 2
+
+
+####################
+##  Classes
+####################
 
 class Player:
     def __init__(self, name, lives=2, ammo=0, q_size=0):
@@ -29,7 +39,6 @@ class Player:
 
     def __str__(self):
         return "Player {}".format(self.name)
-
 
     ####################
     ##  Game State functions
@@ -61,8 +70,7 @@ class Player:
 
         if Act.DIST in self.curr_acts:
             try:
-                new_defense = float(self.curr_acts[Act.DIST])
-                self.update_distance(new_defense)
+                self.update_distance(self.curr_acts[Act.DIST])
             except ValueError:
                 print("DIST message for {} had non-float value".format(self.name))
 
@@ -83,9 +91,8 @@ class Player:
                 self.lives -= 1
 
         print(self.status(True))
-        if self.lives <= 0:
+        if self.is_dead():
             print("{} has died!".format(self.name))
-
 
     ####################
     ##  Player Actions
@@ -110,13 +117,16 @@ class Player:
         print("{} was shot at!".format(self.name))
         self.is_hit = True
 
-    def update_distance(self, value):
-        self.defense = value
-        print("{}'s defense updated to {}".format(self.name, self.defense))
-
+    def update_distance(self, val_string):
+        try:
+            new_defense = float(val_string)
+            self.defense = new_defense
+            print("{}'s defense updated to {}".format(self.name, self.defense))
+        except ValueError:
+            print("DIST message for {} had non-float value".format(self.name))
 
     ####################
-    ##  Event object wrapper functions
+    ##  Wrapper functions
     ####################
 
     def wait_to_process(self):
@@ -147,13 +157,20 @@ def on_message(client, userdata, msg):
 
 def on_message_setup(client, userdata, msg):
     message = msg.payload.decode()
-    name = message
+
+    try:
+        msg_list = message.split('_')
+        name = msg_list[0]
+        role = msg_list[1]
+    except (KeyError, IndexError):
+        print("Unexpected message: {}".format(message))
+        return
 
     if name in players:
         print("Player {} already set up".format(name))
         return
     if P_LOCK.isSet():
-        print("Max number of players already registered")
+        print("All players already registered")
         return
 
     print("Received for setup: " + name)
@@ -224,12 +241,12 @@ def process_actions(name, client):
 def main():
     client = mqtt.Client()
     client.on_message = on_message
-    client.message_callback_add("ee180d/hp_shotgun/action", on_message_action)
-    client.message_callback_add("ee180d/hp_shotgun/setup", on_message_setup)
+    client.message_callback_add(TOPIC_SETUP, on_message_setup)
+    client.message_callback_add(TOPIC_ACTION, on_message_action)
     client.connect("broker.hivemq.com")
-    client.subscribe("ee180d/hp_shotgun")
-    client.subscribe("ee180d/hp_shotgun/action")
-    client.subscribe("ee180d/hp_shotgun/setup")
+    client.subscribe(TOPIC_GLOBAL)
+    client.subscribe(TOPIC_SETUP)
+    client.subscribe(TOPIC_ACTION)
 
     if len(sys.argv) == 2:
         global NUM_PLAYERS
@@ -241,23 +258,30 @@ def main():
     print("Waiting to register {} players...\n".format(NUM_PLAYERS))
     P_LOCK.wait()
 
-    threads = []
     round_num = 0
     while True:
         round_num += 1
         print("\nStarting round {0}".format(round_num))
+
+        # Ask for player actions
+        client.publish(TOPIC_PLAYER, START_ACTION)
         print("Waiting for input...")
         for name, player in players.items():
             player.wait_to_process()
 
+        # Process received actions
+        threads = []
         for name in players:
             t = threading.Thread(target=process_actions, args=[name, client])
             t.start()
             threads.append(t)
-
         for t in threads:
             t.join()
 
+        # Ask for distance data
+        ### ADD DISTANCE DATA HERE ###
+
+        # Check game state
         alive = [player for (name,player) in players.items() if not player.is_dead()]
         if len(alive) == 1:
             print("\nWINNER! {} has won the game!".format(alive[0]))
@@ -266,8 +290,11 @@ def main():
             print("\nDRAW! There are no remaining players.")
             break
 
+        # Prepare next round
         for name, player in players.items():
             player.stop_processing()
+
+    client.publish(TOPIC_PLAYER, STOP_GAME)
 
 if __name__ == '__main__':
     main()
