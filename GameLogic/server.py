@@ -271,6 +271,10 @@ def main():
 
     round_num = 0
     while True:
+        # Check for next round
+        ### SPEECH DETECTION STUFF HERE ###
+        input("Press Enter to continue...")
+
         round_num += 1
         print("\nStarting round {0}".format(round_num))
 
@@ -299,7 +303,7 @@ def main():
         elif len(alive) <= 0:
             print("\nDRAW! There are no remaining players.")
             break
-        time.sleep(5)
+        time.sleep(3)
 
         # Ask for distance data
         for name, player in players.items():
@@ -308,10 +312,6 @@ def main():
         print("Waiting for distances...")
         for name, player in players.items():
             player.wait_for_distance()
-
-        # Check for next round
-        ### SPEECH DETECTION STUFF HERE ###
-        time.sleep(1)
 
     # End Game
     client.publish(TOPIC_PLAYER, STOP_GAME)
