@@ -2,46 +2,97 @@ from config import *
 import paho.mqtt.client as mqtt
 import sys
 import time
+import threading
+
+
+####################
+##  Global Variables
+####################
+
+GAME_OVER = False
+A_LOCK = threading.Event()
+
+
+####################
+##  Functions
+####################
+
+def on_message(client, userdata, msg):
+    message = msg.payload.decode()
+    print("Received unexpected message: " + message)
+
+def on_message_player(client, userdata, msg):
+    message = msg.payload.decode()
+    print("Order: " + message)
+
+    if message == START_ACTION:
+        A_LOCK.set()
+    elif message == STOP_GAME:
+        global GAME_OVER
+        GAME_OVER = True
+        A_LOCK.set()
 
 def send_action(client, name, action, value=""):
-    print("Sending message...")
-
-    topic = "ee180d/hp_shotgun/action"
     message = '_'.join([name, action.name, value])
-    ret = client.publish(topic, message)
+    ret = client.publish(TOPIC_ACTION, message)
 
-    # print(topic)
-    print(message)
-    # print(ret.is_published())
-    # print(ret.rc == mqtt.MQTT_ERR_SUCCESS)
-
+    print("Sent: {}".format(message))
     return ret
 
-def register_action():
-    msg = input("Enter the desired action: ").upper()
-    if msg in Act.__members__.keys():
-        action = Act.__members__[msg]
-        return action
-    else:
-        print("That's not an action!")
-        return register_action()
+def register_actions_commandline():
+    actions = []
+    while True:
+        msg = input("Enter action: ").upper()
+        if msg in Act.__members__.keys():
+            action = Act.__members__[msg]
+            actions.append(action)
+
+            if action is Act.PASS:
+                break
+        else:
+            print("That's not an action!")
+
+    return actions
+
+
+####################
+##  Main function
+####################
 
 def main():
     client = mqtt.Client()
+    client.on_message = on_message
+    client.message_callback_add(TOPIC_PLAYER, on_message_player)
     client.connect("broker.hivemq.com")
+    client.subscribe(TOPIC_GLOBAL)
+    client.subscribe(TOPIC_PLAYER)
 
     if len(sys.argv) == 2:
-        # Sleep necessary if no code present before publish
-        time.sleep(0.5)
         name = sys.argv[1]
+        time.sleep(0.25)
     else:
         name = input("Please enter your name: ")
-    client.publish("ee180d/hp_shotgun/setup", name)
+    # client.publish(TOPIC_SETUP, name)   ### TODO: Have laptop setup player
 
-    while True:
-        # Extend loop to register detected actions
-        action = register_action()
-        send_action(client, name, action)
+    print("Listening...")
+    client.loop_start()
+
+    A_LOCK.wait()
+    while not GAME_OVER:
+
+        ################
+        ### EDIT HERE FOR GESTURE RECOGNITION
+        actions = register_actions_commandline()
+        ### EDIT HERE FOR GESTURE RECOGNITION
+        ################################
+        for action in actions:
+            send_action(client, name, action)
+
+        if not GAME_OVER:
+            A_LOCK.clear()
+        A_LOCK.wait()
+
+    print("Finished game!")
 
 if __name__ == '__main__':
     main()

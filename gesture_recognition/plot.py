@@ -1,11 +1,10 @@
 #!/home/pi/berryconda3/bin/python3
 # duration = 1.5s
-# make sure to input correct index to not overwrite existing files
 # starting position for all gestures: hand right next to hips
 # Gestures:
 # 	shoot: extend arm forward
-# 	reload: bent arm with hand pointing upwards
-# 	shield: make an X with arms (moving just the arm with the sensor is enough)
+# 	shield: bent both arms with hand pointing upwards (moving just the arm with the sensor is enough)
+# 	reload: move hand behind butt
 
 import time
 import datetime
@@ -15,6 +14,7 @@ from sensor import *
 matplotlib.use('Agg') # for rpi OS
 import matplotlib.pyplot as plt
 plt.subplots_adjust(hspace = 0.5)
+import glob
 
 
 ###############################################################################
@@ -32,15 +32,23 @@ if not os.path.exists(path):
 ###############################################################################
 ###									setup 									###
 ###############################################################################
-starting_index = int(input("Starting index: "))
 duration_s = float(input("Sensor trace duration: "))
+
+#look for gestures latest index
+file_list = glob.glob(path + '/*.png')
+if not file_list:
+	starting_index = 0
+else:
+	newest_file = max(file_list)
+	starting_index = int(newest_file[-12:-9]) + 1
+
 IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
 IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
-sensor_data = [0,0,0,0,0,0,0,0,0]
 
 ###############################################################################
 ###									tracing 								###
 ###############################################################################
+sensor_data = [0,0,0,0,0,0,0,0,0]
 index = starting_index
 while True:
 	input("Trace for " + filename + "{0:03d}".format(index) + "\nPress 'Enter' to start tracing...")
