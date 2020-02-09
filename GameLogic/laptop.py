@@ -11,30 +11,30 @@ from pygame.locals import *
 ##  Global Variables
 ####################
 
-### Pygame ###
-pygame.init()
-clock = pygame.time.Clock()
-
-### Creating the main surface ###
-WIDTH = 1024
-HEIGHT = 600
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
-surface_rect = main_surface.get_rect()
-
 ### GameStuff ###
 GAME_OVER = False
 D_LOCK = threading.Event()
 
-### Music ###
-pygame.mixer.music.load("music/Nimbus2000.ogg")
-sound_effect = pygame.mixer.Sound("music/SoundEffect.ogg")
+# ### Pygame ###
+# pygame.init()
+# clock = pygame.time.Clock()
 
-### Misc ###
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-font_basic = pygame.font.SysFont("Helvetica", 120)
-font_big = pygame.font.SysFont("Helvetica", 72)
-font_small = pygame.font.SysFont("Helvetica", 50)
+# ### Creating the main surface ###
+# WIDTH = 1024
+# HEIGHT = 600
+# main_surface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
+# surface_rect = main_surface.get_rect()
+
+# ### Music ###
+# pygame.mixer.music.load("music/Nimbus2000.ogg")
+# sound_effect = pygame.mixer.Sound("music/SoundEffect.ogg")
+
+# ### Misc ###
+# WHITE = (255, 255, 255)
+# BLACK = (0, 0, 0)
+# font_basic = pygame.font.SysFont("Helvetica", 120)
+# font_big = pygame.font.SysFont("Helvetica", 72)
+# font_small = pygame.font.SysFont("Helvetica", 50)
 
 
 
@@ -62,9 +62,9 @@ class Status(pygame.sprite.Sprite):
     def update(self, new_val):
         self.value = new_val
 
-ammo = Status(xpos=-250)
-lives = Status()
-defense = Status(xpos=250)
+# ammo = Status(xpos=-250)
+# lives = Status()
+# defense = Status(xpos=250)
 
 
 ####################
@@ -123,16 +123,16 @@ def process_distance(client, name):
             D_LOCK.clear()
         D_LOCK.wait()
 
-def draw_main(name, all_sprites):
-    player = font_basic.render(name, True, WHITE, BLACK) 
-    player_rect = player.get_rect()
-    player_rect.centerx = surface_rect.centerx 
-    player_rect.y = 10
+# def draw_main(name, all_sprites):
+#     player = font_basic.render(name, True, WHITE, BLACK) 
+#     player_rect = player.get_rect()
+#     player_rect.centerx = surface_rect.centerx 
+#     player_rect.y = 10
 
-    main_surface.fill(BLACK)
-    main_surface.blit(player, player_rect)
+#     main_surface.fill(BLACK)
+#     main_surface.blit(player, player_rect)
 
-    all_sprites.draw(main_surface)
+#     all_sprites.draw(main_surface)
 
 
 ####################
@@ -170,66 +170,67 @@ def main():
     ##  Start Game
     ####################
 
-    all_sprites = pygame.sprite.RenderPlain(ammo, lives, defense)
+    # all_sprites = pygame.sprite.RenderPlain(ammo, lives, defense)
 
-    time.sleep(1.5)
+    # time.sleep(1.5)
     # pygame.mixer.music.play(-1, 0.5)
 
-    player_win = False
+    # player_win = False
     global GAME_OVER
     while not GAME_OVER:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
-                GAME_OVER = True
-                sys.exit()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                GAME_OVER = True
-                player_win = True
+        # for event in pygame.event.get():
+        #     if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
+        #         GAME_OVER = True
+        #         sys.exit()
+        #     if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+        #         GAME_OVER = True
+        #         player_win = True
 
-        # Visuals
-        draw_main(name, all_sprites)
+        # # Visuals
+        # draw_main(name, all_sprites)
         
-        pygame.display.update()
-        clock.tick(60)
+        # pygame.display.update()
+        # clock.tick(60)
+        time.sleep(1)
 
 
     ####################
     ##  End Game
     ####################
 
-    pygame.mixer.music.load("music/LeavingHogwarts.ogg")
-    # pygame.mixer.music.play(-1, 0.5)
+    # pygame.mixer.music.load("music/LeavingHogwarts.ogg")
+    # # pygame.mixer.music.play(-1, 0.5)
 
-    # Visuals
-    game_over = font_big.render("GAME OVER", True, WHITE, BLACK)
-    g_o_rect = game_over.get_rect()
-    g_o_rect.centerx = surface_rect.centerx
-    g_o_rect.centery = surface_rect.centery - 50
+    # # Visuals
+    # game_over = font_big.render("GAME OVER", True, WHITE, BLACK)
+    # g_o_rect = game_over.get_rect()
+    # g_o_rect.centerx = surface_rect.centerx
+    # g_o_rect.centery = surface_rect.centery - 50
 
-    if player_win:
-        winner = font_small.render("Player Wins!", True, WHITE, BLACK)
-        win_rect = winner.get_rect()
-        win_rect.centerx = g_o_rect.centerx
-        win_rect.centery = g_o_rect.centery + 75
+    # if player_win:
+    #     winner = font_small.render("Player Wins!", True, WHITE, BLACK)
+    #     win_rect = winner.get_rect()
+    #     win_rect.centerx = g_o_rect.centerx
+    #     win_rect.centery = g_o_rect.centery + 75
 
-    main_surface.fill(BLACK)
-    main_surface.blit(game_over, g_o_rect)
-    if player_win:
-        main_surface.blit(winner, win_rect)
+    # main_surface.fill(BLACK)
+    # main_surface.blit(game_over, g_o_rect)
+    # if player_win:
+    #     main_surface.blit(winner, win_rect)
 
-    done = False
-    while not done:
-        # Quit conditions
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                done = True
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                done = True
+    # done = False
+    # while not done:
+    #     # Quit conditions
+    #     for event in pygame.event.get():
+    #         if event.type == QUIT:
+    #             done = True
+    #         if event.type == KEYDOWN and event.key == K_ESCAPE:
+    #             done = True
 
-        # Visuals
-        pygame.display.update()
+    #     # Visuals
+    #     pygame.display.update()
 
-    pygame.quit()
+    # pygame.quit()
         
 
 if __name__ == '__main__':

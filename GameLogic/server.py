@@ -139,7 +139,7 @@ class Player:
         self.action_ready.set()
 
     def is_listening_to_action(self):
-        return self.action_ready.isSet()
+        return not self.action_ready.isSet()
 
     def wait_for_distance(self):
         if self.is_dead():
@@ -153,7 +153,7 @@ class Player:
         self.listen_ready.set()
 
     def is_listening_to_distance(self):
-        return self.listen_ready.isSet()
+        return not self.listen_ready.isSet()
 
 
 ####################
