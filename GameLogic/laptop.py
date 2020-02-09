@@ -155,9 +155,7 @@ def main():
         name = sys.argv[1]
     else:
         name = input("Please enter your name: ")
-    role = "laptop"
-    setup_message = "{}_{}".format(name, role)
-    client.publish(TOPIC_SETUP, setup_message)
+    client.publish(TOPIC_SETUP, name)
 
     print("Listening...")
     client.loop_start()
@@ -166,9 +164,9 @@ def main():
     t.start()
 
 
-    ####################
-    ##  Start Game
-    ####################
+    # ####################
+    # ##  Start Game
+    # ####################
 
     # all_sprites = pygame.sprite.RenderPlain(ammo, lives, defense)
 
@@ -176,30 +174,29 @@ def main():
     # pygame.mixer.music.play(-1, 0.5)
 
     # player_win = False
-    global GAME_OVER
-    while not GAME_OVER:
-        # for event in pygame.event.get():
-        #     if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
-        #         GAME_OVER = True
-        #         sys.exit()
-        #     if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-        #         GAME_OVER = True
-        #         player_win = True
+    # global GAME_OVER
+    # while not GAME_OVER:
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
+    #             GAME_OVER = True
+    #             sys.exit()
+    #         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+    #             GAME_OVER = True
+    #             player_win = True
 
-        # # Visuals
-        # draw_main(name, all_sprites)
+    #     # Visuals
+    #     draw_main(name, all_sprites)
         
-        # pygame.display.update()
-        # clock.tick(60)
-        time.sleep(1)
+    #     pygame.display.update()
+    #     clock.tick(60)
 
 
-    ####################
-    ##  End Game
-    ####################
+    # ####################
+    # ##  End Game
+    # ####################
 
     # pygame.mixer.music.load("music/LeavingHogwarts.ogg")
-    # # pygame.mixer.music.play(-1, 0.5)
+    # pygame.mixer.music.play(-1, 0.5)
 
     # # Visuals
     # game_over = font_big.render("GAME OVER", True, WHITE, BLACK)

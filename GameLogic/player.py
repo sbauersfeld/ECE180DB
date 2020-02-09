@@ -72,9 +72,7 @@ def main():
         time.sleep(0.25)
     else:
         name = input("Please enter your name: ")
-    role = "player"
-    setup_message = "{}_{}".format(name, role)
-    client.publish(TOPIC_SETUP, setup_message)
+    # client.publish(TOPIC_SETUP, name)   ### TODO: Have laptop setup player
 
     print("Listening...")
     client.loop_start()

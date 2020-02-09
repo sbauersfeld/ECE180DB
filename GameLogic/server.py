@@ -166,14 +166,7 @@ def on_message(client, userdata, msg):
 
 def on_message_setup(client, userdata, msg):
     message = msg.payload.decode()
-
-    try:
-        msg_list = message.split('_')
-        name = msg_list[0]
-        role = msg_list[1]
-    except (KeyError, IndexError):
-        print("Unexpected message: {}".format(message))
-        return
+    name = message
 
     if name in players:
         print("Player {} already set up".format(name))
