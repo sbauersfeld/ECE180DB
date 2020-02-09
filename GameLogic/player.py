@@ -72,10 +72,12 @@ def main():
         time.sleep(0.25)
     else:
         name = input("Please enter your name: ")
-    # client.publish(TOPIC_SETUP, name)   ### TODO: Have laptop setup player
 
     print("Listening...")
     client.loop_start()
+
+    ### TODO: Have laptop setup player
+    # client.publish(TOPIC_SETUP, name)
 
     A_LOCK.wait()
     while not GAME_OVER:

@@ -237,11 +237,12 @@ def process_actions(client, name):
 
             print("Player {} with {}".format(name,item))
             player.curr_acts[item[0]] = item[1]
+            ### Figure out better action processing here
 
             actions.task_done()
     except queue.Empty:
         player.run()
-        client.publish("ee180d/hp_shotgun/status", player.status())
+        client.publish(TOPIC_LAPTOP, player.status())
         print("Finished processing " + name)
 
 
@@ -271,7 +272,7 @@ def main():
 
     round_num = 0
     while True:
-        # Check for next round
+        # Start new round
         ### SPEECH DETECTION STUFF HERE ###
         input("Press Enter to continue...")
 
@@ -308,7 +309,7 @@ def main():
         # Ask for distance data
         for name, player in players.items():
             player.listen_for_distance()
-        client.publish(TOPIC_PLAYER, START_DIST)
+        client.publish(TOPIC_LAPTOP, START_DIST)
         print("Waiting for distances...")
         for name, player in players.items():
             player.wait_for_distance()

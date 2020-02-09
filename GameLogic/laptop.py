@@ -41,29 +41,29 @@ D_LOCK = threading.Event()
 
 
 
-####################
-##  Classes
-####################
+# ####################
+# ##  Classes
+# ####################
 
-class Status(pygame.sprite.Sprite):
-    def __init__(self, value=0, xpos=0):
+# class Status(pygame.sprite.Sprite):
+#     def __init__(self, value=0, xpos=0):
 
-        ### Creating the object ###
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface([100, 100])
-        self.image.fill(WHITE)
-        self.rect = self.image.get_rect()
+#         ### Creating the object ###
+#         pygame.sprite.Sprite.__init__(self)
+#         self.image = pygame.Surface([100, 100])
+#         self.image.fill(WHITE)
+#         self.rect = self.image.get_rect()
 
-        ### Establishing the location ##
-        self.rect.centerx = main_surface.get_rect().centerx
-        self.rect.centery = main_surface.get_rect().centery
-        self.rect.centerx += xpos
+#         ### Establishing the location ##
+#         self.rect.centerx = main_surface.get_rect().centerx
+#         self.rect.centery = main_surface.get_rect().centery
+#         self.rect.centerx += xpos
 
-        ### Status information ###
-        self.value = value
+#         ### Status information ###
+#         self.value = value
 
-    def update(self, new_val):
-        self.value = new_val
+#     def update(self, new_val):
+#         self.value = new_val
 
 # ammo = Status(xpos=-250)
 # lives = Status()
@@ -78,9 +78,13 @@ def on_message(client, userdata, msg):
     message = msg.payload.decode()
     print("Received unexpected message: " + message)
 
-def on_message_status(client, userdata, msg):
+def on_message_laptop(client, userdata, msg):
     message = msg.payload.decode()
     print("Status: " + message)
+
+    if message == START_DIST:
+        D_LOCK.set()
+        return
 
     # Update status here through pygame
     pass
@@ -92,8 +96,6 @@ def on_message_player(client, userdata, msg):
     if message == START_ACTION:
         # Inform Player to do action here through pygame
         pass
-    elif message == START_DIST:
-        D_LOCK.set()
     elif message == STOP_GAME:
         global GAME_OVER
         GAME_OVER = True
@@ -126,16 +128,16 @@ def process_distance(client, name):
             D_LOCK.clear()
         D_LOCK.wait()
 
-# def draw_main(name, all_sprites):
-#     player = font_basic.render(name, True, WHITE, BLACK) 
-#     player_rect = player.get_rect()
-#     player_rect.centerx = surface_rect.centerx 
-#     player_rect.y = 10
+def draw_main(name, all_sprites):
+    player = font_basic.render(name, True, WHITE, BLACK) 
+    player_rect = player.get_rect()
+    player_rect.centerx = surface_rect.centerx 
+    player_rect.y = 10
 
-#     main_surface.fill(BLACK)
-#     main_surface.blit(player, player_rect)
+    main_surface.fill(BLACK)
+    main_surface.blit(player, player_rect)
 
-#     all_sprites.draw(main_surface)
+    all_sprites.draw(main_surface)
 
 
 ####################
@@ -145,23 +147,25 @@ def process_distance(client, name):
 def main():
     client = mqtt.Client()
     client.on_message = on_message
-    client.message_callback_add(TOPIC_STATUS, on_message_status)
+    client.message_callback_add(TOPIC_LAPTOP, on_message_laptop)
     client.message_callback_add(TOPIC_PLAYER, on_message_player)
     client.connect("broker.hivemq.com")
     client.subscribe(TOPIC_GLOBAL)
-    client.subscribe(TOPIC_STATUS)
+    client.subscribe(TOPIC_LAPTOP)
     client.subscribe(TOPIC_PLAYER)
 
     if len(sys.argv) == 2:
-        # Sleep necessary if no code present before publish
         time.sleep(0.25)
         name = sys.argv[1]
     else:
         name = input("Please enter your name: ")
-    client.publish(TOPIC_SETUP, name)
 
     print("Listening...")
     client.loop_start()
+
+    ### Handle connection with player
+
+    client.publish(TOPIC_SETUP, name)
 
     t = threading.Thread(target=process_distance, args=[client, name])
     t.start()
