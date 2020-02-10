@@ -57,6 +57,7 @@ while True:
 	key = input("(s) --> save model\n(d) --> discard model\n")
 	if key is "s":
 		joblib.dump(model, 'models/' + "s" + str(score) + "_q" + str(len(x_train)) + "model.joblib")
+		joblib.dump(model, 'models/' + "scaler" + str(score) + "_q" + str(len(x_train)) + "model.joblib")
 		break
 	else:
 		break
