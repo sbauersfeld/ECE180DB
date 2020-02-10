@@ -53,8 +53,8 @@ from sklearn.preprocessing import StandardScaler
 #   #if elapsed_ms > 10000:
 #   #  break
 
-model = joblib.load('models/scott_model1.joblib') 
-scaler = joblib.load('models/scott_scaler1.joblib') 
+model = joblib.load('models/wilson/model.joblib') 
+scaler = joblib.load('models/wilson/scaler.joblib') 
 
 IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
 IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
@@ -63,12 +63,12 @@ duration_s = float(input("Sensor trace duration: "))
 
 header = ["time_ms"] + pdata.get_header()
 
-input("Press 'Enter' to start tracing...")
-start = datetime.datetime.now()
-elapsed_ms = 0
-data = []
-
 while True:
+	input("Press 'Enter' to start tracing...")
+	start = datetime.datetime.now()
+	elapsed_ms = 0
+	data = []
+
 	while elapsed_ms < duration_s * 1000:
 		print("tracing...")
 
@@ -76,12 +76,12 @@ while True:
 		data.append(row)
 		elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
 
+	print(len(data))
 	df = pd.DataFrame(data, columns=header)
 	features = pdata.get_model_features(df)
 	features = scaler.transform(np.reshape(features, (1, -1)))
 	prediction = model.predict(features)[0]
 	print(prediction)
-
 
 def GetGesture(scaler, model):
   duration_s = 1.5
