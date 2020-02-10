@@ -53,6 +53,7 @@ from sklearn.preprocessing import StandardScaler
 #   #  break
 
 model = joblib.load('/home/pi/ECE180DB/gesture_recognition/models/s100_q63model.joblib') 
+scaler = joblib.load('/home/pi/ECE180DB/gesture_recognition/models/scaler100_q63model.joblib') 
 
 IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
 IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
@@ -75,5 +76,6 @@ while elapsed_ms < duration_s * 1000:
 
 df = pd.DataFrame(data, columns=header)
 features = pdata.get_model_features(df)
+features = scaler.transform(features)
 prediction = model.predict([features])[0]
 print(prediction)
