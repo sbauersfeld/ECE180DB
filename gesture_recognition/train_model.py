@@ -1,7 +1,7 @@
 #!/home/pi/berryconda3/bin/python3
 
 import process_data as data
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
@@ -27,7 +27,7 @@ def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 ###############################################################################
 ###						Extract features & labels and scaling 				###
 ###############################################################################
-feature, label = extract_data("training_data", ["scott", "wilson"])
+feature, label = extract_data("training_data", ["scott"])
 print(np.shape(feature))
 print(np.shape(label))
 scaler = StandardScaler()
@@ -36,12 +36,12 @@ scaler = StandardScaler()
 ###									Training 								###
 ###############################################################################
 #split data into testing and training set for validation
-x_train, x_test, y_train, y_test = train_test_split(feature, label, stratify=label)
+x_train, x_test, y_train, y_test = train_test_split(feature, label, stratify=label, random_state=0)
 scaler.fit(x_train)
 x_train = scaler.transform(x_train)
 x_test = scaler.transform(x_test)
 
-model = LinearSVC(max_iter=100000, dual=False)
+model = SVC(max_iter=1000)
 model.fit(x_train, y_train)
 
 ###############################################################################
@@ -56,11 +56,7 @@ print("Score: ", score)
 while True:
 	key = input("(s) --> save model\n(d) --> discard model\n")
 	if key is "s":
-		joblib.dump(model, 'models/' + "s" + score + "_q" + len(x_train) + "model.joblib")
+		joblib.dump(model, 'models/' + "s" + str(score) + "_q" + str(len(x_train)) + "model.joblib")
 		break
 	else:
 		break
-
-
-
-
