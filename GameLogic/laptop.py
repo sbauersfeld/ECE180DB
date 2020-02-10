@@ -95,8 +95,10 @@ def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
     print("Player: " + message)
 
+    ### For visual purposes for player (pygame) ###
+
     if message == START_ACTION:
-        # Inform Player to do action here through pygame
+        ### Inform Player to do action here through pygame ###
         pass
     elif message == STOP_GAME:
         global GAME_OVER
