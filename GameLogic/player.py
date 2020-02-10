@@ -3,7 +3,9 @@ import paho.mqtt.client as mqtt
 import sys
 import time
 import threading
-
+from sklearn.externals import joblib
+import IMU
+from detect_gesture import GetGesture
 
 ####################
 ##  Global Variables
@@ -73,6 +75,12 @@ def main():
     else:
         name = input("Please enter your name: ")
 
+    model = joblib.load('models/scott_model1.joblib') 
+    scaler = joblib.load('models/scott_scaler1.joblib') 
+
+    IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
+    IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
+
     print("Listening...")
     client.loop_start()
 
@@ -84,7 +92,8 @@ def main():
 
         ################
         ### EDIT HERE FOR GESTURE RECOGNITION
-        actions = register_actions_commandline()
+        action = GetGesture(scaler, model)
+        actions = [action]
         ### EDIT HERE FOR GESTURE RECOGNITION
         ################################
         for action in actions:
