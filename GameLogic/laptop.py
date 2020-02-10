@@ -46,7 +46,7 @@ D_LOCK = threading.Event()
 # ####################
 
 # class Status(pygame.sprite.Sprite):
-#     def __init__(self, value=0, xpos=0):
+#     def __init__(self, value=0, xpos=0, ypos=0):
 
 #         ### Creating the object ###
 #         pygame.sprite.Sprite.__init__(self)
@@ -58,6 +58,7 @@ D_LOCK = threading.Event()
 #         self.rect.centerx = main_surface.get_rect().centerx
 #         self.rect.centery = main_surface.get_rect().centery
 #         self.rect.centerx += xpos
+#         self.rect.centery += ypos
 
 #         ### Status information ###
 #         self.value = value
@@ -68,6 +69,7 @@ D_LOCK = threading.Event()
 # ammo = Status(xpos=-250)
 # lives = Status()
 # defense = Status(xpos=250)
+# action = Status(ypos=250)
 
 
 ####################
@@ -117,13 +119,18 @@ def process_distance(client, name):
     D_LOCK.wait()
     while not GAME_OVER:
 
-        new_val = GetDistance()
+        new_val = round(GetDistance(), 1)
         dist = str(new_val)
         send_action(client, name, Act.DIST, dist)
 
         if not GAME_OVER:
             D_LOCK.clear()
         D_LOCK.wait()
+
+
+####################
+##  Pygame Functions
+####################
 
 def draw_main(name, all_sprites):
     player = font_basic.render(name, True, WHITE, BLACK) 
