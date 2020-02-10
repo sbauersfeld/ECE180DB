@@ -60,8 +60,8 @@ while True:
 		name = input("Enter name: ")
 		if not os.path.exists("models/" + name):
 			os.mkdir("models/" + name)
-		joblib.dump(model, 'models/' + name + "/s" + str(score * 100) + "_q" + str(len(x_train)) + "model.joblib")
-		joblib.dump(scaler, 'models/' + name + "/s" "scaler_s" + str(score * 100) + "_q" + str(len(x_train)) + "model.joblib")
+		joblib.dump(model, 'models/' + name + "/s" + str(int(score * 100)) + "_q" + str(len(x_train)) + "model.joblib")
+		joblib.dump(scaler, 'models/' + name + "/" "scaler_s" + str(int(score * 100)) + "_q" + str(len(x_train)) + "model.joblib")
 		break
 	else:
 		break
