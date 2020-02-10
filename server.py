@@ -214,6 +214,18 @@ def on_message_action(client, userdata, msg):
         else:
             print("Player {}'s actions already chosen".format(name))
 
+    ### Addition just for demos ###
+    # Can be used for a burst/grenade option
+    if action in [Act.SHOOT]:
+        for n, p in players.items():
+            if p is player:
+                continue
+            try:
+                print("HERE")
+                p.actions.put_nowait([Act.HIT, ""])
+            except queue.Full:
+                print("Error while processing shoot for {}".format(name))
+
     if action in [Act.DIST]:
         if player.is_listening_to_distance():
             player.update_distance(value)
