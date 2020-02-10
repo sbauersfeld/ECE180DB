@@ -11,7 +11,7 @@ import glob
 import numpy as np
 import os
 
-def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
+def extract_data(folder, members, gestures=["reload", "shoot", "block", "negative"]):
 	label = []
 	feature = []
 	for m in members:
@@ -58,10 +58,12 @@ while True:
 	key = input("(s) --> save model\n(d) --> discard model\n")
 	if key is "s":
 		name = input("Enter name: ")
+		model_name = input("Enter model name: ")
+		scaler_name = input("Enter scaler name: ")
 		if not os.path.exists("models/" + name):
 			os.mkdir("models/" + name)
-		joblib.dump(model, 'models/' + name + "/s" + str(int(score * 100)) + "_q" + str(len(x_train)) + "model.joblib")
-		joblib.dump(scaler, 'models/' + name + "/" "scaler_s" + str(int(score * 100)) + "_q" + str(len(x_train)) + "model.joblib")
+		joblib.dump(model, 'models/' + name + "/" + model_name + ".joblib")
+		joblib.dump(scaler, 'models/' + name + "/" + scaler_name + ".joblib")
 		break
 	else:
 		break
