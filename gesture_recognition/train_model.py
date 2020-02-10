@@ -36,7 +36,7 @@ scaler = StandardScaler()
 ###									Training 								###
 ###############################################################################
 #split data into testing and training set for validation
-x_train, x_test, y_train, y_test = train_test_split(feature, label, stratify=label)
+x_train, x_test, y_train, y_test = train_test_split(feature, label, stratify=label, random_state=0)
 scaler.fit(x_train)
 x_train = scaler.transform(x_train)
 x_test = scaler.transform(x_test)
