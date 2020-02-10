@@ -28,15 +28,14 @@ class Player:
         self.ammo = ammo
         self.defense = 25.0
 
-        # Using a Queue here
-        self.actions = queue.Queue(q_size)
-        self.action_ready = threading.Event()
-        self.listen_ready = threading.Event()
-
-        # State variables
-        self.is_hit = False
+        # Variables
         self.is_blocking = False
         self.curr_acts = {}
+        self.actions = queue.Queue(q_size)
+
+        # Synchronization
+        self.action_ready = threading.Event()
+        self.listen_ready = threading.Event()
 
     def __str__(self):
         return "Player {}".format(self.name)
@@ -79,9 +78,14 @@ class Player:
         if Act.HIT in self.curr_acts:
             self.get_hit()
 
+        self.clear()
         print(self.status(True))
         if self.is_dead():
             print("{} has died!".format(self.name))
+
+    def clear(self):
+        self.is_blocking = False
+        self.curr_acts.clear()
 
     ####################
     ##  Player Actions
@@ -134,9 +138,6 @@ class Player:
         self.action_ready.wait()
 
     def listen_for_actions(self):
-        self.is_hit = False
-        self.is_blocking = False
-        self.curr_acts.clear()
         self.action_ready.clear()
 
     def finish_for_actions(self):
@@ -204,27 +205,23 @@ def on_message_action(client, userdata, msg):
     if player.is_dead():
         return
 
-    # Handle for distance messages
-    if action is Act.DIST:
+    if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK, Act.HIT]:
+        if player.is_listening_to_action():
+            try:
+                player.actions.put_nowait([action, value])
+            except queue.Full:
+                print("Extra action received for {}: {}".format(name, action))
+        else:
+            print("Player {}'s actions already chosen".format(name))
+
+    if action in [Act.DIST]:
         if player.is_listening_to_distance():
             player.update_distance(value)
             player.finish_for_distance()
-        return
+        else:
+            print("Player {}'s distance already chosen".format(name))
 
-    # Check if correct phase
-    if not player.is_listening_to_action():
-        print("Player {}'s actions have already been chosen".format(name))
-        return
-    if action is Act.PASS:
-        player.finish_for_actions()
-        return
-
-    try:
-        player.actions.put_nowait([action, value])
-    except queue.Full:
-        print("Extra action received for {}: {}".format(name, action))
-
-    if player.actions.full():
+    if action in [Act.PASS, Act.HIT] or player.actions.full():
         player.finish_for_actions()
 
 
@@ -241,6 +238,7 @@ def request_distance(client):
     print("Waiting for distances...")
     for name, player in players.items():
         player.wait_for_distance()
+        client.publish(TOPIC_LAPTOP, player.status())
 
 def request_action(client):
     for name, player in players.items():
@@ -261,7 +259,7 @@ def process_actions(client, name):
 
             print("Player {} with {}".format(name,item))
             player.curr_acts[item[0]] = item[1]
-            ### Figure out better action processing here
+            ### Figure out better action processing here ###
 
             actions.task_done()
     except queue.Empty:
