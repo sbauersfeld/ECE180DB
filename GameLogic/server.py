@@ -22,11 +22,11 @@ NUM_PLAYERS = 2
 ####################
 
 class Player:
-    def __init__(self, name, lives=2, ammo=0, q_size=0):
+    def __init__(self, name, lives=150.0, ammo=0.0, q_size=0):
         self.name = name
         self.lives = lives
         self.ammo = ammo
-        self.defense = 0.75
+        self.defense = 25.0
 
         # Using a Queue here
         self.actions = queue.Queue(q_size)
@@ -79,11 +79,11 @@ class Player:
         if Act.HIT in self.curr_acts:
             self.get_hit()
         if self.is_hit:
-            if self.is_blocking and random.random() < self.defense:
+            if self.is_blocking:
                 print("{} managed to avoid the shot!".format(self.name))
             else:
                 print("{} took damage!".format(self.name))
-                self.lives -= 1
+                self.lives -= (75.0 - self.defense)
 
         print(self.status(True))
         if self.is_dead():
@@ -95,12 +95,13 @@ class Player:
 
     def reload(self):
         print("Action: {} reloaded!".format(self.name))
-        self.ammo += 1
+        self.ammo += 2.5
 
     def shoot(self):
-        if self.ammo > 0:
+        val = self.defense / 10
+        if self.ammo >= val:
             print("Action: {} shot his shot!".format(self.name))
-            self.ammo -= 1
+            self.ammo -= val
         else:
             print("Action: {} tried to shoot, but failed".format(self.name))
 
@@ -115,6 +116,9 @@ class Player:
     def update_distance(self, val_string):
         try:
             new_defense = float(val_string)
+            if new_defense > 50.0:
+                new_defense = 50.0
+
             self.defense = new_defense
             print("{}'s defense updated to {}".format(self.name, self.defense))
         except ValueError:
@@ -225,8 +229,28 @@ def on_message_action(client, userdata, msg):
 
 
 ####################
-##  Threaded function
+##  Functions
 ####################
+
+def request_distance(client):
+    for name, player in players.items():
+        player.listen_for_distance()
+
+    client.publish(TOPIC_LAPTOP, START_DIST)
+
+    print("Waiting for distances...")
+    for name, player in players.items():
+        player.wait_for_distance()
+
+def request_action(client):
+    for name, player in players.items():
+        player.listen_for_actions()
+
+    client.publish(TOPIC_PLAYER, START_ACTION)
+
+    print("Waiting for actions...")
+    for name, player in players.items():
+        player.wait_for_actions()
 
 def process_actions(client, name):
     player = players[name]
@@ -279,13 +303,11 @@ def main():
         round_num += 1
         print("\nStarting round {0}".format(round_num))
 
+        # Ask for distance data
+        request_distance(client)
+
         # Ask for player actions
-        for name, player in players.items():
-            player.listen_for_actions()
-        client.publish(TOPIC_PLAYER, START_ACTION)
-        print("Waiting for actions...")
-        for name, player in players.items():
-            player.wait_for_actions()
+        request_action(client)
 
         # Process received actions
         threads = []
@@ -304,15 +326,9 @@ def main():
         elif len(alive) <= 0:
             print("\nDRAW! There are no remaining players.")
             break
-        time.sleep(3)
 
-        # Ask for distance data
-        for name, player in players.items():
-            player.listen_for_distance()
-        client.publish(TOPIC_LAPTOP, START_DIST)
-        print("Waiting for distances...")
-        for name, player in players.items():
-            player.wait_for_distance()
+        ### Players should move to their preferred distance here
+        print("Move to a new position!")
 
     # End Game
     client.publish(TOPIC_PLAYER, STOP_GAME)
