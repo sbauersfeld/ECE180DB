@@ -5,10 +5,12 @@ from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
+from sklearn.metrics import confusion_matrix
 import pandas as pd
 import glob
+import numpy as np
 
-def extract_data(folder, members, gestures=["negative", "reload", "shoot", "shield"]):
+def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 	label = []
 	feature = []
 	for m in members:
@@ -25,16 +27,19 @@ def extract_data(folder, members, gestures=["negative", "reload", "shoot", "shie
 ###############################################################################
 ###						Extract features & labels and scaling 				###
 ###############################################################################
-feature, label = extract_data("training_data", ["wilson"])
+feature, label = extract_data("training_data", ["scott", "wilson"])
+print(np.shape(feature))
+print(np.shape(label))
 scaler = StandardScaler()
-scaler.fit(feature)
-feature = scaler.transform(feature)
 
 ###############################################################################
 ###									Training 								###
 ###############################################################################
 #split data into testing and training set for validation
-x_train, x_test, y_train, y_test = train_test_split(feature, label)
+x_train, x_test, y_train, y_test = train_test_split(feature, label, stratify=label)
+scaler.fit(x_train)
+x_train = scaler.transform(x_train)
+x_test = scaler.transform(x_test)
 
 model = LinearSVC(max_iter=100000, dual=False)
 model.fit(x_train, y_train)
