@@ -221,7 +221,7 @@ def on_message_action(client, userdata, msg):
         else:
             print("Player {}'s distance already chosen".format(name))
 
-    if action is Act.PASS or action is Act.HIT or player.actions.full():
+    if action in [Act.PASS, Act.HIT] or player.actions.full():
         player.finish_for_actions()
 
 
@@ -238,6 +238,7 @@ def request_distance(client):
     print("Waiting for distances...")
     for name, player in players.items():
         player.wait_for_distance()
+        client.publish(TOPIC_LAPTOP, player.status())
 
 def request_action(client):
     for name, player in players.items():
