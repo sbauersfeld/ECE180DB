@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix
 import pandas as pd
 import glob
 import numpy as np
+import os
 
 def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 	label = []
@@ -27,7 +28,7 @@ def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 ###############################################################################
 ###						Extract features & labels and scaling 				###
 ###############################################################################
-feature, label = extract_data("training_data", ["scott"])
+feature, label = extract_data("training_data", ["wilson"])
 print(np.shape(feature))
 print(np.shape(label))
 scaler = StandardScaler()
@@ -56,8 +57,11 @@ print("Score: ", score)
 while True:
 	key = input("(s) --> save model\n(d) --> discard model\n")
 	if key is "s":
-		joblib.dump(model, 'models/' + "s" + str(score) + "_q" + str(len(x_train)) + "model.joblib")
-		joblib.dump(scaler, 'models/' + "scaler" + str(score) + "_q" + str(len(x_train)) + "model.joblib")
+		name = input("Enter name: ")
+		if not os.path.exists("models/" + name):
+			os.mkdir("models/" + name)
+		joblib.dump(model, 'models/' + name + "/s" + str(int(score * 100)) + "_q" + str(len(x_train)) + "model.joblib")
+		joblib.dump(scaler, 'models/' + name + "/" "scaler_s" + str(int(score * 100)) + "_q" + str(len(x_train)) + "model.joblib")
 		break
 	else:
 		break
