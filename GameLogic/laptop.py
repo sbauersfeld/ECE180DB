@@ -80,7 +80,7 @@ def on_message(client, userdata, msg):
 
 def on_message_laptop(client, userdata, msg):
     message = msg.payload.decode()
-    print("Status: " + message)
+    print("Laptop: " + message)
 
     if message == START_DIST:
         D_LOCK.set()
@@ -91,7 +91,7 @@ def on_message_laptop(client, userdata, msg):
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
-    print("Order: " + message)
+    print("Player: " + message)
 
     if message == START_ACTION:
         # Inform Player to do action here through pygame
@@ -117,11 +117,8 @@ def process_distance(client, name):
     D_LOCK.wait()
     while not GAME_OVER:
 
-        ################
-        ### EDIT HERE FOR CAMERA STUFF
-        dist = GetDistance()
-        ### EDIT HERE FOR CAMERA STUFF
-        ################################
+        new_val = GetDistance()
+        dist = str(new_val)
         send_action(client, name, Act.DIST, dist)
 
         if not GAME_OVER:

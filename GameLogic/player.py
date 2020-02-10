@@ -77,7 +77,7 @@ def main():
     client.loop_start()
 
     ### TODO: Have laptop setup player
-    # client.publish(TOPIC_SETUP, name)
+    client.publish(TOPIC_LAPTOP, name)
 
     A_LOCK.wait()
     while not GAME_OVER:
