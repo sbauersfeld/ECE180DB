@@ -47,8 +47,10 @@ def register_actions_commandline():
             action = Act.__members__[msg]
             actions.append(action)
 
-            if action is Act.PASS or action is Act.HIT:
-                break
+            # if action is Act.PASS or action is Act.HIT:
+            #     break
+            actions.append(Act.PASS)
+            break
         else:
             print("That's not an action!")
 
