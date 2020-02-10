@@ -4,8 +4,8 @@ import sys
 import time
 import threading
 from sklearn.externals import joblib
-import IMU
-from detect_gesture import GetGesture
+import gesture_recognition.IMU
+from gesture_recognition.detect_gesture import GetGesture
 
 ####################
 ##  Global Variables
