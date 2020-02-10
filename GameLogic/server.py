@@ -78,12 +78,6 @@ class Player:
 
         if Act.HIT in self.curr_acts:
             self.get_hit()
-        if self.is_hit:
-            if self.is_blocking:
-                print("{} managed to avoid the shot!".format(self.name))
-            else:
-                print("{} took damage!".format(self.name))
-                self.lives -= (75.0 - self.defense)
 
         print(self.status(True))
         if self.is_dead():
@@ -98,7 +92,7 @@ class Player:
         self.ammo += 2.5
 
     def shoot(self):
-        val = self.defense / 10
+        val = round(self.defense/10.0, 1)
         if self.ammo >= val:
             print("Action: {} shot his shot!".format(self.name))
             self.ammo -= val
@@ -111,13 +105,19 @@ class Player:
 
     def get_hit(self):
         print("{} was shot at!".format(self.name))
-        self.is_hit = True
+        if self.is_blocking:
+            print("{} managed to avoid the shot!".format(self.name))
+        else:
+            print("{} took damage!".format(self.name))
+            self.lives -= (80.0 - self.defense)
 
     def update_distance(self, val_string):
         try:
             new_defense = float(val_string)
             if new_defense > 50.0:
                 new_defense = 50.0
+            elif new_defense < 10.0:
+                new_defense = 10.0
 
             self.defense = new_defense
             print("{}'s defense updated to {}".format(self.name, self.defense))
