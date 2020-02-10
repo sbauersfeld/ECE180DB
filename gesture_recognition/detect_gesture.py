@@ -77,6 +77,6 @@ while True:
 
 	df = pd.DataFrame(data, columns=header)
 	features = pdata.get_model_features(df)
-  features = scaler.transform(features)
+	features = scaler.transform(features)
 	prediction = model.predict([features])[0]
 	print(prediction)
