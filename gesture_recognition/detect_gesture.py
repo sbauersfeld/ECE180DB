@@ -1,47 +1,79 @@
+#!/home/pi/berryconda3/bin/python3
 import time
 import datetime
 import pandas as pd
-import utils
 import collections
 from sklearn.externals import joblib
-import sensor
-import process_data
+from sensor import *
+import process_data as pdata
 
-# CHANGE HERE
-model = joblib.load('/home/pi/dev/gesture/models/167pt_model.joblib') 
+#temp
+from sklearn.preprocessing import StandardScaler
 
-CHECK_TIME_INCREMENT_MS = 200
-SAMPLE_SIZE_MS = 1500
+# model = joblib.load('/home/pi/ECE180DB/gesture_recognition/models/s100_q63model.joblib') 
 
-header = ["time_ms"] + process_data.get_header()
-data = collections.deque(maxlen=int(SAMPLE_SIZE_MS / 10)) #10 Hz
+# IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
+# IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
 
-print('Starting operation')
+# CHECK_TIME_INCREMENT_MS = 200
+# SAMPLE_SIZE_MS = 1500
 
+# header = ["time_ms"] + pdata.get_header()
+# data = collections.deque(maxlen=int(SAMPLE_SIZE_MS / 10)) #10 Hz
+
+# input("Press any key to start...")
+# print('Starting operation')
+
+# start = datetime.datetime.now()
+# elapsed_ms = 0
+# last_classified = 0
+# last_classification = "negative"
+
+# while True:
+#   row = [elapsed_ms] + read_sensor()
+#   data.append(row)
+
+#   if elapsed_ms - last_classified >= CHECK_TIME_INCREMENT_MS and len(data) == data.maxlen:
+#     df = pd.DataFrame(list(data), columns=header)
+#     features = pdata.get_model_features(df)
+#     prediction = model.predict([features])[0]
+
+#     print(int(elapsed_ms), prediction)
+#     if prediction != 'negative':# and last_classification != prediction:
+#         #print("========================>", prediction)
+#         #input("press 'Enter' to continue...")
+#         data.clear()
+
+#     last_classified = elapsed_ms
+#     last_classification = prediction
+
+#   elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
+
+#   #if elapsed_ms > 10000:
+#   #  break
+
+model = joblib.load('/home/pi/ECE180DB/gesture_recognition/models/s100_q63model.joblib') 
+
+IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
+IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
+
+duration_s = float(input("Sensor trace duration: "))
+
+header = ["time_ms"] + pdata.get_header()
+
+input("Press 'Enter' to start tracing...")
 start = datetime.datetime.now()
 elapsed_ms = 0
-last_classified = 0
-last_classification = "negative_trim" # set it as pass
+data = []
 
-while True:
-  row = [elapsed_ms] + sensor.read_sensor()
-  data.append(row)
+while elapsed_ms < duration_s * 1000:
+	print("tracing...")
 
-  if elapsed_ms - last_classified >= CHECK_TIME_INCREMENT_MS and len(data) == data.maxlen:
-    df = pd.DataFrame(list(data), columns=header)
-    features = utils.get_model_features(df)
-    prediction = model.predict([features])[0]
+	row = [elapsed_ms] + read_sensor()
+	data.append(row)
+	elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
 
-    #print(int(elapsed_ms), prediction)
-    # CHANGE HERE
-    if prediction != 'negative_trim':# and last_classification != prediction:
-        print("========================>", prediction)
-        data.clear()
-
-    last_classified = elapsed_ms
-    last_classification = prediction
-
-  elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
-
-  #if elapsed_ms > 10000:
-  #  break
+df = pd.DataFrame(data, columns=header)
+features = pdata.get_model_features(df)
+prediction = model.predict([features])[0]
+print(prediction)
