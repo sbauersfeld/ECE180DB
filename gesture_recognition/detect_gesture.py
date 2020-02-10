@@ -6,6 +6,7 @@ import collections
 from sklearn.externals import joblib
 from sensor import *
 import process_data as pdata
+import numpy as np
 
 #temp
 from sklearn.preprocessing import StandardScaler
@@ -52,8 +53,8 @@ from sklearn.preprocessing import StandardScaler
 #   #if elapsed_ms > 10000:
 #   #  break
 
-model = joblib.load('/home/pi/ECE180DB/gesture_recognition/models/s100_q63model.joblib') 
-scaler = joblib.load('/home/pi/ECE180DB/gesture_recognition/models/scaler100_q63model.joblib') 
+model = joblib.load('models/scott_model1.joblib') 
+scaler = joblib.load('models/scott_scaler1.joblib') 
 
 IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
 IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
@@ -77,6 +78,6 @@ while True:
 
 	df = pd.DataFrame(data, columns=header)
 	features = pdata.get_model_features(df)
-	features = scaler.transform(features)
-	prediction = model.predict([features])[0]
+	features = scaler.transform(np.reshape(features, (1, -1)))
+	prediction = model.predict(features)[0]
 	print(prediction)
