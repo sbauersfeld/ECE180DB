@@ -38,15 +38,15 @@ def get_gesture(model, scaler, max_time=3):
             features = scaler.transform(np.reshape(features, (1, -1)))
             prediction = model.predict(features)[0]
 
-        print(int(elapsed_ms), prediction)
-        if prediction != 'negative':# and last_classification != prediction:
-            print("========================>", prediction)
-            input("press 'Enter' to continue...")
-            # return prediction
-        data.clear()
+            print(int(elapsed_ms), prediction)
+            if prediction != 'negative':# and last_classification != prediction:
+                print("========================>", prediction)
+                input("press 'Enter' to continue...")
+                # return prediction
+            data.clear()
 
-        last_classified = elapsed_ms
-        last_classification = prediction
+            last_classified = elapsed_ms
+            last_classification = prediction
 
         elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
 
