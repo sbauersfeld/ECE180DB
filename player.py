@@ -76,6 +76,7 @@ def main():
     else:
         name = input("Please enter your name: ")
 
+    print("Setting up gesture recognition")
     model, scaler = gesture_setup("wilson", prefix="gesture_recognition/")
 
     print("Listening...")

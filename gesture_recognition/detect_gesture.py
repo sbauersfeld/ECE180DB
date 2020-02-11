@@ -10,7 +10,7 @@ import numpy as np
 
 def gesture_setup(member, model_name="model", scaler_name="scaler", prefix=""):
     model = joblib.load(prefix + 'models/' + member + '/' + model_name + ".joblib")
-      scaler = joblib.load(prefix + 'models/' + member + '/' + scaler_name + ".joblib")
+    scaler = joblib.load(prefix + 'models/' + member + '/' + scaler_name + ".joblib")
 
     IMU.detectIMU()
     IMU.initIMU()
