@@ -77,8 +77,8 @@ def main():
     else:
         name = input("Please enter your name: ")
 
-    model = joblib.load('gesture_recognition/models/scott_model1.joblib') 
-    scaler = joblib.load('gesture_recognition/models/scott_scaler1.joblib') 
+    model = joblib.load('gesture_recognition/models/wilson/model.joblib') 
+    scaler = joblib.load('gesture_recognition/models/wilson/scaler.joblib') 
 
     IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
     IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
