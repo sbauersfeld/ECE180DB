@@ -318,6 +318,11 @@ def main():
         request_distance(client)
 
         # Ask for player actions
+        remaining_time = 3
+        while True:
+            print("Do action in {}...".format(remaining_time))
+            remaining_time -= 1
+            time.sleep(1)
         request_action(client)
 
         # Process received actions
