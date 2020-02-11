@@ -17,7 +17,7 @@ def gesture_setup(member, model_name="model", scaler_name="scaler", prefix=""):
     return model, scaler
 
 def get_gesture(model, scaler, max_time=3):
-    CHECK_TIME_INCREMENT_MS = 20
+    CHECK_TIME_INCREMENT_MS = 200
     SAMPLE_SIZE_MS = 840
 
     header = ["time_ms"] + pdata.get_header()
@@ -41,8 +41,8 @@ def get_gesture(model, scaler, max_time=3):
             print(int(elapsed_ms), prediction)
             if prediction != 'negative':# and last_classification != prediction:
                 print("========================>", prediction)
-                input("press 'Enter' to continue...")
-                # return prediction
+                # input("press 'Enter' to continue...")
+                return prediction
             data.clear()
 
             last_classified = elapsed_ms
