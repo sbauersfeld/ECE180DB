@@ -18,7 +18,7 @@ def gesture_setup(member, model_name="model", scaler_name="scaler", prefix=""):
 
 def get_gesture(model, scaler, max_time=3):
     CHECK_TIME_INCREMENT_MS = 20
-    SAMPLE_SIZE_MS = 1000
+    SAMPLE_SIZE_MS = 840
 
     header = ["time_ms"] + pdata.get_header()
     data = collections.deque(maxlen=int(SAMPLE_SIZE_MS / 10)) #10 Hz
