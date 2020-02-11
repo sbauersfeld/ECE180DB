@@ -4,7 +4,6 @@ import sys
 import time
 import threading
 import queue
-import random
 import json
 
 
@@ -68,7 +67,9 @@ class Player:
         if self.is_dead():
             return
 
-        if Act.BLOCK in self.curr_acts:
+        if not self.curr_acts:
+            print("No actions taken by player {}".format(self.name))
+        elif Act.BLOCK in self.curr_acts:
             self.block()
         elif Act.RELOAD in self.curr_acts:
             self.reload()
@@ -229,6 +230,7 @@ def on_message_action(client, userdata, msg):
     if action in [Act.DIST]:
         if player.is_listening_to_distance():
             player.update_distance(value)
+            client.publish(TOPIC_LAPTOP, player.status())
             player.finish_for_distance()
         else:
             print("Player {}'s distance already chosen".format(name))
@@ -250,7 +252,6 @@ def request_distance(client):
     print("Waiting for distances...")
     for name, player in players.items():
         player.wait_for_distance()
-        client.publish(TOPIC_LAPTOP, player.status())
 
 def request_action(client):
     for name, player in players.items():

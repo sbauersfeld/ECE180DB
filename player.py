@@ -4,7 +4,7 @@ import sys
 import time
 import threading
 from sklearn.externals import joblib
-import gesture_recognition.IMU
+from gesture_recognition import IMU
 from gesture_recognition.detect_gesture import GetGesture
 
 ####################
@@ -77,8 +77,8 @@ def main():
     else:
         name = input("Please enter your name: ")
 
-    model = joblib.load('gesture_recognition/models/scott_model1.joblib') 
-    scaler = joblib.load('gesture_recognition/models/scott_scaler1.joblib') 
+    model = joblib.load('gesture_recognition/models/wilson/model.joblib') 
+    scaler = joblib.load('gesture_recognition/models/wilson/scaler.joblib') 
 
     IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
     IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
@@ -91,13 +91,13 @@ def main():
 
     A_LOCK.wait()
     while not GAME_OVER:
+        gesture = GetGesture(scaler, model).upper()
+        if gesture in Act.__members__.keys():
+            action = Act.__members__[gesture]
+        else:
+            action = Act.PASS
 
-        ################
-        ### EDIT HERE FOR GESTURE RECOGNITION
-        action = GetGesture(scaler, model)
         actions = [action]
-        ### EDIT HERE FOR GESTURE RECOGNITION
-        ################################
         for action in actions:
             send_action(client, name, action)
 

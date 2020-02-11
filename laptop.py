@@ -8,7 +8,7 @@ from pygame.locals import *
 import numpy as np
 import cv2
 import imutils
-from range_detection import GetDistance
+from range_detection.range_detection import GetDistance
 
 ####################
 ##  Global Variables
@@ -241,7 +241,7 @@ def main():
     #     pygame.display.update()
 
     # pygame.quit()
-        
+
 
 if __name__ == '__main__':
     main()
