@@ -4,7 +4,7 @@ import sys
 import time
 import threading
 from sklearn.externals import joblib
-import gesture_recognition.IMU
+from gesture_recognition import IMU
 from gesture_recognition.detect_gesture import GetGesture
 
 ####################
