@@ -91,13 +91,13 @@ def main():
 
     A_LOCK.wait()
     while not GAME_OVER:
+        gesture = GetGesture(scaler, model).upper()
+        if gesture in Act.__members__.keys():
+            action = Act.__members__[gesture]
+        else:
+            action = Act.PASS
 
-        ################
-        ### EDIT HERE FOR GESTURE RECOGNITION
-        action = GetGesture(scaler, model)
         actions = [action]
-        ### EDIT HERE FOR GESTURE RECOGNITION
-        ################################
         for action in actions:
             send_action(client, name, action)
 
