@@ -53,49 +53,41 @@ from sklearn.preprocessing import StandardScaler
 #   #if elapsed_ms > 10000:
 #   #  break
 
-model = joblib.load('models/wilson/model.joblib') 
-scaler = joblib.load('models/wilson/scaler.joblib') 
+def GetGesture(scaler, model, duration_s=1.5):
+    start = datetime.datetime.now()
+    elapsed_ms = 0
+    data = []
 
-IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
-IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
+    while elapsed_ms < duration_s * 1000:
+        print("tracing...")
 
-duration_s = float(input("Sensor trace duration: "))
+        row = [elapsed_ms] + read_sensor()
+        data.append(row)
+        elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
 
-header = ["time_ms"] + pdata.get_header()
+    print(len(data))
+    df = pd.DataFrame(data, columns=header)
+    features = pdata.get_model_features(df)
+    features = scaler.transform(np.reshape(features, (1, -1)))
+    prediction = model.predict(features)[0]
 
-while True:
-	input("Press 'Enter' to start tracing...")
-	start = datetime.datetime.now()
-	elapsed_ms = 0
-	data = []
+    print(prediction)
+    return prediction
 
-	while elapsed_ms < duration_s * 1000:
-		print("tracing...")
+def main():
+    model = joblib.load('models/wilson/model.joblib') 
+    scaler = joblib.load('models/wilson/scaler.joblib') 
 
-		row = [elapsed_ms] + read_sensor()
-		data.append(row)
-		elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
+    IMU.detectIMU()     #Detect if BerryIMUv1 or BerryIMUv2 is connected.
+    IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
 
-	print(len(data))
-	df = pd.DataFrame(data, columns=header)
-	features = pdata.get_model_features(df)
-	features = scaler.transform(np.reshape(features, (1, -1)))
-	prediction = model.predict(features)[0]
-	print(prediction)
+    duration_s = float(input("Sensor trace duration: "))
 
-def GetGesture(scaler, model):
-  duration_s = 1.5
-  start = datetime.datetime.now()
-  elapsed_ms = 0
-  data = []
+    header = ["time_ms"] + pdata.get_header()
 
-  while elapsed_ms < duration_s * 1000:
-	  row = [elapsed_ms] + read_sensor()
-	  data.append(row)
-	  elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
+    while True:
+        input("Press 'Enter' to start tracing...")
+        GetGesture(scaler, model, duration_s)
 
-  df = pd.DataFrame(data, columns=header)
-  features = pdata.get_model_features(df)
-  features = scaler.transform(np.reshape(features, (1, -1)))
-  prediction = model.predict(features)[0]
-  return prediction
+if __name__ == '__main__':
+    main()
