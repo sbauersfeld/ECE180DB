@@ -11,7 +11,7 @@ import glob
 import numpy as np
 import os
 
-def extract_data(folder, members, gestures=["reload", "shoot", "block", "negative"]):
+def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 	label = []
 	feature = []
 	for m in members:
