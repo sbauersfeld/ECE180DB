@@ -9,8 +9,8 @@ import process_data as pdata
 import numpy as np
 
 
-model = joblib.load('models/wilson/model2.joblib')
-scaler = joblib.load('models/wilson/scaler2.joblib')
+model = joblib.load('models/wilson/model3.joblib')
+scaler = joblib.load('models/wilson/scaler3.joblib')
 
 IMU.detectIMU()
 IMU.initIMU()
