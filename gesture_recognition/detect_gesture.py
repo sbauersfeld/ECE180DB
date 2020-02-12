@@ -34,6 +34,7 @@ def get_gesture(model, scaler, duration_s=1.5):
     features = scaler.transform(np.reshape(features, (1, -1)))
     prediction = model.predict(features)[0]
     print(prediction)
+    return prediction
 
 # def get_gesture(model, scaler, max_time=3):
 #     CHECK_TIME_INCREMENT_MS = 200
