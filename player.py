@@ -93,7 +93,8 @@ def main():
             actions = [Act.__members__[gesture]]
         else:
             print("Unexpected gesture read: {}".format(gesture))
-            actions = [Act.PASS]
+            print("Defaulting to block")
+            actions = [Act.BLOCK]
 
         ### Change later after implementing IR ###
         actions.append(Act.PASS)

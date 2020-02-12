@@ -33,6 +33,7 @@ def get_gesture(model, scaler, duration_s=1.5):
     features = pdata.get_model_features(df)
     features = scaler.transform(np.reshape(features, (1, -1)))
     prediction = model.predict(features)[0]
+
     print(prediction)
     return prediction
 
@@ -148,24 +149,3 @@ def get_gesture(model, scaler, duration_s=1.5):
 #   features = scaler.transform(np.reshape(features, (1, -1)))
 #   prediction = model.predict(features)[0]
 #   print(prediction)
-
-def GetGesture(scaler, model, duration_s=1.5, debug=False):
-    start = datetime.datetime.now()
-    elapsed_ms = 0
-    data = []
-
-    while elapsed_ms < duration_s * 1000:
-        if debug: print("tracing...")
-
-        row = [elapsed_ms] + read_sensor()
-        data.append(row)
-        elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
-
-    if debug: print(len(data))
-    df = pd.DataFrame(data, columns=header)
-    features = pdata.get_model_features(df)
-    features = scaler.transform(np.reshape(features, (1, -1)))
-    prediction = model.predict(features)[0]
-
-    if debug: print(prediction)
-    return prediction

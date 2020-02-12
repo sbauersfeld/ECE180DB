@@ -64,8 +64,8 @@ class Player:
         return False
 
     def can_shoot(self):
-        require_ammo = self.defense
-        if self.ammo >= require_ammo:
+        required_ammo = self.defense
+        if self.ammo >= required_ammo:
             return True
         
         return False
@@ -104,9 +104,10 @@ class Player:
         self.ammo += 25
 
     def shoot(self):
+        required_ammo = self.defense
         if self.can_shoot():
             print("Action: {} shot his shot!".format(self.name))
-            self.ammo -= require_ammo
+            self.ammo -= required_ammo
         else:
             print("Action: {} tried to shoot, but failed".format(self.name))
 
@@ -231,7 +232,6 @@ def on_message_action(client, userdata, msg):
             if p is player:
                 continue
             try:
-                print("HERE")
                 p.actions.put_nowait([Act.HIT, ""])
             except queue.Full:
                 print("Error while processing shoot for {}".format(name))
