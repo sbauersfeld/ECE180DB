@@ -50,10 +50,13 @@ model.fit(x_train, y_train)
 ###############################################################################
 predictions = model.predict(x_test)
 print(confusion_matrix(y_test, predictions))
+score = model.score(x_test, y_test)
+df = pd.concat([pd.Series(predictions), pd.Series(y_test)], axis=1)
+df.columns = ["predicted", "actual"]
+print(df)
+print("Score: ", score)
 
 # Save model if desired
-score = model.score(x_test, y_test)
-print("Score: ", score)
 while True:
 	key = input("(s) --> save model\n(d) --> discard model\n")
 	if key is "s":
