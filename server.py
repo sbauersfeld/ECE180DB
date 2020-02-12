@@ -14,6 +14,7 @@ import json
 players = {}
 P_LOCK = threading.Event()
 NUM_PLAYERS = 2
+client = mqtt.Client()
 
 
 ####################
@@ -214,7 +215,7 @@ def on_message_action(client, userdata, msg):
         return
 
     if player.is_listening_to_distance():
-        process_distance(player, name, action, value, client)
+        process_distance(player, name, action, value)
 
     if player.is_listening_to_action():
         process_action(player, name, action, value)
@@ -223,7 +224,7 @@ def on_message_action(client, userdata, msg):
 ##  Functions
 ####################
 
-def request_distance(client):
+def request_distance():
     for name, player in players.items():
         player.listen_for_distance()
 
@@ -233,13 +234,13 @@ def request_distance(client):
     for name, player in players.items():
         player.wait_for_distance()
 
-def process_distance(player, name, action, value, client):
+def process_distance(player, name, action, value):
     if action in [Act.DIST]:
         player.update_distance(value)
         client.publish(TOPIC_LAPTOP, player.status())
         player.finish_for_distance()
 
-def request_action(client):
+def request_action():
     remaining_time = 3
     while remaining_time > 0:
         client.publish(TOPIC_LAPTOP, "doAction_{}".format(remaining_time))
@@ -279,7 +280,7 @@ def process_action(player, name, action, value):
     if action in [Act.PASS, Act.HIT] or player.actions.full():
         player.finish_for_actions()
 
-def process_round(client, name):
+def process_round(name):
     player = players[name]
     actions = player.actions
     try:
@@ -302,14 +303,11 @@ def process_round(client, name):
 ####################
 
 def main():
-    client = mqtt.Client()
     client.on_message = on_message
     client.message_callback_add(TOPIC_SETUP, on_message_setup)
-    client.message_callback_add(TOPIC_ACTION, on_message_action)
     client.connect("broker.hivemq.com")
     client.subscribe(TOPIC_GLOBAL)
     client.subscribe(TOPIC_SETUP)
-    client.subscribe(TOPIC_ACTION)
 
     if len(sys.argv) == 2:
         global NUM_PLAYERS
@@ -320,6 +318,8 @@ def main():
 
     print("Waiting to register {} players...\n".format(NUM_PLAYERS))
     P_LOCK.wait()
+    client.subscribe(TOPIC_ACTION)
+    client.message_callback_add(TOPIC_ACTION, on_message_action)
 
     round_num = 0
     while True:
@@ -331,15 +331,15 @@ def main():
         print("\nStarting round {0}".format(round_num))
 
         # Ask for distance data
-        request_distance(client)
+        request_distance()
 
         # Ask for player actions
-        request_action(client)
+        request_action()
 
         # Process received actions
         threads = []
         for name in players:
-            t = threading.Thread(target=process_round, args=[client, name])
+            t = threading.Thread(target=process_round, args=[name])
             t.start()
             threads.append(t)
         for t in threads:
@@ -359,6 +359,7 @@ def main():
 
     # End Game
     client.publish(TOPIC_PLAYER, STOP_GAME)
+    time.sleep(1)
 
 if __name__ == '__main__':
     main()

@@ -13,6 +13,7 @@ from gesture_recognition.detect_gesture import gesture_setup, get_gesture
 
 GAME_OVER = False
 A_LOCK = threading.Event()
+IR_HIT = False
 
 
 ####################
@@ -47,13 +48,19 @@ def register_actions_commandline():
     while True:
         msg = input("Enter action: ").upper()
         if msg in Act.__members__.keys():
-            action = Act.__members__[msg]
+            action = Act[msg]
             actions.append(action)
             break
         else:
             print("That's not an action!")
 
     return actions
+
+def monitor_IR():
+    global IR_HIT
+    while True:
+        ### IMPLEMENT IR SENSOR HERE ###
+        time.sleep(1)
 
 
 ####################
@@ -73,8 +80,10 @@ def main():
     else:
         name = input("Please enter your name: ")
 
-    print("Setting up gesture recognition")
+    print("Setting up sensors")
     model, scaler = gesture_setup("wilson", "model3", "scaler3", prefix="gesture_recognition/")
+    t = threading.Thread(target=monitor_IR, args=[], daemon=True)
+    t.start()
 
     print("Listening...")
     client.loop_start()
@@ -85,15 +94,8 @@ def main():
     A_LOCK.wait()
     while not GAME_OVER:
         gesture = get_gesture(model, scaler).upper()
-        if gesture in Act.__members__.keys():
-            actions = [Act.__members__[gesture]]
-        else:
-            print("Unexpected gesture read: {}".format(gesture))
-            print("Defaulting to block")
-            actions = [Act.BLOCK]
-
-        ### Change later after implementing IR ###
-        actions.append(Act.PASS)
+        actions = [Act[gesture]]
+        actions.append(Act.HIT if IR_HIT else Act.PASS)
         
         # Send registered actions to server
         for action in actions:

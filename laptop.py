@@ -82,8 +82,11 @@ def on_message(client, userdata, msg):
 
 def on_message_laptop(client, userdata, msg):
     message = msg.payload.decode()
+
+    ### move this stuff after the try block
     print("Laptop: " + message)
 
+    ### have this be consistent with the try block
     if message == START_DIST:
         D_LOCK.set()
         return
@@ -186,7 +189,7 @@ def main():
 
     client.publish(TOPIC_SETUP, name)
 
-    t = threading.Thread(target=process_distance, args=[client, name])
+    t = threading.Thread(target=process_distance, args=[client, name], daemon=True)
     t.start()
 
 
@@ -201,7 +204,7 @@ def main():
 
     # player_win = False
     # global GAME_OVER
-    # while not GAME_OVER:
+    while not GAME_OVER:
     #     for event in pygame.event.get():
     #         if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
     #             GAME_OVER = True
@@ -215,6 +218,7 @@ def main():
         
     #     pygame.display.update()
     #     clock.tick(60)
+        time.sleep(1)
 
 
     # ####################
@@ -225,6 +229,7 @@ def main():
     # pygame.mixer.music.play(-1, 0.5)
 
     # # Visuals
+    print("Finished game!")
     # game_over = font_big.render("GAME OVER", True, WHITE, BLACK)
     # g_o_rect = game_over.get_rect()
     # g_o_rect.centerx = surface_rect.centerx
