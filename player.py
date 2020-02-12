@@ -49,10 +49,6 @@ def register_actions_commandline():
         if msg in Act.__members__.keys():
             action = Act.__members__[msg]
             actions.append(action)
-
-            # if action is Act.PASS or action is Act.HIT:
-            #     break
-            actions.append(Act.PASS)
             break
         else:
             print("That's not an action!")
@@ -78,7 +74,7 @@ def main():
         name = input("Please enter your name: ")
 
     print("Setting up gesture recognition")
-    model, scaler = gesture_setup("wilson", "model2", "scaler2", prefix="gesture_recognition/")
+    model, scaler = gesture_setup("wilson", "model3", "scaler3", prefix="gesture_recognition/")
 
     print("Listening...")
     client.loop_start()

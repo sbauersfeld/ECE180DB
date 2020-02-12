@@ -213,40 +213,11 @@ def on_message_action(client, userdata, msg):
     if player.is_dead():
         return
 
-    if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK, Act.HIT]:
-        if player.is_listening_to_action():
-            try:
-                player.actions.put_nowait([action, value])
-            except queue.Full:
-                print("Extra action received for {}: {}".format(name, action))
-        else:
-            print("Player {}'s actions already chosen".format(name))
+    if player.is_listening_to_distance():
+        process_distance(player, name, action, value, client)
 
-    ### Addition just for demos ###
-    # Can be used for a burst/grenade option
-    ### NOTE: in the case of multiple actions being registered for some reason
-    ###       this assume you always shot, even if the actual action according
-    ###       to priority would be any other action
-    if action in [Act.SHOOT] and player.can_shoot():
-        for n, p in players.items():
-            if p is player:
-                continue
-            try:
-                p.actions.put_nowait([Act.HIT, ""])
-            except queue.Full:
-                print("Error while processing shoot for {}".format(name))
-
-    if action in [Act.DIST]:
-        if player.is_listening_to_distance():
-            player.update_distance(value)
-            client.publish(TOPIC_LAPTOP, player.status())
-            player.finish_for_distance()
-        else:
-            print("Player {}'s distance already chosen".format(name))
-
-    if action in [Act.PASS, Act.HIT] or player.actions.full():
-        player.finish_for_actions()
-
+    if player.is_listening_to_action():
+        process_action(player, name, action, value)
 
 ####################
 ##  Functions
@@ -261,6 +232,12 @@ def request_distance(client):
     print("Waiting for distances...")
     for name, player in players.items():
         player.wait_for_distance()
+
+def process_distance(player, name, action, value, client):
+    if action in [Act.DIST]:
+        player.update_distance(value)
+        client.publish(TOPIC_LAPTOP, player.status())
+        player.finish_for_distance()
 
 def request_action(client):
     remaining_time = 3
@@ -279,7 +256,30 @@ def request_action(client):
     for name, player in players.items():
         player.wait_for_actions()
 
-def process_actions(client, name):
+def process_action(player, name, action, value):
+    if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK, Act.HIT]:
+        try:
+            player.actions.put_nowait([action, value])
+        except queue.Full:
+            print("Extra action received for {}: {}".format(name, action))
+
+    ### Addition just for demos, but can be used for a burst/grenade option ###
+    ### NOTE: in the case of multiple actions being registered for some reason
+    ###       this assume you always shot, even if the actual action according
+    ###       to priority would be any other action
+    if action in [Act.SHOOT] and player.can_shoot():
+        for n, p in players.items():
+            if p is player:
+                continue
+            try:
+                p.actions.put_nowait([Act.HIT, ""])
+            except queue.Full:
+                print("Error while processing shoot for {}".format(name))
+
+    if action in [Act.PASS, Act.HIT] or player.actions.full():
+        player.finish_for_actions()
+
+def process_round(client, name):
     player = players[name]
     actions = player.actions
     try:
@@ -339,7 +339,7 @@ def main():
         # Process received actions
         threads = []
         for name in players:
-            t = threading.Thread(target=process_actions, args=[client, name])
+            t = threading.Thread(target=process_round, args=[client, name])
             t.start()
             threads.append(t)
         for t in threads:
