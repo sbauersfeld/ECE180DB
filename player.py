@@ -42,7 +42,7 @@ def send_action(client, name, action, value=""):
     return ret
 
 def register_actions_commandline():
-    actions = []
+    actions = set([])
     while True:
         msg = input("Enter action: ").upper()
         if msg in Act.__members__.keys():
@@ -77,7 +77,7 @@ def main():
         name = input("Please enter your name: ")
 
     print("Setting up gesture recognition")
-    model, scaler = gesture_setup("wilson", prefix="gesture_recognition/")
+    model, scaler = gesture_setup("wilson", "model2", "scaler2", prefix="gesture_recognition/")
 
     print("Listening...")
     client.loop_start()
@@ -93,8 +93,8 @@ def main():
         else:
             action = Act.PASS
 
-        ### Change later after implementing IR
-        actions = [action, Act.PASS]
+        ### Change later after implementing IR ###
+        actions = set([action, Act.PASS])
         for action in actions:
             send_action(client, name, action)
 

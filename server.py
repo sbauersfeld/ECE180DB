@@ -94,13 +94,13 @@ class Player:
 
     def reload(self):
         print("Action: {} reloaded!".format(self.name))
-        self.ammo += 2.5
+        self.ammo += 25
 
     def shoot(self):
-        val = round(self.defense/10.0, 1)
-        if self.ammo >= val:
+        require_ammo = self.defense
+        if self.ammo >= require_ammo:
             print("Action: {} shot his shot!".format(self.name))
-            self.ammo -= val
+            self.ammo -= require_ammo
         else:
             print("Action: {} tried to shoot, but failed".format(self.name))
 
@@ -254,6 +254,13 @@ def request_distance(client):
         player.wait_for_distance()
 
 def request_action(client):
+    remaining_time = 3
+    while remaining_time > 0:
+        client.publish(TOPIC_LAPTOP, "doAction_{}".format(remaining_time))
+        print("Do action in {}...".format(remaining_time))
+        remaining_time -= 1
+        time.sleep(1)
+
     for name, player in players.items():
         player.listen_for_actions()
 
@@ -318,11 +325,6 @@ def main():
         request_distance(client)
 
         # Ask for player actions
-        remaining_time = 3
-        while True:
-            print("Do action in {}...".format(remaining_time))
-            remaining_time -= 1
-            time.sleep(1)
         request_action(client)
 
         # Process received actions
@@ -343,8 +345,8 @@ def main():
             print("\nDRAW! There are no remaining players.")
             break
 
-        ### Players should move to their preferred distance here
-        print("Move to a new position!")
+        ### Players should move to their preferred distance here ###
+        print("Move to a new distance before starting next round!")
 
     # End Game
     client.publish(TOPIC_PLAYER, STOP_GAME)

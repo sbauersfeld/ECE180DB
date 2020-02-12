@@ -88,7 +88,19 @@ def on_message_laptop(client, userdata, msg):
         D_LOCK.set()
         return
 
-    # Update status here through pygame
+    try:
+        msg_list = message.split('_')
+        order = msg_list[0]
+        value = msg_list[1]
+    except (IndexError):
+        print("Unexpected message: {}".format(message))
+        return
+
+    ### Show the countdown on pygame ###
+    if order == "doAction":
+        print("Do action in {}...".format(value))
+
+    ### Update status here through pygame ###
     pass
 
 def on_message_player(client, userdata, msg):
