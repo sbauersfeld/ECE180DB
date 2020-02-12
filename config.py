@@ -15,6 +15,9 @@ TOPIC_PLAYER = TOPIC_GLOBAL + "/player" # For notifying players to start and act
 TOPIC_LAPTOP = TOPIC_GLOBAL + "/laptop" # For updating laptops on the state of the game; server to laptop
 TOPIC_ACTION = TOPIC_GLOBAL + "/action" # For actions done by players; player to server
 
+# Separator
+SEP = "___"
+
 # Standard Messages
 START_ACTION = "START_ACTION"
 START_DIST = "START_DIST"

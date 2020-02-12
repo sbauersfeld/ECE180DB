@@ -200,7 +200,7 @@ def on_message_action(client, userdata, msg):
     print("Action received!")
 
     try:
-        msg_list = message.split('_')
+        msg_list = message.split(SEP)
 
         name = msg_list[0]
         action = Act[msg_list[1]]

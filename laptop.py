@@ -83,19 +83,16 @@ def on_message(client, userdata, msg):
 def on_message_laptop(client, userdata, msg):
     message = msg.payload.decode()
 
-    ### move this stuff after the try block
-    print("Laptop: " + message)
-
-    ### have this be consistent with the try block
     if message == START_DIST:
         D_LOCK.set()
         return
 
     try:
-        msg_list = message.split('_')
+        msg_list = message.split(SEP)
         order = msg_list[0]
         value = msg_list[1]
     except (IndexError):
+        print("Unexpected message: {}".format(message))
         return
 
     ### have laptop-player setup happen here ###
@@ -127,7 +124,7 @@ def on_message_player(client, userdata, msg):
 ####################
 
 def send_action(client, name, action, value=""):
-    message = '_'.join([name, action.name, value])
+    message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))

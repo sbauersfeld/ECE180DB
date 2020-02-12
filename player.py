@@ -36,7 +36,7 @@ def on_message_player(client, userdata, msg):
         A_LOCK.set()
 
 def send_action(client, name, action, value=""):
-    message = '_'.join([name, action.name, value])
+    message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
     ### Have player also send to laptop?? ###
 
@@ -46,11 +46,9 @@ def send_action(client, name, action, value=""):
 def register_actions_commandline():
     actions = []
     while True:
-        msg = input("Enter action: ").upper()
-        if msg in Act.__members__.keys():
-            action = Act[msg]
-            actions.append(action)
-            break
+        action_str = input("Enter action: ").upper()
+        if action_str in Act.__members__.keys():
+            return action_str
         else:
             print("That's not an action!")
 
