@@ -93,7 +93,8 @@ def main():
         else:
             action = Act.PASS
 
-        actions = [action]
+        ### Change later after implementing IR
+        actions = [action, Act.PASS]
         for action in actions:
             send_action(client, name, action)
 
