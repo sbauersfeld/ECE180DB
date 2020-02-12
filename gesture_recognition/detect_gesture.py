@@ -16,7 +16,7 @@ def gesture_setup(member, model_name="model", scaler_name="scaler", prefix=""):
     IMU.initIMU()
     return model, scaler
 
-def get_gesture(model, scaler, duration=1.5):
+def get_gesture(model, scaler, duration_s=1.5):
     header = ["time_ms"] + pdata.get_header()
     start = datetime.datetime.now()
     elapsed_ms = 0
