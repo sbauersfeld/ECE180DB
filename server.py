@@ -63,6 +63,13 @@ class Player:
         
         return False
 
+    def can_shoot(self):
+        require_ammo = self.defense
+        if self.ammo >= require_ammo:
+            return True
+        
+        return False
+
     def run(self):
         if self.is_dead():
             return
@@ -97,8 +104,7 @@ class Player:
         self.ammo += 25
 
     def shoot(self):
-        require_ammo = self.defense
-        if self.ammo >= require_ammo:
+        if self.can_shoot():
             print("Action: {} shot his shot!".format(self.name))
             self.ammo -= require_ammo
         else:
@@ -217,7 +223,10 @@ def on_message_action(client, userdata, msg):
 
     ### Addition just for demos ###
     # Can be used for a burst/grenade option
-    if action in [Act.SHOOT]:
+    ### NOTE: in the case of multiple actions being registered for some reason
+    ###       this assume you always shot, even if the actual action according
+    ###       to priority would be any other action
+    if action in [Act.SHOOT] and player.can_shoot():
         for n, p in players.items():
             if p is player:
                 continue

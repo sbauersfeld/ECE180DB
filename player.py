@@ -37,12 +37,13 @@ def on_message_player(client, userdata, msg):
 def send_action(client, name, action, value=""):
     message = '_'.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
+    ### Have player also send to laptop?? ###
 
     print("Sent: {}".format(message))
     return ret
 
 def register_actions_commandline():
-    actions = set([])
+    actions = []
     while True:
         msg = input("Enter action: ").upper()
         if msg in Act.__members__.keys():
@@ -89,12 +90,15 @@ def main():
     while not GAME_OVER:
         gesture = get_gesture(model, scaler).upper()
         if gesture in Act.__members__.keys():
-            action = Act.__members__[gesture]
+            actions = [Act.__members__[gesture]]
         else:
-            action = Act.PASS
+            print("Unexpected gesture read: {}".format(gesture))
+            actions = [Act.PASS]
 
         ### Change later after implementing IR ###
-        actions = set([action, Act.PASS])
+        actions.append(Act.PASS)
+        
+        # Send registered actions to server
         for action in actions:
             send_action(client, name, action)
 

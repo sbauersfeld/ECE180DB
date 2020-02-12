@@ -93,10 +93,9 @@ def on_message_laptop(client, userdata, msg):
         order = msg_list[0]
         value = msg_list[1]
     except (IndexError):
-        ##### FIX THIS for laptop: setup here something's happening
-        ### aka have laptop-player setup happen here
-        print("Unexpected message: {}".format(message))
         return
+
+    ### have laptop-player setup happen here ###
 
     ### Show the countdown on pygame ###
     if order == "doAction":
