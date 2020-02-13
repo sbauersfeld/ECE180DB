@@ -3,12 +3,14 @@ import paho.mqtt.client as mqtt
 import sys
 import time
 import threading
+import json
 import pygame
 from pygame.locals import *
 import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance
+
 
 ####################
 ##  Global Variables
@@ -82,27 +84,17 @@ def on_message(client, userdata, msg):
 
 def on_message_laptop(client, userdata, msg):
     message = msg.payload.decode()
-    print("Laptop: " + message)
-
-    if message == START_DIST:
-        D_LOCK.set()
-        return
 
     try:
-        msg_list = message.split('_')
+        msg_list = message.split(SEP)
         order = msg_list[0]
-        value = msg_list[1]
+        value1 = msg_list[1]
+        value2 = msg_list[2]
     except (IndexError):
+        print("Unexpected message: {}".format(message))
         return
 
-    ### have laptop-player setup happen here ###
-
-    ### Show the countdown on pygame ###
-    if order == "doAction":
-        print("Do action in {}...".format(value))
-
-    ### Update status here through pygame ###
-    pass
+    process_order(order, value1, value2)
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
@@ -124,13 +116,14 @@ def on_message_player(client, userdata, msg):
 ####################
 
 def send_action(client, name, action, value=""):
-    message = '_'.join([name, action.name, value])
+    message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
     return ret
 
-def process_distance(client, name):
+def detect_distance(client, name):
+    print("Waiting to detect distance...")
     D_LOCK.wait()
     while not GAME_OVER:
 
@@ -141,6 +134,23 @@ def process_distance(client, name):
         if not GAME_OVER:
             D_LOCK.clear()
         D_LOCK.wait()
+
+def process_order(order, value1, value2):
+    if order == START_DIST:
+        print("Starting range detection...")
+        D_LOCK.set()
+
+    elif order == "ACTION_COUNT":
+        ### Show the countdown on pygame ###
+        print("Do action in {}...".format(value1))
+
+    elif order == "MOVE_COUNT":
+        print("Saving distance in {}...".format(value1))
+
+    elif order == "STATUS":
+        status = json.loads(value1)
+        ### Update status here through pygame ###
+        print(status)
 
 
 ####################
@@ -186,7 +196,7 @@ def main():
 
     client.publish(TOPIC_SETUP, name)
 
-    t = threading.Thread(target=process_distance, args=[client, name])
+    t = threading.Thread(target=detect_distance, args=[client, name], daemon=True)
     t.start()
 
 
@@ -201,7 +211,7 @@ def main():
 
     # player_win = False
     # global GAME_OVER
-    # while not GAME_OVER:
+    while not GAME_OVER:
     #     for event in pygame.event.get():
     #         if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
     #             GAME_OVER = True
@@ -215,6 +225,7 @@ def main():
         
     #     pygame.display.update()
     #     clock.tick(60)
+        time.sleep(1)
 
 
     # ####################
@@ -225,6 +236,7 @@ def main():
     # pygame.mixer.music.play(-1, 0.5)
 
     # # Visuals
+    print("Finished game!")
     # game_over = font_big.render("GAME OVER", True, WHITE, BLACK)
     # g_o_rect = game_over.get_rect()
     # g_o_rect.centerx = surface_rect.centerx

@@ -4,8 +4,8 @@ import sys
 import time
 import threading
 from sklearn.externals import joblib
-from gesture_recognition import IMU
-from gesture_recognition.detect_gesture import gesture_setup, get_gesture
+# from gesture_recognition import IMU
+# from gesture_recognition.detect_gesture import gesture_setup, get_gesture
 
 
 ####################
@@ -75,14 +75,14 @@ def control_LED(name):
     pass
 
 def handle_gesture(name):
-    print("Setting up sensors")
-    model, scaler = gesture_setup("wilson", "model3", "scaler3", prefix="gesture_recognition/")
+    # print("Setting up sensors")
+    # model, scaler = gesture_setup("wilson", "model3", "scaler3", prefix="gesture_recognition/")
 
     print("Waiting to start action...")
     A_LOCK.wait()
     while not GAME_OVER:
         print("START ACTION")
-        gesture = get_gesture(model, scaler).upper()
+        gesture = register_actions_commandline()
         send_action(client, name, Act[gesture])
         time.sleep(0.5)
 
