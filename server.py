@@ -56,7 +56,8 @@ class Player:
         status["defense"] = self.defense
 
         output = json.dumps(status)
-        return output
+        ret = SEP.join(["STATUS", output])
+        return ret
 
     def is_dead(self):
         if self.lives <= 0:
@@ -241,11 +242,11 @@ def process_distance(player, name, action, value):
         player.finish_for_distance()
 
 def request_action():
-    remaining_time = 3
-    while remaining_time > 0:
-        client.publish(TOPIC_LAPTOP, "doAction_{}".format(remaining_time))
-        print("Do action in {}...".format(remaining_time))
-        remaining_time -= 1
+    countdown = 3
+    while countdown > 0:
+        client.publish(TOPIC_LAPTOP, SEP.join(["COUNT",str(countdown)]))
+        print("Do action in {}...".format(countdown))
+        countdown -= 1
         time.sleep(1)
 
     for name, player in players.items():

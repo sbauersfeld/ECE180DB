@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance
+import json
 
 ####################
 ##  Global Variables
@@ -95,14 +96,14 @@ def on_message_laptop(client, userdata, msg):
         print("Unexpected message: {}".format(message))
         return
 
-    ### have laptop-player setup happen here ###
-
-    ### Show the countdown on pygame ###
-    if order == "doAction":
+    if order == "COUNT":
         print("Do action in {}...".format(value))
+        ### Show the countdown on pygame ###
 
-    ### Update status here through pygame ###
-    pass
+    elif order == "STATUS":
+        status = json.loads(value)
+        ### Update status here through pygame ###
+        print(status)
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
