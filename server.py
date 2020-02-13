@@ -3,7 +3,6 @@ import paho.mqtt.client as mqtt
 import sys
 import time
 import threading
-import queue
 import json
 
 
@@ -30,8 +29,15 @@ class Player:
 
         # Variables
         self.is_blocking = False
-        self.curr_acts = {}
-        self.actions = queue.Queue(q_size)
+        self.is_hit = False
+        self.next_act = None
+
+        # Action handling
+        self.process = {
+            Act.RELOAD : self.reload,
+            Act.SHOOT : self.shoot,
+            Act.BLOCK : self.block,
+        }
 
         # Synchronization
         self.action_ready = threading.Event()
@@ -76,16 +82,8 @@ class Player:
         if self.is_dead():
             return
 
-        if not self.curr_acts:
-            print("No actions taken by player {}".format(self.name))
-        elif Act.BLOCK in self.curr_acts:
-            self.block()
-        elif Act.RELOAD in self.curr_acts:
-            self.reload()
-        elif Act.SHOOT in self.curr_acts:
-            self.shoot()
-
-        if Act.HIT in self.curr_acts:
+        self.process.get(self.next_act, self.block)()
+        if self.is_hit:
             self.get_hit()
 
         self.clear()
@@ -95,7 +93,8 @@ class Player:
 
     def clear(self):
         self.is_blocking = False
-        self.curr_acts.clear()
+        self.is_hit = False
+        self.next_act = None
 
     ####################
     ##  Player Actions
@@ -124,6 +123,10 @@ class Player:
             print("{} was shot and took damage!".format(self.name))
             self.lives = round(self.lives - (80.0 - self.defense), 1)
 
+    ####################
+    ##  Player Modifiers
+    ####################
+
     def update_distance(self, val_string):
         try:
             new_defense = float(val_string)
@@ -136,6 +139,12 @@ class Player:
             print("{}'s defense updated to {}".format(self.name, self.defense))
         except ValueError:
             print("DIST message for {} had non-float value".format(self.name))
+
+    def update_action(self, action):
+        self.next_act = action
+
+    def update_as_hit(self, was_hit=True):
+        self.is_hit = was_hit
 
     ####################
     ##  Wrapper functions
@@ -215,10 +224,10 @@ def on_message_action(client, userdata, msg):
         return
 
     if player.is_listening_to_distance():
-        process_distance(player, name, action, value)
+        process_distance(player, action, value)
 
     if player.is_listening_to_action():
-        process_action(player, name, action, value)
+        process_action(player, action, value)
 
 ####################
 ##  Functions
@@ -234,7 +243,7 @@ def request_distance():
     for name, player in players.items():
         player.wait_for_distance()
 
-def process_distance(player, name, action, value):
+def process_distance(player, action, value):
     if action in [Act.DIST]:
         player.update_distance(value)
         client.publish(TOPIC_LAPTOP, player.status())
@@ -257,45 +266,27 @@ def request_action():
     for name, player in players.items():
         player.wait_for_actions()
 
-def process_action(player, name, action, value):
-    if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK, Act.HIT]:
-        try:
-            player.actions.put_nowait([action, value])
-        except queue.Full:
-            print("Extra action received for {}: {}".format(name, action))
+def process_action(player, action, value):
+    if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK]:
+        player.update_action(action)
 
     ### Addition just for demos, but can be used for a burst/grenade option ###
-    ### NOTE: in the case of multiple actions being registered for some reason
-    ###       this assume you always shot, even if the actual action according
-    ###       to priority would be any other action
     if action in [Act.SHOOT] and player.can_shoot():
         for n, p in players.items():
             if p is player:
                 continue
-            try:
-                p.actions.put_nowait([Act.HIT, ""])
-            except queue.Full:
-                print("Error while processing shoot for {}".format(name))
+            p.update_as_hit()
 
-    if action in [Act.PASS, Act.HIT] or player.actions.full():
+    if action in [Act.PASS, Act.HIT]:
+        if action in [Act.HIT]:
+            player.update_as_hit()
         player.finish_for_actions()
 
 def process_round(name):
     player = players[name]
-    actions = player.actions
-    try:
-        while True:
-            item = actions.get_nowait()
-
-            print("Player {} with {}".format(name,item))
-            player.curr_acts[item[0]] = item[1]
-            ### Figure out better action processing here ###
-
-            actions.task_done()
-    except queue.Empty:
-        player.run()
-        client.publish(TOPIC_LAPTOP, player.status())
-        print("Finished processing " + name)
+    player.run()
+    client.publish(TOPIC_LAPTOP, player.status())
+    print("Finished processing " + name)
 
 
 ####################
