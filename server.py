@@ -248,7 +248,10 @@ def request_action():
 
     print("Waiting for actions...")
     for name, player in players.items():
-        player.wait_for(ACTION, 5)
+        ret = player.wait_for(ACTION, 5)
+        if not ret:
+            client.publish(TOPIC_ACTION, SEP.join([name, Act.BLOCK.name, ""]))
+            send_to_laptop(name, Act.BLOCK.name, "")
     for name, player in players.items():
         player.listen_for(HIT)        
     client.publish(TOPIC_PLAYER, START_HIT)
