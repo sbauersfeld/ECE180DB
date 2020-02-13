@@ -35,7 +35,7 @@ class Player:
 
         # Synchronization
         self.action_ready = threading.Event()
-        self.listen_ready = threading.Event()
+        self.distance_ready = threading.Event()
 
     def __str__(self):
         return "Player {}".format(self.name)
@@ -49,15 +49,15 @@ class Player:
             output = "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
             return output
 
-        status = {}
-        status["name"] = self.name
-        status["lives"] = self.lives
-        status["ammo"] = self.ammo
-        status["defense"] = self.defense
+        status = {
+            "name" : self.name,
+            "lives" : self.lives,
+            "ammo" : self.ammo,
+            "defense" : self.defense,
+        }
 
-        output = json.dumps(status)
-        ret = SEP.join(["STATUS", output])
-        return ret
+        output = SEP.join(["STATUS", json.dumps(status)])
+        return output
 
     def is_dead(self):
         if self.lives <= 0:
@@ -102,28 +102,27 @@ class Player:
     ####################
 
     def reload(self):
-        print("Action: {} reloaded!".format(self.name))
-        self.ammo += 25
+        print("ACTION: {} reloaded!".format(self.name))
+        self.ammo = round(self.ammo + 25, 1)
 
     def shoot(self):
         required_ammo = self.defense
         if self.can_shoot():
-            print("Action: {} shot his shot!".format(self.name))
-            self.ammo -= required_ammo
+            print("ACTION: {} shot his shot!".format(self.name))
+            self.ammo = round(self.ammo - required_ammo, 1)
         else:
-            print("Action: {} tried to shoot, but failed".format(self.name))
+            print("ACTION: {} tried to shoot, but failed".format(self.name))
 
     def block(self):
-        print("Action: {} tried to block!".format(self.name))
+        print("ACTION: {} blocked!".format(self.name))
         self.is_blocking = True
 
     def get_hit(self):
-        print("{} was shot at!".format(self.name))
         if self.is_blocking:
-            print("{} managed to avoid the shot!".format(self.name))
+            print("{} was shot but blocked it!".format(self.name))
         else:
-            print("{} took damage!".format(self.name))
-            self.lives -= (80.0 - self.defense)
+            print("{} was shot and took damage!".format(self.name))
+            self.lives = round(self.lives - (80.0 - self.defense), 1)
 
     def update_distance(self, val_string):
         try:
@@ -159,16 +158,16 @@ class Player:
     def wait_for_distance(self):
         if self.is_dead():
             return
-        self.listen_ready.wait()
+        self.distance_ready.wait()
 
     def listen_for_distance(self):
-        self.listen_ready.clear()
+        self.distance_ready.clear()
 
     def finish_for_distance(self):
-        self.listen_ready.set()
+        self.distance_ready.set()
 
     def is_listening_to_distance(self):
-        return not self.listen_ready.isSet()
+        return not self.distance_ready.isSet()
 
 
 ####################

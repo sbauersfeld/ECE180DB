@@ -3,13 +3,13 @@ import paho.mqtt.client as mqtt
 import sys
 import time
 import threading
+import json
 import pygame
 from pygame.locals import *
 import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance
-import json
 
 ####################
 ##  Global Variables
@@ -85,6 +85,7 @@ def on_message_laptop(client, userdata, msg):
     message = msg.payload.decode()
 
     if message == START_DIST:
+        print("Starting range detection...")
         D_LOCK.set()
         return
 
