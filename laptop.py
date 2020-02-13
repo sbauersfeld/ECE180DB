@@ -133,6 +133,7 @@ def send_action(client, name, action, value=""):
     return ret
 
 def process_distance(client, name):
+    print("Waiting to detect distance...")
     D_LOCK.wait()
     while not GAME_OVER:
 

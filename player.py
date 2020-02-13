@@ -12,8 +12,10 @@ from gesture_recognition.detect_gesture import gesture_setup, get_gesture
 ####################
 
 GAME_OVER = False
-A_LOCK = threading.Event()
 IR_HIT = False
+A_LOCK = threading.Event()
+H_LOCK = threading.Event()
+client = mqtt.Client()
 
 
 ####################
@@ -30,10 +32,13 @@ def on_message_player(client, userdata, msg):
 
     if message == START_ACTION:
         A_LOCK.set()
+    elif message == START_HIT:
+        H_LOCK.set()
     elif message == STOP_GAME:
         global GAME_OVER
         GAME_OVER = True
         A_LOCK.set()
+        H_LOCK.set()
 
 def send_action(client, name, action, value=""):
     message = SEP.join([name, action.name, value])
@@ -54,11 +59,43 @@ def register_actions_commandline():
 
     return actions
 
-def monitor_IR():
+
+####################
+##  Threads
+####################
+
+def control_IR_sensor(name):
     global IR_HIT
-    while True:
+    while not GAME_OVER:
         ### IMPLEMENT IR SENSOR HERE ###
         time.sleep(1)
+
+def control_LED(name):
+    pass
+
+def handle_gesture(name):
+    print("Setting up sensors")
+    model, scaler = gesture_setup("wilson", "model3", "scaler3", prefix="gesture_recognition/")
+
+    print("Waiting to start action...")
+    A_LOCK.wait()
+    while not GAME_OVER:
+        gesture = get_gesture(model, scaler).upper()
+        send_action(client, name, Act[gesture])
+
+        if not GAME_OVER:
+            A_LOCK.clear()
+        A_LOCK.wait()
+
+def handle_hit(name):
+    H_LOCK.wait()
+    while not GAME_OVER:
+        hit_detect = Act.HIT if IR_HIT else Act.PASS
+        send_action(client, name, hit_detect)
+
+        if not GAME_OVER:
+            H_LOCK.clear()
+        H_LOCK.wait()
 
 
 ####################
@@ -66,7 +103,6 @@ def monitor_IR():
 ####################
 
 def main():
-    client = mqtt.Client()
     client.on_message = on_message
     client.message_callback_add(TOPIC_PLAYER, on_message_player)
     client.connect("broker.hivemq.com")
@@ -78,31 +114,20 @@ def main():
     else:
         name = input("Please enter your name: ")
 
-    print("Setting up sensors")
-    model, scaler = gesture_setup("wilson", "model3", "scaler3", prefix="gesture_recognition/")
-    t = threading.Thread(target=monitor_IR, args=[], daemon=True)
-    t.start()
-
     print("Listening...")
     client.loop_start()
 
+    threads = []
+    for func in [control_IR_sensor, control_LED, handle_gesture, handle_hit]:
+        t = threading.Thread(target=func, args=[name], daemon=True)
+        t.start()
+        threads.append(t)
+
     ### TODO: Have laptop setup player
     client.publish(TOPIC_LAPTOP, name)
-
-    A_LOCK.wait()
-    while not GAME_OVER:
-        gesture = get_gesture(model, scaler).upper()
-        actions = [Act[gesture]]
-        actions.append(Act.HIT if IR_HIT else Act.PASS)
-        
-        # Send registered actions to server
-        for action in actions:
-            send_action(client, name, action)
-
-        if not GAME_OVER:
-            A_LOCK.clear()
-        A_LOCK.wait()
-
+    
+    for t in threads:
+        t.join()
     print("Finished game!")
 
 if __name__ == '__main__':
