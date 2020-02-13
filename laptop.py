@@ -126,9 +126,8 @@ def detect_distance(client, name):
     print("Waiting to detect distance...")
     D_LOCK.wait()
     while not GAME_OVER:
-
-        new_val = round(GetDistance(), 1)
-        dist = str(new_val)
+        new_val = GetDistance()
+        dist = str(round(new_val, 1))
         send_action(client, name, Act.DIST, dist)
 
         if not GAME_OVER:
@@ -137,20 +136,27 @@ def detect_distance(client, name):
 
 def process_order(order, value1, value2):
     if order == START_DIST:
-        print("Starting range detection...")
+        msg = "Measuring distance..."
+        print(msg)
         D_LOCK.set()
 
     elif order == "ACTION_COUNT":
         ### Show the countdown on pygame ###
-        print("Do action in {}...".format(value1))
+        msg = "action in {}".format(value1)
+        print(msg)
 
-    elif order == "MOVE_COUNT":
-        print("Saving distance in {}...".format(value1))
+    elif order == "NEXT_ROUND":
+        msg = "Waiting to start..."
+        print(msg)
 
     elif order == "STATUS":
         status = json.loads(value1)
         ### Update status here through pygame ###
         print(status)
+
+    
+    else:
+        print("Unexpected message! {}".format(order))
 
 
 ####################
@@ -194,11 +200,10 @@ def main():
 
     ### Handle connection with player
 
-    client.publish(TOPIC_SETUP, name)
-
     t = threading.Thread(target=detect_distance, args=[client, name], daemon=True)
     t.start()
 
+    client.publish(TOPIC_SETUP, name)
 
     # ####################
     # ##  Start Game
