@@ -5,8 +5,10 @@ import imutils
 def filter_color(frame):
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-	lower_red = np.array([0,150,150])
-	upper_red = np.array([20,255,255])
+	# lower_red = np.array([0,240,210])
+	# upper_red = np.array([10,255,255])
+	lower_red = np.array([160,150,150])
+	upper_red = np.array([180,255,255])
 	mask = cv2.inRange(hsv, lower_red, upper_red)
 
 	res = cv2.bitwise_and(frame, frame, mask=mask)
