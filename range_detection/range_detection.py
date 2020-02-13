@@ -35,8 +35,7 @@ CAP_COUNT = FPS * CAP_TIME
 
 focalLength = 500 #precomputed
 
-def GetDistance():
-	cap = cv2.VideoCapture(0)
+def GetDistance(cap):
 	pixel_heights = np.zeros(CAP_COUNT)
 	limit = 0
 	pixel_idx = 0
@@ -50,9 +49,6 @@ def GetDistance():
 			pixel_heights[pixel_idx] = marker[1][1]
 			limit += 1
 			pixel_idx += 1
-
-	cap.release()
-	cv2.destroyAllWindows()
 
 	if limit == 0:
 		return -1

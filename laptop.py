@@ -131,16 +131,21 @@ def send_action(client, name, action, value=""):
     return ret
 
 def detect_distance(client, name):
+    cap = cv2.VideoCapture(0)
+
     print("Waiting to detect distance...")
     D_LOCK.wait()
     while not GAME_OVER:
-        new_val = GetDistance()
+        new_val = GetDistance(cap)
         dist = str(round(new_val, 1))
         send_action(client, name, Act.DIST, dist)
 
         if not GAME_OVER:
             D_LOCK.clear()
         D_LOCK.wait()
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 def process_order(order, value1, value2):
     if order == START_DIST:
