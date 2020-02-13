@@ -84,25 +84,25 @@ def on_message(client, userdata, msg):
 def on_message_laptop(client, userdata, msg):
     message = msg.payload.decode()
 
-    if message == START_DIST:
-        print("Starting range detection...")
-        D_LOCK.set()
-        return
-
     try:
         msg_list = message.split(SEP)
         order = msg_list[0]
-        value = msg_list[1]
+        value1 = msg_list[1]
+        value2 = msg_list[2]
     except (IndexError):
         print("Unexpected message: {}".format(message))
         return
 
-    if order == "COUNT":
-        print("Do action in {}...".format(value))
+    if order == START_DIST:
+        print("Starting range detection...")
+        D_LOCK.set()
+
+    elif order == "COUNT":
         ### Show the countdown on pygame ###
+        print("Do {} in {}...".format(value1, value2))
 
     elif order == "STATUS":
-        status = json.loads(value)
+        status = json.loads(value1)
         ### Update status here through pygame ###
         print(status)
 
@@ -114,7 +114,6 @@ def on_message_player(client, userdata, msg):
 
     if message == START_ACTION:
         ### Inform Player to do action here through pygame ###
-        print("START ACTION")
         pass
     elif message == STOP_GAME:
         global GAME_OVER

@@ -69,7 +69,7 @@ class Player:
             "defense" : self.defense,
         }
 
-        output = SEP.join(["STATUS", json.dumps(status)])
+        output = json.dumps(status)
         return output
 
     def is_dead(self):
@@ -215,6 +215,11 @@ def on_message_action(client, userdata, msg):
     if not player.is_dead():
         process_response(player, action, value)
 
+def send_to_laptop(order, value1="", value2=""):
+    message = SEP.join([order, value1, value2])
+    ret = client.publish(TOPIC_LAPTOP, message)
+    return ret
+
 
 ####################
 ##  Functions
@@ -223,7 +228,7 @@ def on_message_action(client, userdata, msg):
 def request_distance():
     for name, player in players.items():
         player.listen_for(DISTANCE)
-    client.publish(TOPIC_LAPTOP, START_DIST)
+    send_to_laptop(START_DIST)
 
     print("Waiting for distances...")
     for name, player in players.items():
@@ -232,7 +237,7 @@ def request_distance():
 def request_action():
     countdown = 3
     while countdown > 0:
-        client.publish(TOPIC_LAPTOP, SEP.join(["COUNT",str(countdown)]))
+        send_to_laptop("COUNT", "action", str(countdown))
         print("Do action in {}...".format(countdown))
         countdown -= 1
         time.sleep(1)
@@ -255,7 +260,7 @@ def request_action():
 def process_response(player, action, value):
     if action in [Act.DIST] and player.is_listening_to(DISTANCE):
         player.update_distance(value)
-        client.publish(TOPIC_LAPTOP, player.status())
+        send_to_laptop("STATUS", player.status())
         player.finish_for(DISTANCE)
 
     if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK] and player.is_listening_to(ACTION):
@@ -275,7 +280,7 @@ def process_response(player, action, value):
 def process_round(name):
     player = players[name]
     player.run()
-    client.publish(TOPIC_LAPTOP, player.status())
+    send_to_laptop("STATUS", player.status())
     print("Finished processing " + name)
 
 
