@@ -54,6 +54,8 @@ def GetDistance():
 	cap.release()
 	cv2.destroyAllWindows()
 
+	if limit == 0:
+		return -1
 	dist = (KNOWN_HEIGHT * focalLength) / np.median(pixel_heights[:limit])
 	return dist
 
