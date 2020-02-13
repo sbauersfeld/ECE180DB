@@ -93,18 +93,7 @@ def on_message_laptop(client, userdata, msg):
         print("Unexpected message: {}".format(message))
         return
 
-    if order == START_DIST:
-        print("Starting range detection...")
-        D_LOCK.set()
-
-    elif order == "COUNT":
-        ### Show the countdown on pygame ###
-        print("Do {} in {}...".format(value1, value2))
-
-    elif order == "STATUS":
-        status = json.loads(value1)
-        ### Update status here through pygame ###
-        print(status)
+    process_order(order, value1, value2)
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
@@ -132,7 +121,7 @@ def send_action(client, name, action, value=""):
     print("Sent: {}".format(message))
     return ret
 
-def process_distance(client, name):
+def detect_distance(client, name):
     print("Waiting to detect distance...")
     D_LOCK.wait()
     while not GAME_OVER:
@@ -144,6 +133,23 @@ def process_distance(client, name):
         if not GAME_OVER:
             D_LOCK.clear()
         D_LOCK.wait()
+
+def process_order(order, value1, value2):
+    if order == START_DIST:
+        print("Starting range detection...")
+        D_LOCK.set()
+
+    elif order == "ACTION_COUNT":
+        ### Show the countdown on pygame ###
+        print("Do action in {}...".format(value1))
+
+    elif order == "MOVE_COUNT":
+        print("Saving distance in {}...".format(value1))
+
+    elif order == "STATUS":
+        status = json.loads(value1)
+        ### Update status here through pygame ###
+        print(status)
 
 
 ####################
@@ -189,7 +195,7 @@ def main():
 
     client.publish(TOPIC_SETUP, name)
 
-    t = threading.Thread(target=process_distance, args=[client, name], daemon=True)
+    t = threading.Thread(target=detect_distance, args=[client, name], daemon=True)
     t.start()
 
 

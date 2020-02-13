@@ -173,7 +173,7 @@ class Player:
 
 
 ####################
-##  MQTT callback functions
+##  MQTT functions
 ####################
 
 def on_message(client, userdata, msg):
@@ -225,6 +225,13 @@ def send_to_laptop(order, value1="", value2=""):
 ##  Functions
 ####################
 
+def count_laptop(order, countdown, freq=1):
+    while countdown > 0:
+        send_to_laptop(order, str(countdown))
+        print("Do {} in {}...".format(order, countdown))
+        countdown -= freq
+        time.sleep(freq)
+
 def request_distance():
     for name, player in players.items():
         player.listen_for(DISTANCE)
@@ -235,13 +242,7 @@ def request_distance():
         player.wait_for(DISTANCE, 10)
 
 def request_action():
-    countdown = 3
-    while countdown > 0:
-        send_to_laptop("COUNT", "action", str(countdown))
-        print("Do action in {}...".format(countdown))
-        countdown -= 1
-        time.sleep(1)
-
+    count_laptop("ACTION_COUNT", 3)
     for name, player in players.items():
         player.listen_for(ACTION)
     client.publish(TOPIC_PLAYER, START_ACTION)
@@ -341,7 +342,7 @@ def main():
             break
 
         ### Players should move to their preferred distance here ###
-        print("Move to a new distance before starting next round!")
+        print("\nMove to a new distance before starting next round!")
 
     # End Game
     client.publish(TOPIC_PLAYER, STOP_GAME)
