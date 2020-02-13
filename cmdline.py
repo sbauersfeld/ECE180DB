@@ -43,6 +43,7 @@ def on_message_player(client, userdata, msg):
 def send_action(client, name, action, value=""):
     message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
+    client.publish(TOPIC_LAPTOP, message)
     ### Have player also send to laptop?? ###
 
     print("Sent: {}".format(message))
@@ -83,6 +84,7 @@ def handle_gesture(name):
         print("START ACTION")
         gesture = register_actions_commandline()
         send_action(client, name, Act[gesture])
+        time.sleep(0.5)
 
         if not GAME_OVER:
             A_LOCK.clear()
@@ -93,6 +95,7 @@ def handle_hit(name):
     while not GAME_OVER:
         hit_detect = Act.HIT if IR_HIT else Act.PASS
         send_action(client, name, hit_detect)
+        time.sleep(0.5)
 
         if not GAME_OVER:
             H_LOCK.clear()

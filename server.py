@@ -242,7 +242,6 @@ def request_distance():
         player.wait_for(DISTANCE, 10)
 
 def request_action():
-    count_laptop("ACTION_COUNT", 3)
     for name, player in players.items():
         player.listen_for(ACTION)
     client.publish(TOPIC_PLAYER, START_ACTION)
@@ -321,6 +320,7 @@ def main():
         request_distance()
 
         # Ask for player actions
+        count_laptop("ACTION_COUNT", 3)
         request_action()
 
         # Process received actions
