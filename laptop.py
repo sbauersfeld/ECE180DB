@@ -11,6 +11,7 @@ import cv2
 import imutils
 from range_detection.range_detection import GetDistance
 
+
 ####################
 ##  Global Variables
 ####################
