@@ -28,7 +28,6 @@ def on_message(client, userdata, msg):
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
-    print("Order: " + message)
 
     if message == START_ACTION:
         A_LOCK.set()
@@ -80,6 +79,7 @@ def handle_gesture(name):
     print("Waiting to start action...")
     A_LOCK.wait()
     while not GAME_OVER:
+        print("START ACTION")
         gesture = get_gesture(model, scaler).upper()
         send_action(client, name, Act[gesture])
 

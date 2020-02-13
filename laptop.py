@@ -114,6 +114,7 @@ def on_message_player(client, userdata, msg):
 
     if message == START_ACTION:
         ### Inform Player to do action here through pygame ###
+        print("START ACTION")
         pass
     elif message == STOP_GAME:
         global GAME_OVER

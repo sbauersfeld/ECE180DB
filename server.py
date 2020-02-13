@@ -157,10 +157,10 @@ class Player:
     ##  Wrapper functions
     ####################
 
-    def wait_for(self, val):
+    def wait_for(self, val, TIMEOUT=None):
         if self.is_dead():
             return
-        self.sync[val].wait()
+        self.sync[val].wait(TIMEOUT)
 
     def listen_for(self, val):
         self.sync[val].clear()
@@ -227,7 +227,7 @@ def request_distance():
 
     print("Waiting for distances...")
     for name, player in players.items():
-        player.wait_for(DISTANCE)
+        player.wait_for(DISTANCE, 10)
 
 def request_action():
     countdown = 3
@@ -243,14 +243,14 @@ def request_action():
 
     print("Waiting for actions...")
     for name, player in players.items():
-        player.wait_for(ACTION)
+        player.wait_for(ACTION, 5)
     for name, player in players.items():
         player.listen_for(HIT)        
     client.publish(TOPIC_PLAYER, START_HIT)
 
     print("Waiting for hit detection...")
     for name, player in players.items():
-        player.wait_for(HIT)
+        player.wait_for(HIT, 3)
 
 def process_response(player, action, value):
     if action in [Act.DIST] and player.is_listening_to(DISTANCE):
