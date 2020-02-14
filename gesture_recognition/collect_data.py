@@ -15,13 +15,11 @@ from sensor import *
 import process_data
 import glob
 
-datatype = "training" # set datatype to 'test/training' for test/training data
-
 ###############################################################################
 ###					create/locate directory for storing data 				###
 ###############################################################################
 member_name = input("Enter name: ")
-parent_dir = datatype + "_data/" + member_name # change to test_data for testing data
+parent_dir = "training_data/" + member_name 
 if not os.path.exists(parent_dir):
 	os.mkdir(parent_dir + '/')
 filename = input("Name the gesture that will be traced: ")
@@ -84,8 +82,6 @@ while True:
 			break
 		else:
 			print("Invalid input")
-
-
 
 # Timed tracing
 # while True:

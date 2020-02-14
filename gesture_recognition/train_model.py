@@ -68,5 +68,7 @@ while True:
 		joblib.dump(model, 'models/' + name + "/" + model_name + ".joblib")
 		joblib.dump(scaler, 'models/' + name + "/" + scaler_name + ".joblib")
 		break
-	else:
+	else if key is "d"
 		break
+	else:
+		print("invalid input")
