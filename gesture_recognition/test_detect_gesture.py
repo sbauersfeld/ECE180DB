@@ -71,7 +71,4 @@ while True:
 #         last_classified = elapsed_ms
 #         last_classification = prediction
 
-#     elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
-
-
-   
+#     elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000   
