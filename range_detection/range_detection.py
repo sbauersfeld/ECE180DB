@@ -5,8 +5,10 @@ import imutils
 def filter_color(frame):
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-	lower_red = np.array([0,150,150])
-	upper_red = np.array([20,255,255])
+	# lower_red = np.array([0,240,210])
+	# upper_red = np.array([10,255,255])
+	lower_red = np.array([160,150,150])
+	upper_red = np.array([180,255,255])
 	mask = cv2.inRange(hsv, lower_red, upper_red)
 
 	res = cv2.bitwise_and(frame, frame, mask=mask)
@@ -33,8 +35,7 @@ CAP_COUNT = FPS * CAP_TIME
 
 focalLength = 500 #precomputed
 
-def GetDistance():
-	cap = cv2.VideoCapture(0)
+def GetDistance(cap):
 	pixel_heights = np.zeros(CAP_COUNT)
 	limit = 0
 	pixel_idx = 0
@@ -49,9 +50,8 @@ def GetDistance():
 			limit += 1
 			pixel_idx += 1
 
-	cap.release()
-	cv2.destroyAllWindows()
-
+	if limit == 0:
+		return -1
 	dist = (KNOWN_HEIGHT * focalLength) / np.median(pixel_heights[:limit])
 	return dist
 

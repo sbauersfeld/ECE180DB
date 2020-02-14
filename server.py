@@ -25,7 +25,7 @@ HIT = "HIT"
 ####################
 
 class Player:
-    def __init__(self, name, lives=150.0, ammo=0.0, q_size=0):
+    def __init__(self, name, lives=150.0, ammo=0.0):
         self.name = name
         self.lives = lives
         self.ammo = ammo
@@ -239,7 +239,7 @@ def request_distance():
 
     print("Waiting for distances...")
     for name, player in players.items():
-        player.wait_for(DISTANCE, 10)
+        player.wait_for(DISTANCE)
 
 def request_action():
     for name, player in players.items():
@@ -248,7 +248,10 @@ def request_action():
 
     print("Waiting for actions...")
     for name, player in players.items():
-        player.wait_for(ACTION, 5)
+        ret = player.wait_for(ACTION, 5)
+        if not ret:
+            client.publish(TOPIC_ACTION, SEP.join([name, Act.BLOCK.name, ""]))
+            send_to_laptop(name, Act.BLOCK.name, "")
     for name, player in players.items():
         player.listen_for(HIT)        
     client.publish(TOPIC_PLAYER, START_HIT)
@@ -311,6 +314,7 @@ def main():
     while True:
         # Start new round
         ### SPEECH DETECTION STUFF HERE ###
+        send_to_laptop("NEXT_ROUND")
         input("Press Enter to continue...")
 
         round_num += 1
@@ -341,10 +345,10 @@ def main():
             print("\nDRAW! There are no remaining players.")
             break
 
-        ### Players should move to their preferred distance here ###
-        print("\nMove to a new distance before starting next round!")
+        time.sleep(3)
 
     # End Game
+    time.sleep(5)
     client.publish(TOPIC_PLAYER, STOP_GAME)
     time.sleep(1)
 
