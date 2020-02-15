@@ -16,62 +16,72 @@ IMU.detectIMU()
 IMU.initIMU()
     
 
-header = ["time_ms"] + pdata.get_header()
-duration_s = 1.5
-
-while True:
-    input("Press 'Enter' to start tracing...")
-    start = datetime.datetime.now()
-    elapsed_ms = 0
-    data = []
-
-    while elapsed_ms < duration_s * 1000:
-        print("tracing...")
-
-        row = [elapsed_ms] + read_sensor()
-        data.append(row)
-        elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
-
-    df = pd.DataFrame(data, columns=header)
-    features = pdata.get_model_features(df)
-    features = scaler.transform(np.reshape(features, (1, -1)))
-    prediction = model.predict(features)[0]
-    print(prediction)
-
-
-
-# CHECK_TIME_INCREMENT_MS = 400
-# SAMPLE_SIZE_MS = 850
-
 # header = ["time_ms"] + pdata.get_header()
-# data = collections.deque(maxlen=int(SAMPLE_SIZE_MS / 10)) #10 Hz
-
-# start = datetime.datetime.now()
-# elapsed_ms = 0
-# last_classified = 0
-# last_classification = "negative"
+# duration_s = 1.5
 
 # while True:
-#     row = [elapsed_ms] + read_sensor()
-#     data.append(row)
+#     input("Press 'Enter' to start tracing...")
+#     start = datetime.datetime.now()
+#     elapsed_ms = 0
+#     data = []
 
-#     if elapsed_ms - last_classified >= CHECK_TIME_INCREMENT_MS and len(data) == data.maxlen:
-#         df = pd.DataFrame(list(data), columns=header)
-#         features = pdata.get_model_features(df)
-#         features = scaler.transform(np.reshape(features, (1, -1)))
-#         prediction = model.predict(features)[0]
+#     while elapsed_ms < duration_s * 1000:
+#         print("tracing...")
 
-#         print(int(elapsed_ms), prediction)
-#         if prediction != 'negative':# and last_classification != prediction:
-#             print("========================>", prediction)
-#             input("press 'Enter' to continue...")
-#             # return prediction
-#         data.clear()
+#         row = [elapsed_ms] + read_sensor()
+#         data.append(row)
+#         elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
 
-#         last_classified = elapsed_ms
-#         last_classification = prediction
-
-#     elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
+#     df = pd.DataFrame(data, columns=header)
+#     features = pdata.get_model_features(df)
+#     features = scaler.transform(np.reshape(features, (1, -1)))
+#     prediction = model.predict(features)[0]
+#     print(prediction)
 
 
-   
+
+CHECK_TIME_INCREMENT_MS = 100
+SAMPLE_SIZE = 84
+THRESHOLD = 300
+
+header = ["time_ms"] + pdata.get_header()
+data = collections.deque(maxlen=SAMPLE_SIZE) #10 Hz
+
+start = datetime.datetime.now()
+elapsed_ms = 0
+last_check = 0
+record = False
+
+while True:
+    row = [elapsed_ms] + read_sensor()
+    data.append(row)
+
+    # Check for changes every CHECK_TIME_INCREMENT_MS
+    if elapsed_ms - last_check == CHECK_TIME_INCREMENT_MS and record is False:
+        x_range = max(data[1]) - min(data[1])
+        y_range = max(data[2]) - min(data[2])
+        z_range = max(data[3]) - min(data[3])
+
+        # if range of sensor values overpases the threshold, start tracing
+        if x_range >= THRESHOLD or y_range >= THRESHOLD or z_range >= THRESHOLD:
+            print("Changes detected")
+            record = True
+        else:
+            print("No changes detected")
+            data.clear()
+
+        last_check = elapsed_ms
+
+
+    if len(data) == data.maxlen and record is True:
+        df = pd.DataFrame(list(data), columns=header)
+        features = pdata.get_model_features(df)
+        features = scaler.transform(np.reshape(features, (1, -1)))
+        prediction = model.predict(features)[0]
+
+        print("========================>", prediction)
+        input("Press 'Enter' to continue...")
+        data.clear()
+        last_check = elapsed_ms
+
+    elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000

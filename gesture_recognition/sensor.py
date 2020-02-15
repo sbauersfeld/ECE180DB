@@ -2,32 +2,6 @@
 import sys
 import IMU
 
-MAG_LPF_FACTOR = 0.4 	# Low pass filter constant magnetometer
-ACC_LPF_FACTOR = 0.4 	# Low pass filter constant for accelerometer
-ACC_MEDIANTABLESIZE = 9	# Median filter table size for accelerometer. Higher = smoother but a longer delay
-MAG_MEDIANTABLESIZE = 9	# Median filter table size for magnetometer. Higher = smoother but a longer delay
-
-oldXMagRawValue = 0
-oldYMagRawValue = 0
-oldZMagRawValue = 0
-oldXAccRawValue = 0
-oldYAccRawValue = 0
-oldZAccRawValue = 0
-
-#Setup the tables for the mdeian filter. Fill them all with '1' so we dont get devide by zero error 
-acc_medianTable1X = [1] * ACC_MEDIANTABLESIZE
-acc_medianTable1Y = [1] * ACC_MEDIANTABLESIZE
-acc_medianTable1Z = [1] * ACC_MEDIANTABLESIZE
-acc_medianTable2X = [1] * ACC_MEDIANTABLESIZE
-acc_medianTable2Y = [1] * ACC_MEDIANTABLESIZE
-acc_medianTable2Z = [1] * ACC_MEDIANTABLESIZE
-mag_medianTable1X = [1] * MAG_MEDIANTABLESIZE
-mag_medianTable1Y = [1] * MAG_MEDIANTABLESIZE
-mag_medianTable1Z = [1] * MAG_MEDIANTABLESIZE
-mag_medianTable2X = [1] * MAG_MEDIANTABLESIZE
-mag_medianTable2Y = [1] * MAG_MEDIANTABLESIZE
-mag_medianTable2Z = [1] * MAG_MEDIANTABLESIZE
-
 def read_sensor():
 	#Read the accelerometer,gyroscope and magnetometer values
 	GYRx = IMU.readGYRx()
@@ -41,6 +15,32 @@ def read_sensor():
 	MAGz = IMU.readMAGz()
 
 	return [ACCx, ACCy, ACCz, GYRx, GYRy, GYRz, MAGx, MAGy, MAGz]
+
+# MAG_LPF_FACTOR = 0.4 	# Low pass filter constant magnetometer
+# ACC_LPF_FACTOR = 0.4 	# Low pass filter constant for accelerometer
+# ACC_MEDIANTABLESIZE = 9	# Median filter table size for accelerometer. Higher = smoother but a longer delay
+# MAG_MEDIANTABLESIZE = 9	# Median filter table size for magnetometer. Higher = smoother but a longer delay
+
+# oldXMagRawValue = 0
+# oldYMagRawValue = 0
+# oldZMagRawValue = 0
+# oldXAccRawValue = 0
+# oldYAccRawValue = 0
+# oldZAccRawValue = 0
+
+# #Setup the tables for the mdeian filter. Fill them all with '1' so we dont get devide by zero error 
+# acc_medianTable1X = [1] * ACC_MEDIANTABLESIZE
+# acc_medianTable1Y = [1] * ACC_MEDIANTABLESIZE
+# acc_medianTable1Z = [1] * ACC_MEDIANTABLESIZE
+# acc_medianTable2X = [1] * ACC_MEDIANTABLESIZE
+# acc_medianTable2Y = [1] * ACC_MEDIANTABLESIZE
+# acc_medianTable2Z = [1] * ACC_MEDIANTABLESIZE
+# mag_medianTable1X = [1] * MAG_MEDIANTABLESIZE
+# mag_medianTable1Y = [1] * MAG_MEDIANTABLESIZE
+# mag_medianTable1Z = [1] * MAG_MEDIANTABLESIZE
+# mag_medianTable2X = [1] * MAG_MEDIANTABLESIZE
+# mag_medianTable2Y = [1] * MAG_MEDIANTABLESIZE
+# mag_medianTable2Z = [1] * MAG_MEDIANTABLESIZE
 
 # def read_sensor():
 # 	# global variables
