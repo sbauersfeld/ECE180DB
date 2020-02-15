@@ -52,4 +52,3 @@ def get_model_features(trace):
 #             features.extend(get_features(trace[sensor + axis]))
 
 #     return features
->>>>>>> b939fc899e75bdf7a07b89d81257dc1e66c1973a
