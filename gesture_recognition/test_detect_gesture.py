@@ -58,22 +58,19 @@ accel_y = []
 accel_z = []
 
 while True:
-    print("tracing...")
     row = [elapsed_ms] + read_sensor()
     data.append(row)
 
     # Check for changes every CHECK_TIME_INCREMENT_MS
     if elapsed_ms - last_check >= CHECK_TIME_INCREMENT_MS and record is False:
-        for i in range(len(data)):
-            accel_x.append(data[i][1])
-            accel_y.append(data[i][2])
-            accel_z.append(data[i][3])
+        data_len = range(len(data))
+        accel_x = [data[i][1] for i in data_len]
+        accel_y = [data[i][2] for i in data_len]
+        accel_z = [data[i][3] for i in data_len]
 
         x_range = max(accel_x) - min(accel_x)
         y_range = max(accel_y) - min(accel_y)
         z_range = max(accel_z) - min(accel_z)
-        print(data)
-        print(x_range, y_range, z_range)
 
         # if two out of three ranges of sensor values overpases the threshold, start tracing
         if (x_range >= THRESHOLD and y_range >= THRESHOLD) or \
@@ -86,9 +83,6 @@ while True:
             data.clear()
 
         last_check = elapsed_ms
-        accel_x = []
-        accel_y = []
-        accel_z = []
 
     if len(data) == data.maxlen and record is True:
         df = pd.DataFrame(list(data), columns=header)
