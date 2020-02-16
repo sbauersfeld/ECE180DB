@@ -16,6 +16,24 @@ def read_sensor():
 
 	return [ACCx, ACCy, ACCz, GYRx, GYRy, GYRz, MAGx, MAGy, MAGz]
 
+def check_movement(data, THRESHOLD):
+    data_len = range(len(data))
+    sensor_x = [data[i][1] for i in data_len]
+    sensor_y = [data[i][2] for i in data_len]
+    sensor_z = [data[i][3] for i in data_len]
+
+    x_range = max(sensor_x) - min(sensor_x)
+    y_range = max(sensor_y) - min(sensor_y)
+    z_range = max(sensor_z) - min(sensor_z)
+
+    # if two out of three ranges of sensor values overpases the threshold, start tracing
+    if (x_range >= THRESHOLD and y_range >= THRESHOLD) or \
+        (x_range >= THRESHOLD and z_range >= THRESHOLD) or \
+        (y_range >= THRESHOLD and z_range >= THRESHOLD):
+        return True
+    else:
+        return False
+
 # MAG_LPF_FACTOR = 0.4 	# Low pass filter constant magnetometer
 # ACC_LPF_FACTOR = 0.4 	# Low pass filter constant for accelerometer
 # ACC_MEDIANTABLESIZE = 9	# Median filter table size for accelerometer. Higher = smoother but a longer delay
