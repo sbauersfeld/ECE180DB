@@ -5,7 +5,7 @@ import time
 import threading
 from sklearn.externals import joblib
 from gesture_recognition import IMU
-from gesture_recognition.detect_gesture import gesture_setup, get_gesture
+from gesture_recognition.detect_gesture import gesture_setup, get_gesture2
 
 
 ####################
@@ -82,7 +82,7 @@ def handle_gesture(name):
     A_LOCK.wait()
     while not GAME_OVER:
         print("START ACTION")
-        gesture = get_gesture(model, scaler).upper()
+        gesture = get_gesture2(model, scaler).upper()
         send_action(client, name, Act[gesture])
         time.sleep(0.5)
 

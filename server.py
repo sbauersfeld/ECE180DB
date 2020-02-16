@@ -248,17 +248,14 @@ def request_action():
 
     print("Waiting for actions...")
     for name, player in players.items():
-        ret = player.wait_for(ACTION, 5)
-        if not ret:
-            client.publish(TOPIC_ACTION, SEP.join([name, Act.BLOCK.name, ""]))
-            send_to_laptop(name, Act.BLOCK.name, "")
+        player.wait_for(ACTION)
     for name, player in players.items():
         player.listen_for(HIT)        
     client.publish(TOPIC_PLAYER, START_HIT)
 
     print("Waiting for hit detection...")
     for name, player in players.items():
-        player.wait_for(HIT, 3)
+        player.wait_for(HIT)
 
 def process_response(player, action, value):
     if action in [Act.DIST] and player.is_listening_to(DISTANCE):
@@ -267,6 +264,7 @@ def process_response(player, action, value):
         player.finish_for(DISTANCE)
 
     if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK] and player.is_listening_to(ACTION):
+        print("Received for {}: {}".format(player.name, action))
         player.update_action(action)
         ### Addition just for demos, but can be used for a burst/grenade option ###
         if action in [Act.SHOOT] and player.can_shoot():
@@ -277,6 +275,7 @@ def process_response(player, action, value):
         player.finish_for(ACTION)
 
     if action in [Act.PASS, Act.HIT] and player.is_listening_to(HIT):
+        print("Received for {}: {}".format(player.name, action))
         if action in [Act.HIT]: player.update_as_hit()
         player.finish_for(HIT)
 
