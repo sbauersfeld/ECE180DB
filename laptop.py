@@ -145,8 +145,8 @@ def detect_distance(client, name):
 def process_order(order, value1, value2):
     if order == START_DIST:
         msg = "Measuring distance..."
-        print(msg)
         PLAYER.msg = msg
+        print(msg)
         D_LOCK.set()
 
     elif order == PLAYER.name:
@@ -161,7 +161,7 @@ def process_order(order, value1, value2):
         print(msg)
 
     elif order == "NEXT_ROUND":
-        msg = "Waiting to start..."
+        msg = "Move to new distance..."
         PLAYER.msg = msg
         print(msg)
 
