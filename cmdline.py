@@ -5,7 +5,7 @@ import time
 import threading
 from sklearn.externals import joblib
 # from gesture_recognition import IMU
-# from gesture_recognition.detect_gesture import gesture_setup, get_gesture
+# from gesture_recognition.detect_gesture import gesture_setup, get_gesture2
 
 
 ####################
@@ -43,8 +43,6 @@ def on_message_player(client, userdata, msg):
 def send_action(client, name, action, value=""):
     message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
-    client.publish(TOPIC_LAPTOP, message)
-    ### Have player also send to laptop?? ###
 
     print("Sent: {}".format(message))
     return ret

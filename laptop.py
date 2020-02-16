@@ -32,10 +32,8 @@ class Status(pygame.sprite.Sprite):
 
         ### Creating the object ###
         pygame.sprite.Sprite.__init__(self)
-        if title:
-            self.image = font_small.render(self.value, True, WHITE, BLACK)
-        else:
-            self.image = font_large.render(self.value, True, WHITE, BLACK)
+        font = font_small if title else font_large
+        self.image = font.render(self.value, True, WHITE, BLACK)
         self.rect = self.image.get_rect()
 
         ### Establishing the location ##
@@ -56,7 +54,6 @@ class Status(pygame.sprite.Sprite):
 GAME_OVER = False
 D_LOCK = threading.Event()
 PLAYER = Player()
-ACT_CHECK = False
 
 ### Pygame ###
 pygame.init()
@@ -110,8 +107,6 @@ def on_message_player(client, userdata, msg):
 
     if message == START_ACTION:
         ### Inform Player to do action here through pygame ###
-        global ACT_CHECK
-        ACT_CHECK = True
         PLAYER.msg = "NOW"
     elif message == STOP_GAME:
         global GAME_OVER
@@ -156,10 +151,9 @@ def process_order(order, value1, value2):
 
     elif order == PLAYER.name:
         action = Act[value1]
-        global ACT_CHECK
-        if ACT_CHECK and action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
+        print("Received action: {}".format(action))
+        if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
             PLAYER.msg = action.name
-            ACT_CHECK = False
 
     elif order == "ACTION_COUNT":
         msg = "action in {}".format(value1)

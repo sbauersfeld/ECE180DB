@@ -266,6 +266,8 @@ def process_response(player, action, value):
     if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK] and player.is_listening_to(ACTION):
         print("Received for {}: {}".format(player.name, action))
         player.update_action(action)
+        send_to_laptop(player.name, action.name)
+
         ### Addition just for demos, but can be used for a burst/grenade option ###
         if action in [Act.SHOOT] and player.can_shoot():
             for n, p in players.items():
