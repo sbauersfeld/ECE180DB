@@ -8,8 +8,8 @@ from sensor import *
 import process_data as pdata
 import numpy as np
 
-model = joblib.load('models/wilson/model3.joblib')
-scaler = joblib.load('models/wilson/scaler3.joblib')
+model = joblib.load('models/wilson/model4.joblib')
+scaler = joblib.load('models/wilson/scaler4.joblib')
 
 IMU.detectIMU()
 IMU.initIMU()

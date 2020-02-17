@@ -28,7 +28,7 @@ def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 ###############################################################################
 ###						Extract features & labels and scaling 				###
 ###############################################################################
-feature, label = extract_data("training_data", ["wilson"])
+feature, label = extract_data("training_data", ["test"])
 print(np.shape(feature))
 print(np.shape(label))
 scaler = StandardScaler()
@@ -68,7 +68,7 @@ while True:
 		joblib.dump(model, 'models/' + name + "/" + model_name + ".joblib")
 		joblib.dump(scaler, 'models/' + name + "/" + scaler_name + ".joblib")
 		break
-	else if key is "d"
+	elif key is "d":
 		break
 	else:
 		print("invalid input")
