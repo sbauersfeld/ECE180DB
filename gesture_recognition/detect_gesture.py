@@ -8,7 +8,7 @@ from sensor import *
 import process_data as pdata
 import numpy as np
 
-def gesture_setup(member, model_name="model", scaler_name="scaler", prefix=""):
+def gesture_setup(member, model_name="model4", scaler_name="scaler4", prefix=""):
     model = joblib.load(prefix + 'models/' + member + '/' + model_name + ".joblib")
     scaler = joblib.load(prefix + 'models/' + member + '/' + scaler_name + ".joblib")
 
@@ -37,18 +37,18 @@ def get_gesture(model, scaler, duration_s=1.5):
     print(prediction)
     return prediction
 
-def get_gesture2(model, scaler):
-    CHECK_TIME_INCREMENT_MS = 100
-    SAMPLE_SIZE = 84
+def get_gesture2(model, scaler, max_time=4):
+    CHECK_TIME_INCREMENT_MS = 150
     THRESHOLD = 300
 
     header = ["time_ms"] + pdata.get_header()
-    data = collections.deque(maxlen=SAMPLE_SIZE) #10 Hz
 
     start = datetime.datetime.now()
+    counter = 0
     elapsed_ms = 0
-    last_check = 0
+    last_check_ms = 0
     record = False
+    stop = False
     accel_x = []
     accel_y = []
     accel_z = []
@@ -56,39 +56,45 @@ def get_gesture2(model, scaler):
     while True:
         row = [elapsed_ms] + read_sensor()
         data.append(row)
+        counter += 1
 
-        # Check for changes every CHECK_TIME_INCREMENT_MS
-        if elapsed_ms - last_check >= CHECK_TIME_INCREMENT_MS and record is False:
-            data_len = range(len(data))
-            accel_x = [data[i][1] for i in data_len]
-            accel_y = [data[i][2] for i in data_len]
-            accel_z = [data[i][3] for i in data_len]
-
-            x_range = max(accel_x) - min(accel_x)
-            y_range = max(accel_y) - min(accel_y)
-            z_range = max(accel_z) - min(accel_z)
-
-            # if two out of three ranges of sensor values overpases the threshold, start tracing
-            if (x_range >= THRESHOLD and y_range >= THRESHOLD) or \
-            (x_range >= THRESHOLD and z_range >= THRESHOLD) or \
-            (y_range >= THRESHOLD and z_range >= THRESHOLD):
-                print("Changes detected")
+        # Checks for movement
+        if record is False and elapsed_ms - last_check_ms >= CHECK_TIME_INCREMENT_MS:
+            if check_movement(data, THRESHOLD):
+                print("Movement detected")
                 record = True
             else:
-                print("No changes detected")
-                data.clear()
+                print("No movement detected")
+                data = []
+                counter = 0
+            last_check_ms = elapsed_ms
 
-            last_check = elapsed_ms
+        # Check for no movement
+        if record is True and elapsed_ms - last_check_ms >= CHECK_TIME_INCREMENT_MS:
+            if check_movement(data[-counter:], THRESHOLD):
+                print("tracing...")
+                counter = 0
+            else: 
+                print("Movement stopped")
+                stop = True
+            last_check_ms = elapsed_ms
 
-        if len(data) == data.maxlen and record is True:
+        # Predicts traced gesture
+        if stop:
             df = pd.DataFrame(list(data), columns=header)
             features = pdata.get_model_features(df)
             features = scaler.transform(np.reshape(features, (1, -1)))
             prediction = model.predict(features)[0]
+
             print("========================>", prediction)
             return prediction
 
+        # timeout 
+        if elapsed_ms > max_time * 1000:
+            return "block" # have it as pass?
+
         elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
+
 # def get_gesture(model, scaler, max_time=3):
 #     CHECK_TIME_INCREMENT_MS = 200
 #     SAMPLE_SIZE_MS = 840
