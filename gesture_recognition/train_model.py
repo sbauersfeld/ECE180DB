@@ -28,7 +28,7 @@ def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 ###############################################################################
 ###						Extract features & labels and scaling 				###
 ###############################################################################
-feature, label = extract_data("training_data", ["wilson"])
+feature, label = extract_data("training_data", ["scott", "wilson"])
 print(np.shape(feature))
 print(np.shape(label))
 scaler = StandardScaler()
@@ -58,17 +58,27 @@ print("Score: ", score)
 
 # Save model if desired
 while True:
-	key = input("(s) --> save model\n(d) --> discard model\n")
-	if key is "s":
-		name = input("Enter name: ")
-		model_name = input("Enter model name: ")
-		scaler_name = input("Enter scaler name: ")
-		if not os.path.exists("models/" + name):
-			os.mkdir("models/" + name)
-		joblib.dump(model, 'models/' + name + "/" + model_name + ".joblib")
-		joblib.dump(scaler, 'models/' + name + "/" + scaler_name + ".joblib")
-		break
-	elif key is "d":
-		break
-	else:
-		print("invalid input")
+    key = input("(s) --> save model\n(d) --> discard model\n")
+    if key is "s":
+        name = input("Enter name: ")
+        model_name = input("Enter model name: ")
+        scaler_name = input("Enter scaler name: ")
+        while True:
+            retrain = input("(y) --> re-train on all data\n(n) --> save current model\n")
+            if retrain is "y":
+                X = scaler.fit_transform(feature)
+                model.fit(X, label)
+                break
+            elif key is "n":
+                break
+            else:
+                print("invalid input")
+        if not os.path.exists("models/" + name):
+            os.mkdir("models/" + name)
+        joblib.dump(model, 'models/' + name + "/" + model_name + ".joblib")
+        joblib.dump(scaler, 'models/' + name + "/" + scaler_name + ".joblib")
+        break
+    elif key is "d":
+        break
+    else:
+        print("invalid input")
