@@ -38,7 +38,7 @@ def get_gesture(model, scaler, duration_s=1.5):
     return prediction
 
 def get_gesture2(model, scaler, max_time=4):
-    CHECK_TIME_INCREMENT_MS = 150
+    CHECK_TIME_INCREMENT_MS = 200
     THRESHOLD = 300
 
     header = ["time_ms"] + pdata.get_header()
@@ -52,6 +52,7 @@ def get_gesture2(model, scaler, max_time=4):
     accel_x = []
     accel_y = []
     accel_z = []
+    data = []
 
     while True:
         row = [elapsed_ms] + read_sensor()
@@ -91,6 +92,7 @@ def get_gesture2(model, scaler, max_time=4):
 
         # timeout 
         if elapsed_ms > max_time * 1000:
+            print("Timeout")
             return "block" # have it as pass?
 
         elapsed_ms = (datetime.datetime.now() - start).total_seconds() * 1000
