@@ -14,7 +14,7 @@ scaler = joblib.load('models/wilson/scaler4.joblib')
 IMU.detectIMU()
 IMU.initIMU()
 
-CHECK_TIME_INCREMENT_MS = 150
+CHECK_TIME_INCREMENT_MS = 200
 THRESHOLD = 300
 
 header = ["time_ms"] + pdata.get_header()
