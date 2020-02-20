@@ -28,7 +28,7 @@ def extract_data(folder, members, gestures=["reload", "shoot", "block"]):
 ###############################################################################
 ###						Extract features & labels and scaling 				###
 ###############################################################################
-feature, label = extract_data("training_data", ["scott", "wilson"])
+feature, label = extract_data("training_data", ["scott", "wilson", "jon"])
 print(np.shape(feature))
 print(np.shape(label))
 scaler = StandardScaler()
