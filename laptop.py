@@ -22,7 +22,7 @@ class Player:
         self.name = name
         self.lives = lives
         self.ammo = ammo
-        self.defense = 25.0
+        self.defense = "?"
         self.msg = ""
 
 class Status(pygame.sprite.Sprite):
@@ -36,7 +36,7 @@ class Status(pygame.sprite.Sprite):
         self.image = font.render(self.value, True, WHITE, BLACK)
         self.rect = self.image.get_rect()
 
-        ### Establishing the location ##
+        ### Establishing the location ###
         self.rect.centerx = main_origin.centerx if not xval else xval
         self.rect.centery = main_origin.centery if not yval else yval
         self.rect.centerx += xpos
@@ -103,10 +103,7 @@ def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
     print("Player: " + message)
 
-    ### For visual purposes for player (pygame) ###
-
     if message == START_ACTION:
-        ### Inform Player to do action here through pygame ###
         PLAYER.msg = "NOW"
     elif message == STOP_GAME:
         global GAME_OVER
@@ -163,6 +160,7 @@ def process_order(order, value1, value2):
     elif order == "NEXT_ROUND":
         msg = "Move to new distance..."
         PLAYER.msg = msg
+        PLAYER.defense = "?"
         print(msg)
 
     elif order == "STATUS":
