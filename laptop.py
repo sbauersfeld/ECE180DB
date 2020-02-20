@@ -54,6 +54,7 @@ class Status(pygame.sprite.Sprite):
 GAME_OVER = False
 D_LOCK = threading.Event()
 PLAYER = Player()
+client = mqtt.Client()
 
 ### Pygame ###
 pygame.init()
@@ -115,14 +116,14 @@ def on_message_player(client, userdata, msg):
 ##  Functions
 ####################
 
-def send_action(client, name, action, value=""):
+def send_action(name, action, value=""):
     message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
     return ret
 
-def detect_distance(client, name):
+def detect_distance(name):
     cap = cv2.VideoCapture(0)
 
     print("Waiting to detect distance...")
@@ -130,7 +131,7 @@ def detect_distance(client, name):
     while not GAME_OVER:
         new_val = GetDistance(cap)
         dist = str(round(new_val, 1))
-        send_action(client, name, Act.DIST, dist)
+        send_action(name, Act.DIST, dist)
 
         if not GAME_OVER:
             D_LOCK.clear()
@@ -202,7 +203,6 @@ def draw_main():
 ####################
 
 def main():
-    client = mqtt.Client()
     client.on_message = on_message
     client.message_callback_add(TOPIC_LAPTOP, on_message_laptop)
     client.message_callback_add(TOPIC_PLAYER, on_message_player)
@@ -221,10 +221,13 @@ def main():
     print("Listening...")
     client.loop_start()
 
-    ### Handle connection with player
+    ### Handle connection with player ###
 
-    t = threading.Thread(target=detect_distance, args=[client, name], daemon=True)
-    t.start()
+    threads = []
+    for func in [detect_distance]:
+        t = threading.Thread(target=func, args=[name], daemon=True)
+        t.start()
+        threads.append(t)
 
     client.publish(TOPIC_SETUP, name)
 
