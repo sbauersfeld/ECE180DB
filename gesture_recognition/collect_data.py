@@ -46,7 +46,7 @@ IMU.initIMU()	   #Initialise the accelerometer, gyroscope and compass
 ###									tracing 								###
 ###############################################################################
 index = starting_index
-CHECK_TIME_INCREMENT_MS = 150
+CHECK_TIME_INCREMENT_MS = 200
 THRESHOLD = 300
 
 while True:
