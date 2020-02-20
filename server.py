@@ -341,13 +341,13 @@ def main():
 
         # Check game state
         alive = [player for (name,player) in players.items() if not player.is_dead()]
-        if len(alive) == 1:
+        if len(alive) == 1 and NUM_PLAYERS > 1:
             print("\nWINNER! {} has won the game!".format(alive[0]))
             ### NOTIFY LAPTOP ON WHO WON ###
-            ### NOTIFY PLAYER THAT GAME IS OVER ###
             break
         elif len(alive) <= 0:
             print("\nDRAW! There are no remaining players.")
+            ### NOTIFY LAPTOP ABOUT DRAW ###
             break
 
         time.sleep(3)
