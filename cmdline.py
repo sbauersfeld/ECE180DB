@@ -3,7 +3,7 @@ import paho.mqtt.client as mqtt
 import sys
 import time
 import threading
-from sklearn.externals import joblib
+# from sklearn.externals import joblib
 # from gesture_recognition import IMU
 # from gesture_recognition.detect_gesture import gesture_setup, get_gesture2
 
