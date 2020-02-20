@@ -212,8 +212,7 @@ def on_message_action(client, userdata, msg):
         print("Unexpected message: {}".format(message))
         return
 
-    if not player.is_dead():
-        process_response(player, action, value)
+    process_response(player, action, value)
 
 def send_to_laptop(order, value1="", value2=""):
     message = SEP.join([order, value1, value2])
@@ -258,6 +257,9 @@ def request_action():
         player.wait_for(HIT)
 
 def process_response(player, action, value):
+    if player.is_dead():
+        return
+
     if action in [Act.DIST] and player.is_listening_to(DISTANCE):
         player.update_distance(value)
         send_to_laptop("STATUS", player.status())
