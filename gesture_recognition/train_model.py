@@ -69,7 +69,7 @@ while True:
                 X = scaler.fit_transform(feature)
                 model.fit(X, label)
                 break
-            elif key is "n":
+            elif retrain is "n":
                 break
             else:
                 print("invalid input")
