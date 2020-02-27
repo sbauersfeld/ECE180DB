@@ -74,7 +74,7 @@ def control_LED(name):
 
 def handle_gesture(name):
     print("Setting up sensors")
-    model, scaler = gesture_setup("scott", "ft3", "sft3", prefix="gesture_recognition/")
+    model, scaler = gesture_setup("jon", "model2", "model2", prefix="gesture_recognition/")
 
     print("Waiting to start action...")
     A_LOCK.wait()
