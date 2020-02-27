@@ -65,7 +65,7 @@ clock = pygame.time.Clock()
 ### Creating the main surface ###
 WIDTH = 0 # 1280
 HEIGHT = 0 # 780
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME) # Or FULLSCREEN
+main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) # Or FULLSCREEN
 main_origin = main_surface.get_rect()
 
 ### Music ###
@@ -253,7 +253,10 @@ def main():
     PLAYER.name = name
 
     ### Have some way of modifying headset outside of code? ###
-    headset = "HERE"
+    headset_map = {
+        "scott" : "Headset (SoundBuds Slim Hands-F",
+    }
+    headset = headset_map[name]
 
     print("Listening...")
     client.loop_start()
