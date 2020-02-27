@@ -23,7 +23,7 @@ class Player:
         self.lives = lives
         self.ammo = ammo
         self.defense = "?"
-        self.msg = ""
+        self.msg = "Waiting for server..."
 
 class Status(pygame.sprite.Sprite):
     def __init__(self, value=0, title=False, xpos=0, ypos=0, xval=None, yval=None):
@@ -61,9 +61,9 @@ pygame.init()
 clock = pygame.time.Clock()
 
 ### Creating the main surface ###
-WIDTH = 1280
-HEIGHT = 780
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
+WIDTH = 0 # 1280
+HEIGHT = 0 # 780
+main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME) # Or FULLSCREEN
 main_origin = main_surface.get_rect()
 
 ### Music ###
@@ -174,7 +174,10 @@ def process_order(order, value1, value2):
             PLAYER.defense = status["defense"]
     
     else:
-        print("Unexpected message! {}".format(order))
+        print("Unexpected message received!")
+        msg = order
+        PLAYER.msg = msg
+        print(msg)
 
 
 ####################
@@ -236,7 +239,6 @@ def main():
     ##  Start Game
     ####################
 
-    time.sleep(1.5)
     # pygame.mixer.music.play(-1, 0.5)
 
     player_win = False
