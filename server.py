@@ -15,9 +15,11 @@ NUM_PLAYERS = 2
 P_LOCK = threading.Event()
 client = mqtt.Client()
 
-ACTION = "ACTION"
+# Player Locks
 DISTANCE = "DISTANCE"
+ACTION = "ACTION"
 HIT = "HIT"
+VOICE = "VOICE"
 
 
 ####################
@@ -45,9 +47,10 @@ class Player:
 
         # Synchronization
         self.sync = {
-            ACTION : threading.Event(),
             DISTANCE : threading.Event(),
+            ACTION : threading.Event(),
             HIT : threading.Event(),
+            VOICE : threading.Event(),
         }
 
     def __str__(self):
@@ -231,6 +234,15 @@ def count_laptop(order, countdown, freq=1):
         countdown -= freq
         time.sleep(freq)
 
+def request_voice():
+    for name, player in players.items():
+        player.listen_for(VOICE)
+    send_to_laptop(START_VOICE)
+
+    print("Waiting for voice...")
+    for name, player in players.items():
+        player.wait_for(VOICE)
+
 def request_distance():
     for name, player in players.items():
         player.listen_for(DISTANCE)
@@ -259,6 +271,7 @@ def request_action():
 def process_response(player, action, value):
     if player.is_dead():
         return
+    print("Received for {}: {}".format(player.name, action))
 
     if action in [Act.DIST] and player.is_listening_to(DISTANCE):
         player.update_distance(value)
@@ -266,7 +279,6 @@ def process_response(player, action, value):
         player.finish_for(DISTANCE)
 
     if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK] and player.is_listening_to(ACTION):
-        print("Received for {}: {}".format(player.name, action))
         player.update_action(action)
         send_to_laptop(player.name, action.name)
 
@@ -279,9 +291,11 @@ def process_response(player, action, value):
         player.finish_for(ACTION)
 
     if action in [Act.PASS, Act.HIT] and player.is_listening_to(HIT):
-        print("Received for {}: {}".format(player.name, action))
         if action in [Act.HIT]: player.update_as_hit()
         player.finish_for(HIT)
+
+    if action in [Act.VOICE] and player.is_listening_to(VOICE):
+        player.finish_for(VOICE)
 
 def process_round(name):
     player = players[name]
@@ -315,13 +329,14 @@ def main():
 
     round_num = 0
     while True:
-        # Start new round
-        ### SPEECH DETECTION STUFF HERE ###
         send_to_laptop(MOVE_NOW)
-        input("Press Enter to continue...")
+        time.sleep(4)
 
+        # Start new round
+        request_voice()
         round_num += 1
         print("\nStarting round {0}".format(round_num))
+        time.sleep(0.5) # For the "Voice registered" message
 
         # Ask for distance data
         request_distance()

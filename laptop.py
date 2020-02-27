@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance
+from speech_detection.speech_detection import speech_setup, get_speech
 
 
 ####################
@@ -53,6 +54,7 @@ class Status(pygame.sprite.Sprite):
 ### GameStuff ###
 GAME_OVER = False
 D_LOCK = threading.Event()
+V_LOCK = threading.Event()
 PLAYER = Player()
 client = mqtt.Client()
 
@@ -123,29 +125,18 @@ def send_action(name, action, value=""):
     print("Sent: {}".format(message))
     return ret
 
-def detect_distance(name):
-    cap = cv2.VideoCapture(0)
-
-    print("Waiting to detect distance...")
-    D_LOCK.wait()
-    while not GAME_OVER:
-        new_val = GetDistance(cap)
-        dist = str(round(new_val, 1))
-        send_action(name, Act.DIST, dist)
-
-        if not GAME_OVER:
-            D_LOCK.clear()
-        D_LOCK.wait()
-
-    cap.release()
-    cv2.destroyAllWindows()
-
 def process_order(order, value1, value2):
     if order == START_DIST:
         msg = "Measuring distance..."
         PLAYER.msg = msg
         print(msg)
         D_LOCK.set()
+
+    elif order == START_VOICE:
+        msg = "Say 'start' to continue..."
+        PLAYER.msg = msg
+        print(msg)
+        V_LOCK.set()
 
     elif order == PLAYER.name:
         action = Act[value1]
@@ -178,6 +169,46 @@ def process_order(order, value1, value2):
         msg = order
         PLAYER.msg = msg
         print(msg)
+
+
+####################
+##  Threads
+####################
+
+def detect_distance(name):
+    cap = cv2.VideoCapture(0)
+
+    print("Waiting to detect distance...")
+    D_LOCK.wait()
+    while not GAME_OVER:
+        new_val = GetDistance(cap)
+        dist = str(round(new_val, 1))
+        send_action(name, Act.DIST, dist)
+
+        if not GAME_OVER:
+            D_LOCK.clear()
+        D_LOCK.wait()
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+def detect_voice(name, headset):
+    microphone = speech_setup(headset)
+
+    print("Waiting for voice...")
+    V_LOCK.wait()
+    while not GAME_OVER:
+        get_speech(microphone, ["start"])
+
+        msg = "Voice registered"
+        PLAYER.msg = msg
+        print(msg)
+
+        send_action(name, Act.VOICE)
+
+        if not GAME_OVER:
+            V_LOCK.clear()
+        V_LOCK.wait()
 
 
 ####################
@@ -221,18 +252,26 @@ def main():
         name = input("Please enter your name: ")
     PLAYER.name = name
 
+    ### Have some way of modifying headset outside of code? ###
+    headset = "HERE"
+
     print("Listening...")
     client.loop_start()
 
     ### Handle connection with player ###
 
     threads = []
-    for func in [detect_distance]:
-        t = threading.Thread(target=func, args=[name], daemon=True)
+    t_args = {
+        detect_distance : [name],
+        detect_voice : [name, headset],
+    }
+    for func in [detect_distance, detect_voice]:
+        t = threading.Thread(target=func, args=t_args[func], daemon=True)
         t.start()
         threads.append(t)
 
     client.publish(TOPIC_SETUP, name)
+    ### Have laptop repeatedly send this and wait for ACK from server ###
 
 
     ####################
