@@ -27,7 +27,7 @@ VOICE = "VOICE"
 ####################
 
 class Player:
-    def __init__(self, name, lives=150.0, ammo=0.0):
+    def __init__(self, name, lives=150.0, ammo=25.0):
         self.name = name
         self.lives = lives
         self.ammo = ammo
@@ -260,6 +260,8 @@ def request_action():
     print("Waiting for actions...")
     for name, player in players.items():
         player.wait_for(ACTION)
+
+def request_hit():
     for name, player in players.items():
         player.listen_for(HIT)        
     client.publish(TOPIC_PLAYER, START_HIT)
@@ -327,6 +329,16 @@ def main():
     client.subscribe(TOPIC_ACTION)
     client.message_callback_add(TOPIC_ACTION, on_message_action)
 
+    # # Training mode
+    # while True:
+    #     send_to_laptop("Training Mode!")
+    #     time.sleep(4)
+
+    #     request_action()
+
+    #     send_to_laptop("Continue?")
+    #     request_voice()
+
     round_num = 0
     while True:
         send_to_laptop(MOVE_NOW)
@@ -344,6 +356,7 @@ def main():
         # Ask for player actions
         count_laptop(ACTION_COUNT, 3)
         request_action()
+        request_hit()
 
         # Process received actions
         threads = []

@@ -16,10 +16,10 @@ def speech_setup(headset_name):
 
     return m
 
-def get_speech(microphone, trigger=["end", "and"]):
+def get_speech(microphone, trigger=["end", "and"], energy = 300, pause=0.5):
     r = sr.Recognizer()
-    r.energy_threshold = 300
-    r.pause_threshold = 0.5
+    r.energy_threshold = energy
+    r.pause_threshold = pause
     adjust = True
     while True:
         with microphone as source:
