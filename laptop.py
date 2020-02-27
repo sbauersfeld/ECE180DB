@@ -153,18 +153,18 @@ def process_order(order, value1, value2):
         if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
             PLAYER.msg = action.name
 
-    elif order == "ACTION_COUNT":
+    elif order == ACTION_COUNT:
         msg = "action in {}".format(value1)
         PLAYER.msg = msg
         print(msg)
 
-    elif order == "NEXT_ROUND":
+    elif order == MOVE_NOW:
         msg = "Move to new distance..."
         PLAYER.msg = msg
         PLAYER.defense = "?"
         print(msg)
 
-    elif order == "STATUS":
+    elif order == STATUS:
         status = json.loads(value1)
         print(status)
 

@@ -262,7 +262,7 @@ def process_response(player, action, value):
 
     if action in [Act.DIST] and player.is_listening_to(DISTANCE):
         player.update_distance(value)
-        send_to_laptop("STATUS", player.status())
+        send_to_laptop(STATUS, player.status())
         player.finish_for(DISTANCE)
 
     if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK] and player.is_listening_to(ACTION):
@@ -286,7 +286,7 @@ def process_response(player, action, value):
 def process_round(name):
     player = players[name]
     player.run()
-    send_to_laptop("STATUS", player.status())
+    send_to_laptop(STATUS, player.status())
     print("Finished processing " + name)
 
 
@@ -317,7 +317,7 @@ def main():
     while True:
         # Start new round
         ### SPEECH DETECTION STUFF HERE ###
-        send_to_laptop("NEXT_ROUND")
+        send_to_laptop(MOVE_NOW)
         input("Press Enter to continue...")
 
         round_num += 1
@@ -327,7 +327,7 @@ def main():
         request_distance()
 
         # Ask for player actions
-        count_laptop("ACTION_COUNT", 3)
+        count_laptop(ACTION_COUNT, 3)
         request_action()
 
         # Process received actions
