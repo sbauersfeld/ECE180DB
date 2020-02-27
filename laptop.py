@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance
+from speech_detection.speech_detection import speech_setup, get_speech
 
 
 ####################
@@ -23,7 +24,7 @@ class Player:
         self.lives = lives
         self.ammo = ammo
         self.defense = "?"
-        self.msg = ""
+        self.msg = "Waiting for server..."
 
 class Status(pygame.sprite.Sprite):
     def __init__(self, value=0, title=False, xpos=0, ypos=0, xval=None, yval=None):
@@ -53,6 +54,7 @@ class Status(pygame.sprite.Sprite):
 ### GameStuff ###
 GAME_OVER = False
 D_LOCK = threading.Event()
+V_LOCK = threading.Event()
 PLAYER = Player()
 client = mqtt.Client()
 
@@ -61,9 +63,9 @@ pygame.init()
 clock = pygame.time.Clock()
 
 ### Creating the main surface ###
-WIDTH = 1280
-HEIGHT = 780
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
+WIDTH = 0 # 1280
+HEIGHT = 0 # 780
+main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME) # Or FULLSCREEN
 main_origin = main_surface.get_rect()
 
 ### Music ###
@@ -123,6 +125,56 @@ def send_action(name, action, value=""):
     print("Sent: {}".format(message))
     return ret
 
+def process_order(order, value1, value2):
+    if order == START_DIST:
+        msg = "Measuring distance..."
+        PLAYER.msg = msg
+        print(msg)
+        D_LOCK.set()
+
+    elif order == START_VOICE:
+        msg = "Say 'start' to continue..."
+        PLAYER.msg = msg
+        print(msg)
+        V_LOCK.set()
+
+    elif order == PLAYER.name:
+        action = Act[value1]
+        print("Received action: {}".format(action))
+        if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
+            PLAYER.msg = action.name
+
+    elif order == ACTION_COUNT:
+        msg = "action in {}".format(value1)
+        PLAYER.msg = msg
+        print(msg)
+
+    elif order == MOVE_NOW:
+        msg = "Move to new distance..."
+        PLAYER.msg = msg
+        PLAYER.defense = "?"
+        print(msg)
+
+    elif order == STATUS:
+        status = json.loads(value1)
+        print(status)
+
+        if status["name"] == PLAYER.name:
+            PLAYER.ammo = status["ammo"]
+            PLAYER.lives = status["lives"]
+            PLAYER.defense = status["defense"]
+    
+    else:
+        print("Unexpected message received!")
+        msg = order
+        PLAYER.msg = msg
+        print(msg)
+
+
+####################
+##  Threads
+####################
+
 def detect_distance(name):
     cap = cv2.VideoCapture(0)
 
@@ -140,41 +192,23 @@ def detect_distance(name):
     cap.release()
     cv2.destroyAllWindows()
 
-def process_order(order, value1, value2):
-    if order == START_DIST:
-        msg = "Measuring distance..."
-        PLAYER.msg = msg
-        print(msg)
-        D_LOCK.set()
+def detect_voice(name, headset):
+    microphone = speech_setup(headset)
 
-    elif order == PLAYER.name:
-        action = Act[value1]
-        print("Received action: {}".format(action))
-        if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
-            PLAYER.msg = action.name
+    print("Waiting for voice...")
+    V_LOCK.wait()
+    while not GAME_OVER:
+        get_speech(microphone, ["start"])
 
-    elif order == "ACTION_COUNT":
-        msg = "action in {}".format(value1)
+        msg = "Voice registered"
         PLAYER.msg = msg
         print(msg)
 
-    elif order == "NEXT_ROUND":
-        msg = "Move to new distance..."
-        PLAYER.msg = msg
-        PLAYER.defense = "?"
-        print(msg)
+        send_action(name, Act.VOICE)
 
-    elif order == "STATUS":
-        status = json.loads(value1)
-        print(status)
-
-        if status["name"] == PLAYER.name:
-            PLAYER.ammo = status["ammo"]
-            PLAYER.lives = status["lives"]
-            PLAYER.defense = status["defense"]
-    
-    else:
-        print("Unexpected message! {}".format(order))
+        if not GAME_OVER:
+            V_LOCK.clear()
+        V_LOCK.wait()
 
 
 ####################
@@ -218,25 +252,32 @@ def main():
         name = input("Please enter your name: ")
     PLAYER.name = name
 
+    ### Have some way of modifying headset outside of code? ###
+    headset = "HERE"
+
     print("Listening...")
     client.loop_start()
 
     ### Handle connection with player ###
 
     threads = []
-    for func in [detect_distance]:
-        t = threading.Thread(target=func, args=[name], daemon=True)
+    t_args = {
+        detect_distance : [name],
+        detect_voice : [name, headset],
+    }
+    for func in [detect_distance, detect_voice]:
+        t = threading.Thread(target=func, args=t_args[func], daemon=True)
         t.start()
         threads.append(t)
 
     client.publish(TOPIC_SETUP, name)
+    ### Have laptop repeatedly send this and wait for ACK from server ###
 
 
     ####################
     ##  Start Game
     ####################
 
-    time.sleep(1.5)
     # pygame.mixer.music.play(-1, 0.5)
 
     player_win = False

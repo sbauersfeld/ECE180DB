@@ -16,11 +16,15 @@ TOPIC_ACTION = TOPIC_GLOBAL + "/action" # For actions done by players; player to
 SEP = "___"
 
 # Standard Messages
-START_ACTION = "START_ACTION"
 START_DIST = "START_DIST"
+START_ACTION = "START_ACTION"
 START_HIT = "START_HIT"
-STOP_GAME = "STOP_GAME"
+START_VOICE = "START_VOICE"
 
+STOP_GAME = "STOP_GAME"
+MOVE_NOW = "MOVE_NOW"
+STATUS = "STATUS"
+ACTION_COUNT = "ACTION_COUNT"
 
 ####################
 ##  Classes
@@ -33,3 +37,4 @@ class Act(Enum):
     BLOCK = 3
     HIT = 4
     DIST = 5
+    VOICE = 6
