@@ -33,7 +33,7 @@ def get_speech(microphone, trigger=["end", "and"], energy = 300, pause=0.5):
 
             try:
                 print("detected voice")
-                command = r.recognize_google(audio)
+                command = r.recognize_google(audio).lower()
                 print("You said: " + command)
             except sr.UnknownValueError:
                 print("Google Speech Recognition could not understand audio")

@@ -57,6 +57,8 @@ D_LOCK = threading.Event()
 V_LOCK = threading.Event()
 PLAYER = Player()
 client = mqtt.Client()
+start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
+                "search", "bikes", "strikes", "starks"]
 
 ### Pygame ###
 pygame.init()
@@ -165,10 +167,7 @@ def process_order(order, value1, value2):
             PLAYER.defense = status["defense"]
     
     else:
-        print("Unexpected message received!")
-        msg = order
-        PLAYER.msg = msg
-        print(msg)
+        print("Unexpected message: {} with {}".format(order, value))
 
 
 ####################
@@ -198,7 +197,7 @@ def detect_voice(name, headset):
     print("Waiting for voice...")
     V_LOCK.wait()
     while not GAME_OVER:
-        get_speech(microphone, ["start"])
+        get_speech(microphone, start_phrase)
 
         msg = "Voice registered"
         PLAYER.msg = msg
@@ -252,11 +251,10 @@ def main():
         name = input("Please enter your name: ")
     PLAYER.name = name
 
-    ### Have some way of modifying headset outside of code? ###
     headset_map = {
         "scott" : "Headset (SoundBuds Slim Hands-F",
+        "jon" : "WF-1000XM3"
     }
-    headset = headset_map[name]
 
     print("Listening...")
     client.loop_start()
@@ -266,7 +264,7 @@ def main():
     threads = []
     t_args = {
         detect_distance : [name],
-        detect_voice : [name, headset],
+        detect_voice : [name, headset_map.get(name, "")],
     }
     for func in [detect_distance, detect_voice]:
         t = threading.Thread(target=func, args=t_args[func], daemon=True)
