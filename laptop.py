@@ -180,7 +180,7 @@ def detect_distance(name):
     print("Waiting to detect distance...")
     D_LOCK.wait()
     while not GAME_OVER:
-        new_val = GetDistance(cap)
+        new_val = GetDistance(cap, name)
         dist = str(round(new_val, 1))
         send_action(name, Act.DIST, dist)
 
