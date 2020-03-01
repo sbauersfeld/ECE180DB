@@ -37,8 +37,8 @@ def find_marker(image):
 KNOWN_HEIGHT = 4.0
 
 FPS = 30 # is this true?
-CAP_TIME = 4 # seconds
-CAP_COUNT = FPS * CAP_TIME
+CAP_TIME = 1 # seconds
+CAP_COUNT = int(FPS * CAP_TIME)
 
 def GetDistance(cap, name="scott"):
 	focalLength = player_map.get(name, player_default)[-1]

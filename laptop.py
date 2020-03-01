@@ -176,12 +176,15 @@ def process_order(order, value1, value2):
 
 def detect_distance(name):
     cap = cv2.VideoCapture(0)
+    measurement_time = 5
 
     print("Waiting to detect distance...")
     D_LOCK.wait()
     while not GAME_OVER:
-        new_val = GetDistance(cap, name)
-        dist = str(round(new_val, 1))
+        for _ in range(measurement_time):
+            new_val = GetDistance(cap, name)
+            dist = str(round(new_val, 1))
+            PLAYER.defense = dist
         send_action(name, Act.DIST, dist)
 
         if not GAME_OVER:
