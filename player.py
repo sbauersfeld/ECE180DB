@@ -40,7 +40,7 @@ def on_message_player(client, userdata, msg):
         A_LOCK.set()
         H_LOCK.set()
 
-def send_action(client, name, action, value=""):
+def send_action(name, action, value=""):
     message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
@@ -74,14 +74,14 @@ def control_LED(name):
 
 def handle_gesture(name):
     print("Setting up sensors")
-    model, scaler = gesture_setup("wilson", "model3", "scaler3", prefix="gesture_recognition/")
+    model, scaler = gesture_setup("scott", "ft4", "sft4", prefix="gesture_recognition/")
 
     print("Waiting to start action...")
     A_LOCK.wait()
     while not GAME_OVER:
         print("START ACTION")
         gesture = get_gesture2(model, scaler).upper()
-        send_action(client, name, Act[gesture])
+        send_action(name, Act[gesture])
         time.sleep(0.5)
 
         if not GAME_OVER:
@@ -92,7 +92,7 @@ def handle_hit(name):
     H_LOCK.wait()
     while not GAME_OVER:
         hit_detect = Act.HIT if IR_HIT else Act.PASS
-        send_action(client, name, hit_detect)
+        send_action(name, hit_detect)
         time.sleep(0.5)
 
         if not GAME_OVER:

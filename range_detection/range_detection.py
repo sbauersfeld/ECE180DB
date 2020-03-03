@@ -1,14 +1,21 @@
+import sys
 import numpy as np
 import cv2
 import imutils
 
-def filter_color(frame):
+player_default = ([160,150,150], [180,255,255], 500)
+player_map = {
+	"scott" : 	player_default,
+	"jon" : 	([160,50,50], 	[180,255,255], 1000),
+	"wilson" : 	([160,150,150], [180,255,255], 500),
+	"jesse" : 	([160,150,150], [180,255,255], 500)
+}
+
+def filter_color(frame, name):
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-	# lower_red = np.array([0,240,210])
-	# upper_red = np.array([10,255,255])
-	lower_red = np.array([160,150,150])
-	upper_red = np.array([180,255,255])
+	lower_red = np.array(player_map.get(name, player_default)[0])
+	upper_red = np.array(player_map.get(name, player_default)[1])
 	mask = cv2.inRange(hsv, lower_red, upper_red)
 
 	res = cv2.bitwise_and(frame, frame, mask=mask)
@@ -30,19 +37,18 @@ def find_marker(image):
 KNOWN_HEIGHT = 4.0
 
 FPS = 30 # is this true?
-CAP_TIME = 4 # seconds
-CAP_COUNT = FPS * CAP_TIME
+CAP_TIME = 1 # seconds
+CAP_COUNT = int(FPS * CAP_TIME)
 
-focalLength = 500 #precomputed
-
-def GetDistance(cap):
+def GetDistance(cap, name="scott"):
+	focalLength = player_map.get(name, player_default)[-1]
 	pixel_heights = np.zeros(CAP_COUNT)
 	limit = 0
 	pixel_idx = 0
 	for _ in range(CAP_COUNT):
 		_, frame = cap.read()
 
-		filtered_frame = filter_color(frame)
+		filtered_frame = filter_color(frame, name)
 		marker, _ = find_marker(filtered_frame)
 
 		if len(marker) != 0:
@@ -55,14 +61,15 @@ def GetDistance(cap):
 	dist = (KNOWN_HEIGHT * focalLength) / np.median(pixel_heights[:limit])
 	return dist
 
-def TestDistance():
+def TestDistance(name="scott"):
 	cap = cv2.VideoCapture(0)
+	focalLength = player_map.get(name, player_default)[-1]
 	idx = 0
 	while(True):
 		idx += 1
 		_, frame = cap.read()
 
-		filtered_frame = filter_color(frame)
+		filtered_frame = filter_color(frame, name)
 		marker, _ = find_marker(filtered_frame)
 
 		if len(marker) != 0:
@@ -83,4 +90,5 @@ def TestDistance():
 	cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-	TestDistance()
+	name = sys.argv[1] if len(sys.argv) == 2 else "scott"
+	TestDistance(name)

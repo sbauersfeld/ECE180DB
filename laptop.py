@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance
+from speech_detection.speech_detection import speech_setup, get_speech
 
 
 ####################
@@ -22,8 +23,8 @@ class Player:
         self.name = name
         self.lives = lives
         self.ammo = ammo
-        self.defense = 25.0
-        self.msg = ""
+        self.defense = "?"
+        self.msg = "Waiting for server..."
 
 class Status(pygame.sprite.Sprite):
     def __init__(self, value=0, title=False, xpos=0, ypos=0, xval=None, yval=None):
@@ -36,7 +37,7 @@ class Status(pygame.sprite.Sprite):
         self.image = font.render(self.value, True, WHITE, BLACK)
         self.rect = self.image.get_rect()
 
-        ### Establishing the location ##
+        ### Establishing the location ###
         self.rect.centerx = main_origin.centerx if not xval else xval
         self.rect.centery = main_origin.centery if not yval else yval
         self.rect.centerx += xpos
@@ -53,16 +54,20 @@ class Status(pygame.sprite.Sprite):
 ### GameStuff ###
 GAME_OVER = False
 D_LOCK = threading.Event()
+V_LOCK = threading.Event()
 PLAYER = Player()
+client = mqtt.Client()
+start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
+                "search", "bikes", "strikes", "starks"]
 
 ### Pygame ###
 pygame.init()
 clock = pygame.time.Clock()
 
 ### Creating the main surface ###
-WIDTH = 1280
-HEIGHT = 780
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
+WIDTH = 0 # 1280
+HEIGHT = 0 # 780
+main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) # Or FULLSCREEN
 main_origin = main_surface.get_rect()
 
 ### Music ###
@@ -103,10 +108,7 @@ def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
     print("Player: " + message)
 
-    ### For visual purposes for player (pygame) ###
-
     if message == START_ACTION:
-        ### Inform Player to do action here through pygame ###
         PLAYER.msg = "NOW"
     elif message == STOP_GAME:
         global GAME_OVER
@@ -118,29 +120,12 @@ def on_message_player(client, userdata, msg):
 ##  Functions
 ####################
 
-def send_action(client, name, action, value=""):
+def send_action(name, action, value=""):
     message = SEP.join([name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
     return ret
-
-def detect_distance(client, name):
-    cap = cv2.VideoCapture(0)
-
-    print("Waiting to detect distance...")
-    D_LOCK.wait()
-    while not GAME_OVER:
-        new_val = GetDistance(cap)
-        dist = str(round(new_val, 1))
-        send_action(client, name, Act.DIST, dist)
-
-        if not GAME_OVER:
-            D_LOCK.clear()
-        D_LOCK.wait()
-
-    cap.release()
-    cv2.destroyAllWindows()
 
 def process_order(order, value1, value2):
     if order == START_DIST:
@@ -149,23 +134,30 @@ def process_order(order, value1, value2):
         print(msg)
         D_LOCK.set()
 
+    elif order == START_VOICE:
+        msg = "Say 'start' to continue..."
+        PLAYER.msg = msg
+        print(msg)
+        V_LOCK.set()
+
     elif order == PLAYER.name:
         action = Act[value1]
         print("Received action: {}".format(action))
         if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
             PLAYER.msg = action.name
 
-    elif order == "ACTION_COUNT":
+    elif order == ACTION_COUNT:
         msg = "action in {}".format(value1)
         PLAYER.msg = msg
         print(msg)
 
-    elif order == "NEXT_ROUND":
+    elif order == MOVE_NOW:
         msg = "Move to new distance..."
         PLAYER.msg = msg
+        PLAYER.defense = "?"
         print(msg)
 
-    elif order == "STATUS":
+    elif order == STATUS:
         status = json.loads(value1)
         print(status)
 
@@ -175,7 +167,50 @@ def process_order(order, value1, value2):
             PLAYER.defense = status["defense"]
     
     else:
-        print("Unexpected message! {}".format(order))
+        print("Unexpected message: {} with {}".format(order, value))
+
+
+####################
+##  Threads
+####################
+
+def detect_distance(name):
+    cap = cv2.VideoCapture(0)
+    measurement_time = 5
+
+    print("Waiting to detect distance...")
+    D_LOCK.wait()
+    while not GAME_OVER:
+        for _ in range(measurement_time):
+            new_val = GetDistance(cap, name)
+            dist = str(round(new_val, 1))
+            PLAYER.defense = dist
+        send_action(name, Act.DIST, dist)
+
+        if not GAME_OVER:
+            D_LOCK.clear()
+        D_LOCK.wait()
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+def detect_voice(name, headset):
+    microphone = speech_setup(headset)
+
+    print("Waiting for voice...")
+    V_LOCK.wait()
+    while not GAME_OVER:
+        get_speech(microphone, start_phrase)
+
+        msg = "Voice registered"
+        PLAYER.msg = msg
+        print(msg)
+
+        send_action(name, Act.VOICE)
+
+        if not GAME_OVER:
+            V_LOCK.clear()
+        V_LOCK.wait()
 
 
 ####################
@@ -204,7 +239,6 @@ def draw_main():
 ####################
 
 def main():
-    client = mqtt.Client()
     client.on_message = on_message
     client.message_callback_add(TOPIC_LAPTOP, on_message_laptop)
     client.message_callback_add(TOPIC_PLAYER, on_message_player)
@@ -220,22 +254,34 @@ def main():
         name = input("Please enter your name: ")
     PLAYER.name = name
 
+    headset_map = {
+        "scott" : "Headset (SoundBuds Slim Hands-F",
+        "jon" : "WF-1000XM3"
+    }
+
     print("Listening...")
     client.loop_start()
 
-    ### Handle connection with player
+    ### Handle connection with player ###
 
-    t = threading.Thread(target=detect_distance, args=[client, name], daemon=True)
-    t.start()
+    threads = []
+    t_args = {
+        detect_distance : [name],
+        detect_voice : [name, headset_map.get(name, "")],
+    }
+    for func in [detect_distance, detect_voice]:
+        t = threading.Thread(target=func, args=t_args[func], daemon=True)
+        t.start()
+        threads.append(t)
 
     client.publish(TOPIC_SETUP, name)
+    ### Have laptop repeatedly send this and wait for ACK from server ###
 
 
     ####################
     ##  Start Game
     ####################
 
-    time.sleep(1.5)
     # pygame.mixer.music.play(-1, 0.5)
 
     player_win = False
