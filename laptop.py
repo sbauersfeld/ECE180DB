@@ -19,16 +19,27 @@ from speech_detection.speech_detection import speech_setup, get_speech
 
 class Player:
     def __init__(self, name="", lives=150.0, ammo=0.0):
-        # Variables
+        # Status
         self.name = name
         self.lives = lives
         self.ammo = ammo
         self.defense = "?"
-        self.msg = "Waiting for server..."
+
+        # Display
+        self.top = name
+        self.bottom = "Waiting for server..."
+
+    def update_name(self, new_name):
+        self.name = new_name
+        self.top = new_name
+
+    def update_top(self, new_msg):
+        self.top = new_msg
+        print("TOP: {}".format(new_msg))
 
     def update_bottom(self, new_msg):
-        self.msg = new_msg
-        print(new_msg)
+        self.bottom = new_msg
+        print("BOTTOM: {}".format(new_msg))
 
 class Status(pygame.sprite.Sprite):
     def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None):
@@ -116,7 +127,7 @@ def on_message_player(client, userdata, msg):
     print("Player: " + message)
 
     if message == START_ACTION:
-        PLAYER.msg = "NOW"
+        PLAYER.update_bottom("NOW")
     elif message == STOP_GAME:
         global GAME_OVER
         GAME_OVER = True
@@ -147,16 +158,14 @@ def process_order(order, value1, value2):
         action = Act[value1]
         print("Received action: {}".format(action))
         if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
-            PLAYER.msg = action.name
+            PLAYER.update_bottom(action.name)
 
     elif order == ACTION_COUNT:
         PLAYER.update_bottom("action in {}".format(value1))
 
     elif order == MOVE_NOW:
-        msg = "Move to new distance..."
-        PLAYER.msg = msg
+        PLAYER.update_bottom("Move to new distance...")
         PLAYER.defense = "?"
-        print(msg)
 
     elif order == STATUS:
         status = json.loads(value1)
@@ -218,17 +227,18 @@ def detect_voice(headset):
 def draw_main():
     main_surface.fill(BLACK)
 
-    player_name = Status(PLAYER.name, ypos=-250)
+    top = Status(PLAYER.top, ypos=-250)
+    bottom = Status(PLAYER.bottom, ypos=250)
+
     ammo = Status(PLAYER.ammo, xpos=-400, ypos=-0)
     lives = Status(PLAYER.lives, ypos=-0)
     defense = Status(PLAYER.defense, xpos=400, ypos=-0)
-    action = Status(PLAYER.msg, ypos=250)
 
     ammo_label = Status("ammo", True, xpos=-400, ypos=-75)
     lives_label = Status("health", True, ypos=-75)
     defense_label = Status("defense", True, xpos=400, ypos=-75)
 
-    all_sprites = pygame.sprite.RenderPlain(player_name, ammo, lives, defense, action, ammo_label, lives_label, defense_label)
+    all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense, ammo_label, lives_label, defense_label)
     all_sprites.draw(main_surface)
 
 
@@ -250,7 +260,7 @@ def main():
         name = sys.argv[1]
     else:
         name = input("Please enter your name: ")
-    PLAYER.name = name
+    PLAYER.update_name(name)
 
     print("Listening...")
     client.loop_start()
