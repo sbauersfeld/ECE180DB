@@ -76,7 +76,7 @@ def handle_gesture(name):
     print("Setting up sensors")
     model, scaler = gesture_setup("scott", "ft4", "sft4", prefix="gesture_recognition/")
 
-    print("Waiting to start action...")
+    print("Gesture detection active!")
     A_LOCK.wait()
     while not GAME_OVER:
         print("START ACTION")

@@ -179,7 +179,7 @@ def detect_distance():
     cap = cv2.VideoCapture(0)
     measurement_time = 5
 
-    print("Waiting to detect distance...")
+    print("Range detection active!")
     D_LOCK.wait()
     while not GAME_OVER:
         for _ in range(measurement_time):
@@ -198,7 +198,7 @@ def detect_distance():
 def detect_voice(headset):
     microphone = speech_setup(headset)
 
-    print("Waiting for voice...")
+    print("Speech detection active!")
     V_LOCK.wait()
     while not GAME_OVER:
         get_speech(microphone, start_phrase)
