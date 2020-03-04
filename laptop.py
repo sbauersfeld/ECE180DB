@@ -57,8 +57,14 @@ D_LOCK = threading.Event()
 V_LOCK = threading.Event()
 PLAYER = Player()
 client = mqtt.Client()
+
+### Voice ###
 start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
                 "search", "bikes", "strikes", "starks"]
+headset_map = {
+    "scott" : "Headset (SoundBuds Slim Hands-F",
+    "jon" : "SP620",
+}
 
 ### Pygame ###
 pygame.init()
@@ -253,11 +259,6 @@ def main():
     else:
         name = input("Please enter your name: ")
     PLAYER.name = name
-
-    headset_map = {
-        "scott" : "Headset (SoundBuds Slim Hands-F",
-        "jon" : "WF-1000XM3"
-    }
 
     print("Listening...")
     client.loop_start()

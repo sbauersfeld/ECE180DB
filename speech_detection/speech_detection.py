@@ -1,3 +1,4 @@
+import sys
 import speech_recognition as sr
 
 def speech_setup(headset_name):
@@ -46,7 +47,12 @@ def get_speech(microphone, trigger=["end", "and"], energy = 300, pause=0.5):
                 break
 
 def main():
-    m = speech_setup("Headset (SoundBuds Slim Hands-F")
+    if len(sys.argv) == 2:
+        name = sys.argv[1]
+    else:
+        name = "Headset (SoundBuds Slim Hands-F"
+
+    m = speech_setup(name)
     print()
     get_speech(m)
 
