@@ -227,18 +227,18 @@ def detect_voice(headset):
 def draw_main():
     main_surface.fill(BLACK)
 
-    top = Status(PLAYER.top, ypos=-250)
+    top = Status(PLAYER.top, ypos=-275)
     bottom = Status(PLAYER.bottom, ypos=250)
 
     ammo = Status(PLAYER.ammo, xpos=-400, ypos=-0)
     lives = Status(PLAYER.lives, ypos=-0)
     defense = Status(PLAYER.defense, xpos=400, ypos=-0)
 
-    ammo_label = Status("ammo", True, xpos=-400, ypos=-75)
-    lives_label = Status("health", True, ypos=-75)
-    defense_label = Status("defense", True, xpos=400, ypos=-75)
+    l_ammo = Status("ammo", True, xpos=-400, ypos=-75)
+    l_lives = Status("health", True, ypos=-75)
+    l_defense = Status("defense", True, xpos=400, ypos=-75)
 
-    all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense, ammo_label, lives_label, defense_label)
+    all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense, l_ammo, l_lives, l_defense)
     all_sprites.draw(main_surface)
 
 
