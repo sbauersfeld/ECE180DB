@@ -27,7 +27,7 @@ class Player:
         self.msg = "Waiting for server..."
 
 class Status(pygame.sprite.Sprite):
-    def __init__(self, value=0, title=False, xpos=0, ypos=0, xval=None, yval=None):
+    def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None):
         ### Status information ###
         self.value = str(value)
 
@@ -42,9 +42,6 @@ class Status(pygame.sprite.Sprite):
         self.rect.centery = main_origin.centery if not yval else yval
         self.rect.centerx += xpos
         self.rect.centery += ypos
-
-    def update(self, new_val):
-        self.value = new_val
 
 
 ####################
@@ -126,8 +123,8 @@ def on_message_player(client, userdata, msg):
 ##  Functions
 ####################
 
-def send_action(name, action, value=""):
-    message = SEP.join([name, action.name, value])
+def send_action(action, value=""):
+    message = SEP.join([PLAYER.name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
@@ -180,7 +177,7 @@ def process_order(order, value1, value2):
 ##  Threads
 ####################
 
-def detect_distance(name):
+def detect_distance():
     cap = cv2.VideoCapture(0)
     measurement_time = 5
 
@@ -188,10 +185,10 @@ def detect_distance(name):
     D_LOCK.wait()
     while not GAME_OVER:
         for _ in range(measurement_time):
-            new_val = GetDistance(cap, name)
+            new_val = GetDistance(cap, PLAYER.name)
             dist = str(round(new_val, 1))
             PLAYER.defense = dist
-        send_action(name, Act.DIST, dist)
+        send_action(Act.DIST, dist)
 
         if not GAME_OVER:
             D_LOCK.clear()
@@ -200,7 +197,7 @@ def detect_distance(name):
     cap.release()
     cv2.destroyAllWindows()
 
-def detect_voice(name, headset):
+def detect_voice(headset):
     microphone = speech_setup(headset)
 
     print("Waiting for voice...")
@@ -212,7 +209,7 @@ def detect_voice(name, headset):
         PLAYER.msg = msg
         print(msg)
 
-        send_action(name, Act.VOICE)
+        send_action(Act.VOICE)
 
         if not GAME_OVER:
             V_LOCK.clear()
@@ -267,8 +264,8 @@ def main():
 
     threads = []
     t_args = {
-        detect_distance : [name],
-        detect_voice : [name, headset_map.get(name, "")],
+        detect_distance : [],
+        detect_voice : [headset_map.get(name, "")],
     }
     for func in [detect_distance, detect_voice]:
         t = threading.Thread(target=func, args=t_args[func], daemon=True)
