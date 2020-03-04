@@ -26,6 +26,10 @@ class Player:
         self.defense = "?"
         self.msg = "Waiting for server..."
 
+    def update_bottom(self, new_msg):
+        self.msg = new_msg
+        print(new_msg)
+
 class Status(pygame.sprite.Sprite):
     def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None):
         ### Status information ###
@@ -132,15 +136,11 @@ def send_action(action, value=""):
 
 def process_order(order, value1, value2):
     if order == START_DIST:
-        msg = "Measuring distance..."
-        PLAYER.msg = msg
-        print(msg)
+        PLAYER.update_bottom("Measuring distance...")
         D_LOCK.set()
 
     elif order == START_VOICE:
-        msg = "Say 'start' to continue..."
-        PLAYER.msg = msg
-        print(msg)
+        PLAYER.update_bottom("Say 'start' to continue...")
         V_LOCK.set()
 
     elif order == PLAYER.name:
@@ -150,9 +150,7 @@ def process_order(order, value1, value2):
             PLAYER.msg = action.name
 
     elif order == ACTION_COUNT:
-        msg = "action in {}".format(value1)
-        PLAYER.msg = msg
-        print(msg)
+        PLAYER.update_bottom("action in {}".format(value1))
 
     elif order == MOVE_NOW:
         msg = "Move to new distance..."
@@ -205,10 +203,7 @@ def detect_voice(headset):
     while not GAME_OVER:
         get_speech(microphone, start_phrase)
 
-        msg = "Voice registered"
-        PLAYER.msg = msg
-        print(msg)
-
+        PLAYER.update_bottom("Voice registered")
         send_action(Act.VOICE)
 
         if not GAME_OVER:
