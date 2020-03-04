@@ -273,7 +273,7 @@ def request_hit():
 def process_response(player, action, value):
     if player.is_dead():
         return
-    print("Received for {}: {}".format(player.name, action))
+    print("Received for {}: {} {}".format(player.name, action, value))
 
     if action in [Act.DIST] and player.is_listening_to(DISTANCE):
         player.update_distance(value)

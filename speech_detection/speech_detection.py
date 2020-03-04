@@ -47,11 +47,7 @@ def get_speech(microphone, trigger=["end", "and"], energy = 300, pause=0.5):
                 break
 
 def main():
-    if len(sys.argv) == 2:
-        name = sys.argv[1]
-    else:
-        name = "Headset (SoundBuds Slim Hands-F"
-
+    name = sys.argv[1] if len(sys.argv) == 2 else "Headset (SoundBuds Slim Hands-F"
     m = speech_setup(name)
     print()
     get_speech(m)

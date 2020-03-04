@@ -36,11 +36,8 @@ def find_marker(image):
 # initialize the known object width
 KNOWN_HEIGHT = 4.0
 
-FPS = 30 # is this true?
-CAP_TIME = 1 # seconds
-CAP_COUNT = int(FPS * CAP_TIME)
-
-def GetDistance(cap, name="scott"):
+def GetDistance(cap, name="scott", CAP_TIME=1, FPS=30):
+	CAP_COUNT = int(FPS * CAP_TIME)
 	focalLength = player_map.get(name, player_default)[-1]
 	pixel_heights = np.zeros(CAP_COUNT)
 	limit = 0
