@@ -6,6 +6,8 @@ import threading
 from sklearn.externals import joblib
 from gesture_recognition import IMU
 from gesture_recognition.detect_gesture import gesture_setup, get_gesture2
+import board
+import neopixel
 
 
 ####################
@@ -15,6 +17,10 @@ from gesture_recognition.detect_gesture import gesture_setup, get_gesture2
 GAME_OVER = False
 A_LOCK = threading.Event()
 client = mqtt.Client()
+
+# LED Board
+num_pixels = 12
+pixels = neopixel.NeoPixel(board.D18, num_pixels)
 
 
 ####################
@@ -60,7 +66,8 @@ def register_actions_commandline():
 ####################
 
 def control_LED(name):
-    pass
+    pixels.fill((127, 0, 0))
+    pixels.show()
 
 def handle_gesture(name):
     print("Setting up sensors")
