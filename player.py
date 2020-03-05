@@ -81,14 +81,14 @@ class Player:
         self.threads = []
 
     def update(self, command):
-        L_LOCK.Set()
-        for t in threads:
+        L_LOCK.set()
+        for t in self.threads:
             t.join()
 
         for func, args in command_map.get(command, default_command):
             t = threading.Thread(target=func, args=args)
             t.start()
-            threads.append(t)
+            self.threads.append(t)
 
 PLAYER = Player()
 
@@ -184,6 +184,7 @@ def main():
 
     threads = []
     t_args = {
+        LED_show : [LED_DIST],
         handle_gesture : [],
     }
     for func, args in t_args.items():
