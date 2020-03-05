@@ -6,10 +6,20 @@ import threading
 
 
 ####################
+##  Classes
+####################
+
+class Player:
+    def __init__(self, name=""):
+        self.name = name
+
+
+####################
 ##  Global Variables
 ####################
 
 GAME_OVER = False
+PLAYER = Player()
 client = mqtt.Client()
 
 
@@ -17,8 +27,8 @@ client = mqtt.Client()
 ##  Functions
 ####################
 
-def send_action(name, action, value=""):
-    message = SEP.join([name, action.name, value])
+def send_action(action, value=""):
+    message = SEP.join([PLAYER.name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
@@ -35,7 +45,12 @@ def register_actions_commandline():
 
     return actions
 
-def handle_gesture(name):
+
+####################
+##  Threads
+####################
+
+def handle_gesture():
     while not GAME_OVER:
         gesture = register_actions_commandline()
         send_action(name, Act[gesture])
@@ -53,10 +68,11 @@ def main():
         name = sys.argv[1].lower()
     else:
         name = input("Please enter your name: ")
+    PLAYER.name = name
 
     threads = []
     t_args = {
-        handle_gesture : [name],
+        handle_gesture : [],
     }
     for func, args in t_args.items():
         t = threading.Thread(target=func, args=args, daemon=True)

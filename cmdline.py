@@ -6,11 +6,21 @@ import threading
 
 
 ####################
+##  Classes
+####################
+
+class Player:
+    def __init__(self, name=""):
+        self.name = name
+
+
+####################
 ##  Global Variables
 ####################
 
 GAME_OVER = False
 A_LOCK = threading.Event()
+PLAYER = Player()
 client = mqtt.Client()
 
 
@@ -25,20 +35,39 @@ def on_message(client, userdata, msg):
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
 
-    if message == ACTION:
-        A_LOCK.set()
+    try:
+        msg_list = message.split(SEP)
+        order = msg_list[0]
+        value1 = msg_list[1]
+        value2 = msg_list[2]
+    except (IndexError):
+        print("Unexpected message: {}".format(message))
+        return
 
-    if message == STOP_GAME:
-        global GAME_OVER
-        GAME_OVER = True
-        A_LOCK.set()
+    process_orders(order, value1, value2)
 
-def send_action(name, action, value=""):
-    message = SEP.join([name, action.name, value])
+def send_action(action, value=""):
+    message = SEP.join([PLAYER.name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
     return ret
+
+def process_orders(order, value1, value2):
+    if order == DIST:
+        pass
+
+    if order == ACTION:
+        A_LOCK.set()
+
+    if order == STOP_GAME:
+        global GAME_OVER
+        GAME_OVER = True
+        A_LOCK.set()
+
+    if order == PLAYER.name:
+        if value1 == HIT:
+            pass
 
 def register_actions_commandline():
     actions = []
@@ -56,11 +85,11 @@ def register_actions_commandline():
 ##  Threads
 ####################
 
-def control_LED(name):
+def control_LED():
     pass
 
-def handle_gesture(name):
-    print("Waiting to start action...")
+def handle_gesture():
+    print("Gesture detection active!")
     A_LOCK.wait()
     while not GAME_OVER:
         print("START ACTION")
@@ -88,14 +117,15 @@ def main():
         name = sys.argv[1].lower()
     else:
         name = input("Please enter your name: ")
+    PLAYER.name = name
 
     print("Listening...")
     client.loop_start()
 
     threads = []
     t_args = {
-        control_LED : [name],
-        handle_gesture : [name],
+        control_LED : [],
+        handle_gesture : [],
     }
     for func, args in t_args.items():
         t = threading.Thread(target=func, args=args, daemon=True)
