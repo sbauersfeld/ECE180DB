@@ -11,11 +11,23 @@ import neopixel
 
 
 ####################
+##  Classes
+####################
+
+class Player:
+    def __init__(self, name="", LED=(127, 0, 0)):
+        # Status
+        self.name = name
+        self.leds = LED
+
+
+####################
 ##  Global Variables
 ####################
 
 GAME_OVER = False
 A_LOCK = threading.Event()
+PLAYER = Player()
 client = mqtt.Client()
 
 # LED Board
@@ -42,8 +54,8 @@ def on_message_player(client, userdata, msg):
         GAME_OVER = True
         A_LOCK.set()
 
-def send_action(name, action, value=""):
-    message = SEP.join([name, action.name, value])
+def send_action(action, value=""):
+    message = SEP.join([PLAYER.name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
@@ -65,11 +77,11 @@ def register_actions_commandline():
 ##  Threads
 ####################
 
-def control_LED(name):
-    pixels.fill((127, 0, 0))
+def control_LED():
+    pixels.fill(PLAYER.leds)
     pixels.show()
 
-def handle_gesture(name):
+def handle_gesture():
     print("Setting up sensors")
     model, scaler = gesture_setup("scott", "ft4", "sft4", prefix="gesture_recognition/")
 
@@ -78,7 +90,7 @@ def handle_gesture(name):
     while not GAME_OVER:
         print("START ACTION")
         gesture = get_gesture2(model, scaler).upper()
-        send_action(name, Act[gesture])
+        send_action(Act[gesture])
         time.sleep(0.5)
 
         if not GAME_OVER:
@@ -101,14 +113,15 @@ def main():
         name = sys.argv[1].lower()
     else:
         name = input("Please enter your name: ")
+    PLAYER.name = name
 
     print("Listening...")
     client.loop_start()
 
     threads = []
     t_args = {
-        control_LED : [name],
-        handle_gesture : [name],
+        control_LED : [],
+        handle_gesture : [],
     }
     for func, args in t_args.items():
         t = threading.Thread(target=func, args=args, daemon=True)
