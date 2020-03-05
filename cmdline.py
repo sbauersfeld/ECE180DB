@@ -10,7 +10,6 @@ import threading
 ####################
 
 GAME_OVER = False
-IR_HIT = False
 A_LOCK = threading.Event()
 client = mqtt.Client()
 
@@ -87,7 +86,7 @@ def main():
     client.subscribe(TOPIC_PLAYER)
 
     if len(sys.argv) == 2:
-        name = sys.argv[1]
+        name = sys.argv[1].lower()
     else:
         name = input("Please enter your name: ")
 
@@ -95,8 +94,12 @@ def main():
     client.loop_start()
 
     threads = []
-    for func in [control_IR_sensor, control_LED, handle_gesture, handle_hit]:
-        t = threading.Thread(target=func, args=[name], daemon=True)
+    t_args = {
+        control_LED : [name],
+        handle_gesture : [name],
+    }
+    for func, args in t_args.items():
+        t = threading.Thread(target=func, args=args, daemon=True)
         t.start()
         threads.append(t)
 
