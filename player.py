@@ -55,6 +55,16 @@ def on_message_player(client, userdata, msg):
         GAME_OVER = True
         A_LOCK.set()
 
+    try:
+        msg_list = message.split(SEP)
+        name = msg_list[0]
+        value1 = msg_list[1]
+        value2 = msg_list[2]
+        if name == PLAYER.name:
+            process_orders(value1, value2)
+    except (IndexError):
+        pass
+
 def send_action(action, value=""):
     message = SEP.join([PLAYER.name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
@@ -63,7 +73,8 @@ def send_action(action, value=""):
     return ret
 
 def process_orders(value1, value2):
-    pass
+    if value1 == HIT:
+        pass
 
 
 ####################

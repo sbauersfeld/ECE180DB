@@ -139,6 +139,16 @@ def on_message_player(client, userdata, msg):
         D_LOCK.set()
         V_LOCK.set()
 
+    try:
+        msg_list = message.split(SEP)
+        name = msg_list[0]
+        value1 = msg_list[1]
+        value2 = msg_list[2]
+        if name == PLAYER.name:
+            process_order_player(value1, value2)
+    except (IndexError):
+        pass
+
 
 ####################
 ##  Functions
@@ -165,7 +175,13 @@ def process_order(order, value1, value2):
         PLAYER.update_bottom("action in {}".format(value1))
 
     if order == PLAYER.name:
-        process_order_individual(value1, value2)
+        try:
+            action = Act[value1]
+            print("Received action: {}".format(action))
+            if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
+                PLAYER.update_bottom(action.name)
+        except KeyError:
+            pass        
 
     if order == STATUS:
         status = json.loads(value1)
@@ -179,17 +195,10 @@ def process_order(order, value1, value2):
     if order == DISPLAY:
         PLAYER.update_bottom(value1)
 
-def process_order_individual(value1, value2):
+def process_order_player(value1, value2):
     if value1 == HIT:
         PLAYER.update_top("YOU GOT HIT")
 
-    try:
-        action = Act[value1]
-        print("Received action: {}".format(action))
-        if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
-            PLAYER.update_bottom(action.name)
-    except KeyError:
-        pass
 
 ####################
 ##  Threads

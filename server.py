@@ -134,7 +134,7 @@ class Player:
         else:
             print("HIT: {} was shot and took damage!".format(self.name))
             self.lives = round(self.lives - max(self.damage - self.defense, 0.0), SIGFIG)
-            send_to_laptop(self.name, HIT)
+            send_to_player(self.name, HIT)
 
     ####################
     ##  Player Modifiers
@@ -221,6 +221,11 @@ def send_to_laptop(order, value1="", value2=""):
     ret = client.publish(TOPIC_LAPTOP, message)
     return ret
 
+def send_to_player(order, value1="", value2=""):
+    message = SEP.join([order, value1, value2])
+    ret = client.publish(TOPIC_PLAYER, message)
+    return ret
+
 
 ####################
 ##  Functions
@@ -240,7 +245,7 @@ def request_for(command, to_laptop=True):
     if to_laptop:
         send_to_laptop(command)
     else:
-        client.publish(TOPIC_PLAYER, command)
+        send_to_player(command)
 
     print("Waiting for {}...".format(command))
     for name, player in players.items():
@@ -348,7 +353,7 @@ def main():
         time.sleep(3)
 
     # End Game
-    client.publish(TOPIC_PLAYER, STOP_GAME)
+    send_to_player(STOP_GAME)
     time.sleep(1)
 
 if __name__ == '__main__':
