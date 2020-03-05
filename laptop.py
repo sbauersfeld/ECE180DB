@@ -130,24 +130,16 @@ def on_message_laptop(client, userdata, msg):
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
 
-    if message == ACTION:
-        PLAYER.update_bottom("NOW")
-
-    if message == STOP_GAME:
-        global GAME_OVER
-        GAME_OVER = True
-        D_LOCK.set()
-        V_LOCK.set()
-
     try:
         msg_list = message.split(SEP)
-        name = msg_list[0]
+        order = msg_list[0]
         value1 = msg_list[1]
         value2 = msg_list[2]
-        if name == PLAYER.name:
-            process_order_player(value1, value2)
     except (IndexError):
-        pass
+        print("Unexpected message: {}".format(message))
+        return
+
+    process_order_player(order, value1, value2)
 
 
 ####################
@@ -195,9 +187,19 @@ def process_order(order, value1, value2):
     if order == DISPLAY:
         PLAYER.update_bottom(value1)
 
-def process_order_player(value1, value2):
-    if value1 == HIT:
-        PLAYER.update_top("YOU GOT HIT")
+def process_order_player(order, value1, value2):
+    if order == ACTION:
+        PLAYER.update_bottom("NOW")
+
+    if order == STOP_GAME:
+        global GAME_OVER
+        GAME_OVER = True
+        D_LOCK.set()
+        V_LOCK.set()
+    
+    if order == PLAYER.name:
+        if value1 == HIT:
+            PLAYER.update_top("YOU GOT HIT")
 
 
 ####################

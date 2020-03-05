@@ -54,26 +54,16 @@ def on_message(client, userdata, msg):
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
 
-    if message == ACTION:
-        A_LOCK.set()
-
-    if message == DIST:
-        PLAYER.update(LED_DIST)
-
-    if message == STOP_GAME:
-        global GAME_OVER
-        GAME_OVER = True
-        A_LOCK.set()
-
     try:
         msg_list = message.split(SEP)
-        name = msg_list[0]
+        order = msg_list[0]
         value1 = msg_list[1]
         value2 = msg_list[2]
-        if name == PLAYER.name:
-            process_orders(value1, value2)
     except (IndexError):
-        pass
+        print("Unexpected message: {}".format(message))
+        return
+
+    process_orders(order, value1, value2)
 
 def send_action(action, value=""):
     message = SEP.join([PLAYER.name, action.name, value])
@@ -82,9 +72,21 @@ def send_action(action, value=""):
     print("Sent: {}".format(message))
     return ret
 
-def process_orders(value1, value2):
-    if value1 == HIT:
-        PLAYER.update(LED_HIT)
+def process_orders(order, value1, value2):
+    if order == DIST:
+        PLAYER.update(LED_DIST)
+
+    if order == ACTION:
+        A_LOCK.set()
+
+    if order == STOP_GAME:
+        global GAME_OVER
+        GAME_OVER = True
+        A_LOCK.set()
+
+    if order == PLAYER.name:
+        if value1 == HIT:
+            PLAYER.update(LED_HIT)
 
 
 ####################
