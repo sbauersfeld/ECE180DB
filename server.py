@@ -17,7 +17,7 @@ client = mqtt.Client()
 
 # Game Variables
 LIVES_MAX = 150.0
-DAMAGE_MAX = 75.0
+DAMAGE_MAX = 125.0
 DIST_MAX = 75.0
 DIST_MIN = 0.0
 AMMO_RELOAD = 50.0
@@ -38,6 +38,7 @@ class Player:
         self.is_blocking = False
         self.is_hit = False
         self.next_act = None
+        self.damage = 0.0
 
         # Action handling
         self.process = {
@@ -105,6 +106,7 @@ class Player:
         self.is_blocking = False
         self.is_hit = False
         self.next_act = None
+        self.damage = 0.0
 
     ####################
     ##  Player Actions
@@ -131,7 +133,8 @@ class Player:
             print("HIT: {} was shot but blocked it!".format(self.name))
         else:
             print("HIT: {} was shot and took damage!".format(self.name))
-            self.lives = round(self.lives - max(DAMAGE_MAX - self.defense, 0.0), 1)
+            self.lives = round(self.lives - max(self.damage - self.defense, 0.0), 1)
+            send_to_laptop(self.name, HIT)
 
     ####################
     ##  Player Modifiers
@@ -140,12 +143,7 @@ class Player:
     def update_distance(self, val_string):
         try:
             new_defense = float(val_string)
-            if new_defense > DIST_MAX:
-                new_defense = DIST_MAX
-            elif new_defense < DIST_MIN:
-                new_defense = DIST_MIN
-
-            self.defense = new_defense
+            self.defense = min(max(new_defense, DIST_MIN), DIST_MAX)
             print("{}'s defense updated to {}".format(self.name, self.defense))
         except ValueError:
             print("DIST message for {} had non-float value".format(self.name))
@@ -153,8 +151,9 @@ class Player:
     def update_action(self, action):
         self.next_act = action
 
-    def update_as_hit(self, was_hit=True):
+    def update_as_hit(self, value, was_hit=True):
         self.is_hit = was_hit
+        self.damage = max(DAMAGE_MAX-value, 0)
 
     ####################
     ##  Wrapper functions
@@ -266,7 +265,7 @@ def process_response(player, action, value):
             for n, p in players.items():
                 if p is player:
                     continue
-                p.update_as_hit()
+                p.update_as_hit(player.defense)
         player.finish_for(ACTION)
 
     if action in [Act.VOICE] and player.is_listening_to(VOICE):
@@ -304,12 +303,12 @@ def main():
 
     # # Training mode
     # while True:
-    #     send_to_laptop("Training Mode!")
+    #     send_to_laptop(DISPLAY, "Training Mode!")
     #     time.sleep(4)
 
     #     request_for(ACTION, False)
 
-    #     send_to_laptop("Continue?")
+    #     send_to_laptop(DISPLAY, "Continue?")
     #     request_for(VOICE)
 
     round_num = 0

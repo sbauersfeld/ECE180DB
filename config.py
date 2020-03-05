@@ -24,6 +24,7 @@ STOP_GAME = "STOP_GAME"
 STATUS = "STATUS"
 ACTION_COUNT = "ACTION_COUNT"
 HIT = "GOT_HIT"
+DISPLAY = "DISPLAY"
 
 ####################
 ##  Classes
@@ -36,4 +37,3 @@ class Act(Enum):
     BLOCK = 3
     DIST = 4
     VOICE = 5
-    VOICE = 6

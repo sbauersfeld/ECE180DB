@@ -165,10 +165,7 @@ def process_order(order, value1, value2):
         PLAYER.update_bottom("action in {}".format(value1))
 
     if order == PLAYER.name:
-        action = Act[value1]
-        print("Received action: {}".format(action))
-        if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
-            PLAYER.update_bottom(action.name)
+        process_order_individual(value1, value2)
 
     if order == STATUS:
         status = json.loads(value1)
@@ -179,6 +176,20 @@ def process_order(order, value1, value2):
             PLAYER.lives = status["lives"]
             PLAYER.defense = status["defense"]
 
+    if order == DISPLAY:
+        PLAYER.update_bottom(value1)
+
+def process_order_individual(value1, value2):
+    if value1 == HIT:
+        PLAYER.update_top("YOU GOT HIT")
+
+    try:
+        action = Act[value1]
+        print("Received action: {}".format(action))
+        if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
+            PLAYER.update_bottom(action.name)
+    except KeyError:
+        pass
 
 ####################
 ##  Threads
