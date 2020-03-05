@@ -18,9 +18,11 @@ class Player:
     def __init__(self, name="", LED=(127, 0, 0)):
         self.name = name
         self.leds = LED
+        self.type = 0
 
-    def update(self, LED):
+    def update(self, LED, flash_type=0):
         self.leds = LED
+        self.type = flash_type
         L_LOCK.set()
 
 
@@ -78,6 +80,7 @@ def process_orders(order, value1, value2):
 
     if order == ACTION:
         A_LOCK.set()
+        PLAYER.update(LED_ACTION, 2)
 
     if order == STOP_GAME:
         global GAME_OVER
@@ -86,7 +89,38 @@ def process_orders(order, value1, value2):
 
     if order == PLAYER.name:
         if value1 == HIT:
-            PLAYER.update(LED_HIT)
+            PLAYER.update(LED_HIT, 1)
+
+
+####################
+##  LED Functions
+####################
+
+def LED_show():
+    pixels.fill(PLAYER.leds)
+    pixels.show()
+
+### Make the following two last for as long as "___" ###
+### Maybe change to have update accept a single "command" variable?
+def LED_flash():
+    t_end = time.time() + 1.5
+    while time.time() < t_end:
+        pixels.fill(PLAYER.leds)
+        pixels.show()
+        time.sleep(.1)
+        pixels.fill(LED_OFF)
+        pixels.show()
+        time.sleep(.1)
+    LED_show()
+
+def LED_snake():
+    t_end = time.time() + 3
+    while time.time() < t_end:
+        for i in range(num_pixels):
+            pixels[i] = (PLAYER.leds)
+            pixels.show()
+            time.sleep(.15)
+    LED_show()
 
 
 ####################
@@ -95,8 +129,12 @@ def process_orders(order, value1, value2):
 
 def control_LED():
     while not GAME_OVER:
-        pixels.fill(PLAYER.leds)
-        pixels.show()
+        if PLAYER.type == 0:
+            LED_show()
+        elif PLAYER.type == 1:
+            LED_flash()
+        elif PLAYER.type == 2:
+            LED_snake()
 
         if not GAME_OVER:
             L_LOCK.clear()
@@ -110,7 +148,6 @@ def handle_gesture():
     A_LOCK.wait()
     while not GAME_OVER:
         print("START ACTION")
-        PLAYER.update(LED_ACTION)
 
         gesture = get_gesture2(model, scaler).upper()
         send_action(Act[gesture])
