@@ -86,9 +86,9 @@ class Player:
             t.join()
 
         func, args = command_map.get(command, default_command)
-            t = threading.Thread(target=func, args=args)
-            t.start()
-            self.threads.append(t)
+        t = threading.Thread(target=func, args=args)
+        t.start()
+        self.threads.append(t)
 
 PLAYER = Player()
 
