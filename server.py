@@ -319,6 +319,7 @@ def main():
     round_num = 0
     while True:
         # Start new round
+        send_to_player(DIST)
         round_num += 1
         print("\nStarting round {0}".format(round_num))
         time.sleep(0.5) # For the "Voice registered" message

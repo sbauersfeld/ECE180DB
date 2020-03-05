@@ -15,10 +15,13 @@ import neopixel
 ####################
 
 class Player:
-    def __init__(self, name="", LED=(127, 0, 0)):
-        # Status
+    def __init__(self, name="", LED=LED_DIST):
         self.name = name
         self.leds = LED
+
+    def update(self, LED):
+        self.leds = LED
+        L_LOCK.set()
 
 
 ####################
@@ -34,6 +37,10 @@ client = mqtt.Client()
 # LED Board
 num_pixels = 12
 pixels = neopixel.NeoPixel(board.D18, num_pixels)
+LED_OFF = (0, 0, 0)
+LED_DIST = (127, 0, 0)
+LED_ACTION = (0, 127, 0)
+LED_HIT = (127, 127, 0)
 
 
 ####################
@@ -49,6 +56,9 @@ def on_message_player(client, userdata, msg):
 
     if message == ACTION:
         A_LOCK.set()
+
+    if message == DIST:
+        PLAYER.update(LED_DIST)
 
     if message == STOP_GAME:
         global GAME_OVER
@@ -74,7 +84,7 @@ def send_action(action, value=""):
 
 def process_orders(value1, value2):
     if value1 == HIT:
-        pass
+        PLAYER.update(LED_HIT)
 
 
 ####################
@@ -98,6 +108,8 @@ def handle_gesture():
     A_LOCK.wait()
     while not GAME_OVER:
         print("START ACTION")
+        PLAYER.update(LED_ACTION)
+
         gesture = get_gesture2(model, scaler).upper()
         send_action(Act[gesture])
         time.sleep(0.5)
@@ -143,6 +155,8 @@ def main():
     for t in threads:
         t.join()
     print("Finished game!")
+    pixels.fill(LED_OFF)
+    pixels.show()
 
 if __name__ == '__main__':
     main()
