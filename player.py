@@ -27,6 +27,7 @@ class Player:
 
 GAME_OVER = False
 A_LOCK = threading.Event()
+L_LOCK = threading.Event()
 PLAYER = Player()
 client = mqtt.Client()
 
@@ -61,16 +62,8 @@ def send_action(action, value=""):
     print("Sent: {}".format(message))
     return ret
 
-def register_actions_commandline():
-    actions = []
-    while True:
-        action_str = input("Enter action: ").upper()
-        if action_str in Act.__members__.keys():
-            return action_str
-        else:
-            print("That's not an action!")
-
-    return actions
+def process_orders(value1, value2):
+    pass
 
 
 ####################
@@ -78,8 +71,13 @@ def register_actions_commandline():
 ####################
 
 def control_LED():
-    pixels.fill(PLAYER.leds)
-    pixels.show()
+    while not GAME_OVER:
+        pixels.fill(PLAYER.leds)
+        pixels.show()
+
+        if not GAME_OVER:
+            L_LOCK.clear()
+        L_LOCK.wait()
 
 def handle_gesture():
     print("Setting up sensors")
