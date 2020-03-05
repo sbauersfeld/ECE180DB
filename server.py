@@ -21,17 +21,24 @@ ACTION = "ACTION"
 HIT = "HIT"
 VOICE = "VOICE"
 
+# Game Variables
+LIVES_MAX = 150.0
+DAMAGE_MAX = 75.0
+DIST_MAX = 75.0
+DIST_MIN = 0.0
+AMMO_RELOAD = 45.0
+
 
 ####################
 ##  Classes
 ####################
 
 class Player:
-    def __init__(self, name, lives=150.0, ammo=25.0):
+    def __init__(self, name, lives=LIVES_MAX, ammo=AMMO_RELOAD):
         self.name = name
         self.lives = lives
         self.ammo = ammo
-        self.defense = 25.0
+        self.defense = AMMO_RELOAD
 
         # Variables
         self.is_blocking = False
@@ -112,7 +119,7 @@ class Player:
 
     def reload(self):
         print("ACTION: {} reloaded!".format(self.name))
-        self.ammo = round(self.ammo + 25, 1)
+        self.ammo = round(self.ammo + AMMO_RELOAD, 1)
 
     def shoot(self):
         required_ammo = self.defense
@@ -131,7 +138,7 @@ class Player:
             print("HIT: {} was shot but blocked it!".format(self.name))
         else:
             print("HIT: {} was shot and took damage!".format(self.name))
-            self.lives = round(self.lives - (80.0 - self.defense), 1)
+            self.lives = round(self.lives - max(DAMAGE_MAX - self.defense, 0.0), 1)
 
     ####################
     ##  Player Modifiers
@@ -140,10 +147,10 @@ class Player:
     def update_distance(self, val_string):
         try:
             new_defense = float(val_string)
-            if new_defense > 50.0:
-                new_defense = 50.0
-            elif new_defense < 10.0:
-                new_defense = 10.0
+            if new_defense > DIST_MAX:
+                new_defense = DIST_MAX
+            elif new_defense < DIST_MIN:
+                new_defense = DIST_MIN
 
             self.defense = new_defense
             print("{}'s defense updated to {}".format(self.name, self.defense))
