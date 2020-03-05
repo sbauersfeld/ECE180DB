@@ -30,11 +30,13 @@ def on_message(client, userdata, msg):
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
 
-    if message == START_ACTION:
+    if message == ACTION:
         A_LOCK.set()
-    elif message == START_HIT:
+
+    if message == HIT:
         H_LOCK.set()
-    elif message == STOP_GAME:
+
+    if message == STOP_GAME:
         global GAME_OVER
         GAME_OVER = True
         A_LOCK.set()

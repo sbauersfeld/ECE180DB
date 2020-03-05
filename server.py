@@ -15,12 +15,6 @@ NUM_PLAYERS = 2
 P_LOCK = threading.Event()
 client = mqtt.Client()
 
-# Player Locks
-DISTANCE = "DISTANCE"
-ACTION = "ACTION"
-HIT = "HIT"
-VOICE = "VOICE"
-
 # Game Variables
 LIVES_MAX = 150.0
 DAMAGE_MAX = 75.0
@@ -54,7 +48,7 @@ class Player:
 
         # Synchronization
         self.sync = {
-            DISTANCE : threading.Event(),
+            DIST : threading.Event(),
             ACTION : threading.Event(),
             HIT : threading.Event(),
             VOICE : threading.Event(),
@@ -241,51 +235,28 @@ def count_laptop(order, countdown, freq=1):
         countdown -= freq
         time.sleep(freq)
 
-def request_voice():
+def request_for(command, to_laptop=True):
     for name, player in players.items():
-        player.listen_for(VOICE)
-    send_to_laptop(START_VOICE)
+        player.listen_for(command)
 
-    print("Waiting for voice...")
-    for name, player in players.items():
-        player.wait_for(VOICE)
+    if to_laptop:
+        send_to_laptop(command)
+    else:
+        client.publish(TOPIC_PLAYER, command)
 
-def request_distance():
+    print("Waiting for {}...".format(command))
     for name, player in players.items():
-        player.listen_for(DISTANCE)
-    send_to_laptop(START_DIST)
-
-    print("Waiting for distances...")
-    for name, player in players.items():
-        player.wait_for(DISTANCE)
-
-def request_action():
-    for name, player in players.items():
-        player.listen_for(ACTION)
-    client.publish(TOPIC_PLAYER, START_ACTION)
-
-    print("Waiting for actions...")
-    for name, player in players.items():
-        player.wait_for(ACTION)
-
-def request_hit():
-    for name, player in players.items():
-        player.listen_for(HIT)        
-    client.publish(TOPIC_PLAYER, START_HIT)
-
-    print("Waiting for hit detection...")
-    for name, player in players.items():
-        player.wait_for(HIT)
+        player.wait_for(command)
 
 def process_response(player, action, value):
     if player.is_dead():
         return
     print("Received for {}: {} {}".format(player.name, action, value))
 
-    if action in [Act.DIST] and player.is_listening_to(DISTANCE):
+    if action in [Act.DIST] and player.is_listening_to(DIST):
         player.update_distance(value)
         send_to_laptop(STATUS, player.status())
-        player.finish_for(DISTANCE)
+        player.finish_for(DIST)
 
     if action in [Act.RELOAD, Act.SHOOT, Act.BLOCK] and player.is_listening_to(ACTION):
         player.update_action(action)
@@ -341,10 +312,10 @@ def main():
     #     send_to_laptop("Training Mode!")
     #     time.sleep(4)
 
-    #     request_action()
+    #     request_for(ACTION, False)
 
     #     send_to_laptop("Continue?")
-    #     request_voice()
+    #     request_for(VOICE)
 
     round_num = 0
     while True:
@@ -354,12 +325,12 @@ def main():
         time.sleep(0.5) # For the "Voice registered" message
 
         # Ask for distance data
-        request_distance()
+        request_for(DIST)
 
         # Ask for player actions
         count_laptop(ACTION_COUNT, 3)
-        request_action()
-        request_hit()
+        request_for(ACTION, False)
+        request_for(HIT, False)
 
         # Process received actions
         threads = []

@@ -130,7 +130,7 @@ def on_message_laptop(client, userdata, msg):
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
 
-    if message == START_ACTION:
+    if message == ACTION:
         PLAYER.update_bottom("NOW")
 
     if message == STOP_GAME:
@@ -152,12 +152,12 @@ def send_action(action, value=""):
     return ret
 
 def process_order(order, value1, value2):
-    if order == START_DIST:
+    if order == DIST:
         print()
         PLAYER.update_top("Move to new distance!")
         D_LOCK.set()
 
-    if order == START_VOICE:
+    if order == VOICE:
         PLAYER.update_bottom("Say 'start' to continue...")
         V_LOCK.set()
 
