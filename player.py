@@ -124,11 +124,11 @@ def send_action(action, value=""):
 
 def process_orders(order, value1, value2):
     if order == DIST:
-        PLAYER.update(LED_DIST)
+        PLAYER.update(order)
 
     if order == ACTION:
         A_LOCK.set()
-        PLAYER.update(LED_ACTION, 2)
+        PLAYER.update(order)
 
     if order == STOP_GAME:
         global GAME_OVER
@@ -137,7 +137,7 @@ def process_orders(order, value1, value2):
 
     if order == PLAYER.name:
         if value1 == HIT:
-            PLAYER.update(LED_HIT, 1)
+            PLAYER.update(value1)
 
 
 ####################
