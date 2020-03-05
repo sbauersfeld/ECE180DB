@@ -26,6 +26,7 @@ class Player:
         self.defense = "?"
 
         # Display
+        self.color = (0, 0, 0)
         self.top = name
         self.bottom = ""
         self.temp_def = "?"
@@ -33,6 +34,9 @@ class Player:
     def update_name(self, new_name):
         self.name = new_name
         self.top = new_name
+
+    def update_color(self, new_color):
+        self.color = new_color
 
     def update_top(self, new_msg):
         self.top = new_msg
@@ -99,6 +103,7 @@ sound_effect = pygame.mixer.Sound("music/SoundEffect.ogg")
 
 ### Misc ###
 WHITE = (255, 255, 255)
+RED = (225, 0, 0)
 BLACK = (0, 0, 0)
 font_large = pygame.font.SysFont("Helvetica", 150)
 font_big = pygame.font.SysFont("Helvetica", 72)
@@ -157,6 +162,8 @@ def process_order(order, value1, value2):
     if order == DIST:
         print()
         PLAYER.update_top("Move to new distance!")
+        PLAYER.update_color(BLACK)
+        PLAYER.defense = '?'
         D_LOCK.set()
 
     if order == VOICE:
@@ -200,6 +207,7 @@ def process_order_player(order, value1, value2):
     if order == PLAYER.name:
         if value1 == HIT:
             PLAYER.update_top("YOU GOT HIT")
+            PLAYER.update_color(RED)
 
 
 ####################
@@ -255,7 +263,7 @@ def detect_voice_start(microphone):
 ####################
 
 def draw_main():
-    main_surface.fill(BLACK)
+    main_surface.fill(PLAYER.color)
 
     top = Status(PLAYER.top, ypos=-275)
     bottom = Status(PLAYER.bottom, ypos=250)

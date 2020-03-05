@@ -238,14 +238,14 @@ def count_laptop(order, countdown, freq=1):
         countdown -= freq
         time.sleep(freq)
 
-def request_for(command, to_laptop=True):
+def request_for(command):
     for name, player in players.items():
         player.listen_for(command)
 
-    if to_laptop:
-        send_to_laptop(command)
-    else:
+    if command in [ACTION]:
         send_to_player(command)
+    else:
+        send_to_laptop(command)
 
     print("Waiting for {}...".format(command))
     for name, player in players.items():
@@ -311,7 +311,7 @@ def main():
     #     send_to_laptop(DISPLAY, "Training Mode!")
     #     time.sleep(4)
 
-    #     request_for(ACTION, False)
+    #     request_for(ACTION)
 
     #     send_to_laptop(DISPLAY, "Continue?")
     #     request_for(VOICE)
@@ -329,7 +329,7 @@ def main():
 
         # Ask for player actions
         count_laptop(ACTION_COUNT, 3)
-        request_for(ACTION, False)
+        request_for(ACTION)
 
         # Process received actions
         threads = []
