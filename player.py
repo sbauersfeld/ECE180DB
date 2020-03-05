@@ -15,7 +15,6 @@ from gesture_recognition.detect_gesture import gesture_setup, get_gesture2
 GAME_OVER = False
 IR_HIT = False
 A_LOCK = threading.Event()
-H_LOCK = threading.Event()
 client = mqtt.Client()
 
 
@@ -32,9 +31,6 @@ def on_message_player(client, userdata, msg):
 
     if message == ACTION:
         A_LOCK.set()
-
-    if message == HIT:
-        H_LOCK.set()
 
     if message == STOP_GAME:
         global GAME_OVER
@@ -65,12 +61,6 @@ def register_actions_commandline():
 ##  Threads
 ####################
 
-def control_IR_sensor(name):
-    global IR_HIT
-    while not GAME_OVER:
-        ### IMPLEMENT IR SENSOR HERE ###
-        time.sleep(1)
-
 def control_LED(name):
     pass
 
@@ -89,17 +79,6 @@ def handle_gesture(name):
         if not GAME_OVER:
             A_LOCK.clear()
         A_LOCK.wait()
-
-def handle_hit(name):
-    H_LOCK.wait()
-    while not GAME_OVER:
-        hit_detect = Act.HIT if IR_HIT else Act.PASS
-        send_action(name, hit_detect)
-        time.sleep(0.5)
-
-        if not GAME_OVER:
-            H_LOCK.clear()
-        H_LOCK.wait()
 
 
 ####################

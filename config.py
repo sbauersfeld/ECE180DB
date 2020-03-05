@@ -18,12 +18,12 @@ SEP = "___"
 # Standard Messages
 DIST = "START_DIST"
 ACTION = "START_ACTION"
-HIT = "START_HIT"
 VOICE = "START_VOICE"
 
 STOP_GAME = "STOP_GAME"
 STATUS = "STATUS"
 ACTION_COUNT = "ACTION_COUNT"
+HIT = "GOT_HIT"
 
 ####################
 ##  Classes
@@ -34,6 +34,6 @@ class Act(Enum):
     RELOAD = 1
     SHOOT = 2
     BLOCK = 3
-    HIT = 4
-    DIST = 5
+    DIST = 4
+    VOICE = 5
     VOICE = 6

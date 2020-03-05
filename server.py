@@ -50,7 +50,6 @@ class Player:
         self.sync = {
             DIST : threading.Event(),
             ACTION : threading.Event(),
-            HIT : threading.Event(),
             VOICE : threading.Event(),
         }
 
@@ -270,10 +269,6 @@ def process_response(player, action, value):
                 p.update_as_hit()
         player.finish_for(ACTION)
 
-    if action in [Act.PASS, Act.HIT] and player.is_listening_to(HIT):
-        if action in [Act.HIT]: player.update_as_hit()
-        player.finish_for(HIT)
-
     if action in [Act.VOICE] and player.is_listening_to(VOICE):
         player.finish_for(VOICE)
 
@@ -330,7 +325,6 @@ def main():
         # Ask for player actions
         count_laptop(ACTION_COUNT, 3)
         request_for(ACTION, False)
-        request_for(HIT, False)
 
         # Process received actions
         threads = []
