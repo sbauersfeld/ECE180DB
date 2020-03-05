@@ -124,11 +124,11 @@ def on_message_laptop(client, userdata, msg):
 
 def on_message_player(client, userdata, msg):
     message = msg.payload.decode()
-    print("Player: " + message)
 
     if message == START_ACTION:
         PLAYER.update_bottom("NOW")
-    elif message == STOP_GAME:
+
+    if message == STOP_GAME:
         global GAME_OVER
         GAME_OVER = True
         D_LOCK.set()
@@ -146,28 +146,28 @@ def send_action(action, value=""):
     return ret
 
 def process_order(order, value1, value2):
+    if order == MOVE_NOW:
+        PLAYER.update_bottom("Move to new distance...")
+        PLAYER.defense = "?"
+
     if order == START_DIST:
         PLAYER.update_bottom("Measuring distance...")
         D_LOCK.set()
 
-    elif order == START_VOICE:
+    if order == START_VOICE:
         PLAYER.update_bottom("Say 'start' to continue...")
         V_LOCK.set()
 
-    elif order == PLAYER.name:
+    if order == ACTION_COUNT:
+        PLAYER.update_bottom("action in {}".format(value1))
+
+    if order == PLAYER.name:
         action = Act[value1]
         print("Received action: {}".format(action))
         if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
             PLAYER.update_bottom(action.name)
 
-    elif order == ACTION_COUNT:
-        PLAYER.update_bottom("action in {}".format(value1))
-
-    elif order == MOVE_NOW:
-        PLAYER.update_bottom("Move to new distance...")
-        PLAYER.defense = "?"
-
-    elif order == STATUS:
+    if order == STATUS:
         status = json.loads(value1)
         print(status)
 
@@ -175,9 +175,6 @@ def process_order(order, value1, value2):
             PLAYER.ammo = status["ammo"]
             PLAYER.lives = status["lives"]
             PLAYER.defense = status["defense"]
-    
-    else:
-        print("Unexpected message: {} with {}".format(order, value))
 
 
 ####################
