@@ -53,7 +53,7 @@ def register_actions_commandline():
 def handle_gesture():
     while not GAME_OVER:
         gesture = register_actions_commandline()
-        send_action(name, Act[gesture])
+        send_action(Act[gesture])
         time.sleep(0.5)
 
 

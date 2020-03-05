@@ -94,7 +94,7 @@ def handle_gesture():
     while not GAME_OVER:
         print("START ACTION")
         gesture = register_actions_commandline()
-        send_action(name, Act[gesture])
+        send_action(Act[gesture])
         time.sleep(0.5)
 
         if not GAME_OVER:

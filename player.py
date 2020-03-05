@@ -39,7 +39,7 @@ num_pixels = 12
 pixels = neopixel.NeoPixel(board.D18, num_pixels)
 LED_OFF = (0, 0, 0)
 LED_DIST = (127, 0, 0)
-LED_ACTION = (0, 127, 0)
+LED_ACTION = (0, 0, 127)
 LED_HIT = (127, 127, 0)
 
 
