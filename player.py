@@ -27,6 +27,42 @@ LED_DIST = (127, 0, 0)
 LED_ACTION = (0, 0, 127)
 LED_HIT = (127, 127, 0)
 
+
+####################
+##  LED Functions
+####################
+
+def LED_show(LED):
+    pixels.fill(LED)
+    pixels.show()
+
+def LED_flash(LED):
+    while True:
+        pixels.fill(LED)
+        pixels.show()
+        time.sleep(.1)
+        pixels.fill(LED_OFF)
+        pixels.show()
+        time.sleep(.1)
+
+        if L_LOCK.isSet():
+            L_LOCK.clear()
+            break
+
+def LED_snake(LED):
+    while True:
+        for i in range(num_pixels):
+            pixels.fill(LED_OFF)
+            pixels[i-2] = (LED)
+            pixels[i-1] = (LED)
+            pixels[i] = (LED)
+            pixels.show()
+            time.sleep(.05)
+
+        if L_LOCK.isSet():
+            L_LOCK.clear()
+            break
+
 # Commands
 default_command = (LED_show, [LED_DIST])
 command_map = {
@@ -50,7 +86,7 @@ class Player:
             t.join()
 
         for func, args in command_map.get(command, default_command):
-            t = threading..Thread(target=func, args=args)
+            t = threading.Thread(target=func, args=args)
             t.start()
             threads.append(t)
 
@@ -102,42 +138,6 @@ def process_orders(order, value1, value2):
     if order == PLAYER.name:
         if value1 == HIT:
             PLAYER.update(LED_HIT, 1)
-
-
-####################
-##  LED Functions
-####################
-
-def LED_show(LED):
-    pixels.fill(LED)
-    pixels.show()
-
-def LED_flash(LED):
-    while True:
-        pixels.fill(LED)
-        pixels.show()
-        time.sleep(.1)
-        pixels.fill(LED_OFF)
-        pixels.show()
-        time.sleep(.1)
-
-        if L_LOCK.isSet():
-            L_LOCK.clear()
-            break
-
-def LED_snake(LED):
-    while True:
-        for i in range(num_pixels):
-            pixels.fill(LED_OFF)
-            pixels[i-2] = (LED)
-            pixels[i-1] = (LED)
-            pixels[i] = (LED)
-            pixels.show()
-            time.sleep(.05)
-
-        if L_LOCK.isSet():
-            L_LOCK.clear()
-            break
 
 
 ####################
