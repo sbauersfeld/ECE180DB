@@ -35,7 +35,6 @@ def on_message_player(client, userdata, msg):
         global GAME_OVER
         GAME_OVER = True
         A_LOCK.set()
-        H_LOCK.set()
 
 def send_action(name, action, value=""):
     message = SEP.join([name, action.name, value])
