@@ -26,7 +26,7 @@ LIVES_MAX = 150.0
 DAMAGE_MAX = 75.0
 DIST_MAX = 75.0
 DIST_MIN = 0.0
-AMMO_RELOAD = 45.0
+AMMO_RELOAD = 50.0
 
 
 ####################
@@ -348,11 +348,7 @@ def main():
 
     round_num = 0
     while True:
-        send_to_laptop(MOVE_NOW)
-        time.sleep(4)
-
         # Start new round
-        request_voice()
         round_num += 1
         print("\nStarting round {0}".format(round_num))
         time.sleep(0.5) # For the "Voice registered" message
@@ -380,7 +376,7 @@ def main():
             print("\nWINNER! {} has won the game!".format(alive[0]))
             ### NOTIFY LAPTOP ON WHO WON ###
             break
-        elif len(alive) <= 0:
+        if len(alive) <= 0:
             print("\nDRAW! There are no remaining players.")
             ### NOTIFY LAPTOP ABOUT DRAW ###
             break
@@ -388,7 +384,6 @@ def main():
         time.sleep(3)
 
     # End Game
-    time.sleep(5)
     client.publish(TOPIC_PLAYER, STOP_GAME)
     time.sleep(1)
 

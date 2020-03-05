@@ -27,7 +27,8 @@ class Player:
 
         # Display
         self.top = name
-        self.bottom = "Waiting for server..."
+        self.bottom = ""
+        self.temp_def = "?"
 
     def update_name(self, new_name):
         self.name = new_name
@@ -40,6 +41,10 @@ class Player:
     def update_bottom(self, new_msg):
         self.bottom = new_msg
         print("BOTTOM: {}".format(new_msg))
+
+    def update_temp_def(self, new_def):
+        self.temp_def = new_def
+        self.update_bottom(new_def)
 
 class Status(pygame.sprite.Sprite):
     def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None):
@@ -132,6 +137,7 @@ def on_message_player(client, userdata, msg):
         global GAME_OVER
         GAME_OVER = True
         D_LOCK.set()
+        V_LOCK.set()
 
 
 ####################
@@ -146,12 +152,9 @@ def send_action(action, value=""):
     return ret
 
 def process_order(order, value1, value2):
-    if order == MOVE_NOW:
-        PLAYER.update_bottom("Move to new distance...")
-        PLAYER.defense = "?"
-
     if order == START_DIST:
-        PLAYER.update_bottom("Measuring distance...")
+        print()
+        PLAYER.update_top("Move to new distance!")
         D_LOCK.set()
 
     if order == START_VOICE:
@@ -181,18 +184,22 @@ def process_order(order, value1, value2):
 ##  Threads
 ####################
 
-def detect_distance():
+def detect_distance(headset):
     cap = cv2.VideoCapture(0)
-    measurement_time = 5
+    microphone = speech_setup(headset)
 
     print("Range detection active!")
     D_LOCK.wait()
     while not GAME_OVER:
-        for _ in range(measurement_time):
-            new_val = GetDistance(cap, PLAYER.name)
-            dist = str(round(new_val, 1))
-            PLAYER.defense = dist
-        send_action(Act.DIST, dist)
+        timer = threading.Timer(5, detect_voice_start, [microphone])
+        timer.start()
+        
+        while timer.isAlive():
+            new_val = GetDistance(cap, PLAYER.name, 0.6)
+            PLAYER.update_temp_def(str(round(new_val, 1)))
+
+        PLAYER.update_top("Voice registered")
+        send_action(Act.DIST, PLAYER.temp_def)
 
         if not GAME_OVER:
             D_LOCK.clear()
@@ -215,6 +222,10 @@ def detect_voice(headset):
         if not GAME_OVER:
             V_LOCK.clear()
         V_LOCK.wait()
+
+def detect_voice_start(microphone):
+    PLAYER.update_top("Say 'start' to continue!")
+    get_speech(microphone, start_phrase)
 
 
 ####################
@@ -254,10 +265,11 @@ def main():
 
     if len(sys.argv) == 2:
         time.sleep(0.25)
-        name = sys.argv[1]
+        name = sys.argv[1].lower()
     else:
         name = input("Please enter your name: ")
     PLAYER.update_name(name)
+    headset = headset_map.get(name, "scott")
 
     print("Listening...")
     client.loop_start()
@@ -266,11 +278,11 @@ def main():
 
     threads = []
     t_args = {
-        detect_distance : [],
-        detect_voice : [headset_map.get(name, "")],
+        detect_distance : [headset],
+        # detect_voice : [headset],
     }
-    for func in [detect_distance, detect_voice]:
-        t = threading.Thread(target=func, args=t_args[func], daemon=True)
+    for func, args in t_args.items():
+        t = threading.Thread(target=func, args=args, daemon=True)
         t.start()
         threads.append(t)
 
