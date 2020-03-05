@@ -117,9 +117,12 @@ def LED_snake():
     t_end = time.time() + 3
     while time.time() < t_end:
         for i in range(num_pixels):
+            pixels.fill(LED_OFF)
+            pixels[i-2] = (PLAYER.leds)
+            pixels[i-1] = (PLAYER.leds)
             pixels[i] = (PLAYER.leds)
             pixels.show()
-            time.sleep(.15)
+            time.sleep(.05)
     LED_show()
 
 
@@ -190,9 +193,13 @@ def main():
 
     ### TODO: Have laptop setup player
     client.publish(TOPIC_LAPTOP, name)
-    
-    for t in threads:
-        t.join()
+
+    try:
+        for t in threads:
+            t.join()
+    except KeyboardInterrupt:
+        pass
+
     print("Finished game!")
     pixels.fill(LED_OFF)
     pixels.show()
