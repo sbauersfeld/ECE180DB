@@ -51,14 +51,14 @@ class Player:
         self.update_bottom(new_def)
 
 class Status(pygame.sprite.Sprite):
-    def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None):
+    def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None, background=(0, 0, 0)):
         ### Status information ###
         self.value = str(value)
 
         ### Creating the object ###
         pygame.sprite.Sprite.__init__(self)
         font = font_small if title else font_large
-        self.image = font.render(self.value, True, WHITE, BLACK)
+        self.image = font.render(self.value, True, WHITE, background)
         self.rect = self.image.get_rect()
 
         ### Establishing the location ###
@@ -265,16 +265,16 @@ def detect_voice_start(microphone):
 def draw_main():
     main_surface.fill(PLAYER.color)
 
-    top = Status(PLAYER.top, ypos=-275)
-    bottom = Status(PLAYER.bottom, ypos=250)
+    top = Status(PLAYER.top, ypos=-275, background=PLAYER.color)
+    bottom = Status(PLAYER.bottom, ypos=250, background=PLAYER.color)
 
-    ammo = Status(PLAYER.ammo, xpos=-400, ypos=-0)
-    lives = Status(PLAYER.lives, ypos=-0)
-    defense = Status(PLAYER.defense, xpos=400, ypos=-0)
+    ammo = Status(PLAYER.ammo, xpos=-400, ypos=-0, background=PLAYER.color)
+    lives = Status(PLAYER.lives, ypos=-0, background=PLAYER.color)
+    defense = Status(PLAYER.defense, xpos=400, ypos=-0, background=PLAYER.color)
 
-    l_ammo = Status("ammo", True, xpos=-400, ypos=-75)
-    l_lives = Status("health", True, ypos=-75)
-    l_defense = Status("defense", True, xpos=400, ypos=-75)
+    l_ammo = Status("ammo", True, xpos=-400, ypos=-75, background=PLAYER.color)
+    l_lives = Status("health", True, ypos=-75, background=PLAYER.color)
+    l_defense = Status("defense", True, xpos=400, ypos=-75, background=PLAYER.color)
 
     all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense, l_ammo, l_lives, l_defense)
     all_sprites.draw(main_surface)

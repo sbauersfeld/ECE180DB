@@ -355,7 +355,7 @@ def main():
 
     # End Game
     send_to_player(STOP_GAME)
-    time.sleep(1)
+    time.sleep(2)
 
 if __name__ == '__main__':
     main()
