@@ -11,29 +11,12 @@ import neopixel
 
 
 ####################
-##  Classes
-####################
-
-class Player:
-    def __init__(self, name="", LED=(127, 0, 0)):
-        self.name = name
-        self.leds = LED
-        self.type = 0
-
-    def update(self, LED, flash_type=0):
-        self.leds = LED
-        self.type = flash_type
-        L_LOCK.set()
-
-
-####################
 ##  Global Variables
 ####################
 
 GAME_OVER = False
 A_LOCK = threading.Event()
 L_LOCK = threading.Event()
-PLAYER = Player()
 client = mqtt.Client()
 
 # LED Board
@@ -43,6 +26,35 @@ LED_OFF = (0, 0, 0)
 LED_DIST = (127, 0, 0)
 LED_ACTION = (0, 0, 127)
 LED_HIT = (127, 127, 0)
+
+# Commands
+default_command = (LED_show, [LED_DIST])
+command_map = {
+    DIST : default_command,
+    ACTION : (LED_snake, [LED_ACTION]),
+    HIT : (LED_flash, [LED_HIT]),
+}
+
+####################
+##  Classes
+####################
+
+class Player:
+    def __init__(self, name=""):
+        self.name = name
+        self.threads = []
+
+    def update(self, command):
+        L_LOCK.Set()
+        for t in threads:
+            t.join()
+
+        for func, args in command_map.get(command, default_command):
+            t = threading..Thread(target=func, args=args)
+            t.start()
+            threads.append(t)
+
+PLAYER = Player()
 
 
 ####################
@@ -96,52 +108,41 @@ def process_orders(order, value1, value2):
 ##  LED Functions
 ####################
 
-def LED_show():
-    pixels.fill(PLAYER.leds)
+def LED_show(LED):
+    pixels.fill(LED)
     pixels.show()
 
-### Make the following two last for as long as "___" ###
-### Maybe change to have update accept a single "command" variable?
-def LED_flash():
-    t_end = time.time() + 1.5
-    while time.time() < t_end:
-        pixels.fill(PLAYER.leds)
+def LED_flash(LED):
+    while True:
+        pixels.fill(LED)
         pixels.show()
         time.sleep(.1)
         pixels.fill(LED_OFF)
         pixels.show()
         time.sleep(.1)
-    LED_show()
 
-def LED_snake():
-    t_end = time.time() + 3
-    while time.time() < t_end:
+        if L_LOCK.isSet():
+            L_LOCK.clear()
+            break
+
+def LED_snake(LED):
+    while True:
         for i in range(num_pixels):
             pixels.fill(LED_OFF)
-            pixels[i-2] = (PLAYER.leds)
-            pixels[i-1] = (PLAYER.leds)
-            pixels[i] = (PLAYER.leds)
+            pixels[i-2] = (LED)
+            pixels[i-1] = (LED)
+            pixels[i] = (LED)
             pixels.show()
             time.sleep(.05)
-    LED_show()
+
+        if L_LOCK.isSet():
+            L_LOCK.clear()
+            break
 
 
 ####################
 ##  Threads
 ####################
-
-def control_LED():
-    while not GAME_OVER:
-        if PLAYER.type == 0:
-            LED_show()
-        elif PLAYER.type == 1:
-            LED_flash()
-        elif PLAYER.type == 2:
-            LED_snake()
-
-        if not GAME_OVER:
-            L_LOCK.clear()
-        L_LOCK.wait()
 
 def handle_gesture():
     print("Setting up sensors")
@@ -183,7 +184,6 @@ def main():
 
     threads = []
     t_args = {
-        control_LED : [],
         handle_gesture : [],
     }
     for func, args in t_args.items():
