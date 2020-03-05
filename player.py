@@ -15,7 +15,7 @@ import neopixel
 ####################
 
 class Player:
-    def __init__(self, name="", LED=LED_DIST):
+    def __init__(self, name="", LED=(127, 0, 0)):
         self.name = name
         self.leds = LED
 
