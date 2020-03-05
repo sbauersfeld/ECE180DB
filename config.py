@@ -14,6 +14,7 @@ TOPIC_ACTION = TOPIC_GLOBAL + "/action" # For actions done by players; player to
 
 # Variables
 SEP = "___"
+SIGFIG = 1
 
 # Standard Messages
 DIST = "START_DIST"

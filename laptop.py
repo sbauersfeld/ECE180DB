@@ -207,7 +207,7 @@ def detect_distance(headset):
         
         while timer.isAlive():
             new_val = GetDistance(cap, PLAYER.name, 0.6)
-            PLAYER.update_temp_def(str(round(new_val, 1)))
+            PLAYER.update_temp_def(str(round(new_val, SIGFIG)))
 
         PLAYER.update_top("Voice registered")
         send_action(Act.DIST, PLAYER.temp_def)

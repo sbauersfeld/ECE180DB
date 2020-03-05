@@ -114,13 +114,13 @@ class Player:
 
     def reload(self):
         print("ACTION: {} reloaded!".format(self.name))
-        self.ammo = round(self.ammo + AMMO_RELOAD, 1)
+        self.ammo = round(self.ammo + AMMO_RELOAD, SIGFIG)
 
     def shoot(self):
         required_ammo = self.defense
         if self.can_shoot():
             print("ACTION: {} shot his shot!".format(self.name))
-            self.ammo = round(self.ammo - required_ammo, 1)
+            self.ammo = round(self.ammo - required_ammo, SIGFIG)
         else:
             print("ACTION: {} tried to shoot, but failed".format(self.name))
 
@@ -133,7 +133,7 @@ class Player:
             print("HIT: {} was shot but blocked it!".format(self.name))
         else:
             print("HIT: {} was shot and took damage!".format(self.name))
-            self.lives = round(self.lives - max(self.damage - self.defense, 0.0), 1)
+            self.lives = round(self.lives - max(self.damage - self.defense, 0.0), SIGFIG)
             send_to_laptop(self.name, HIT)
 
     ####################
