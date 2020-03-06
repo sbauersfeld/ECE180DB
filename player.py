@@ -66,7 +66,7 @@ default_command = (LED_show, [LED_RED])
 command_map = {
     DIST : default_command,
     ACTION : (LED_snake, [LED_BLUE]),
-    AFTER : (LED_show, [LED_BLUE])
+    "AFTER" : (LED_show, [LED_BLUE]),
     HIT : (LED_flash, [LED_YEL]),
 }
 
@@ -159,7 +159,7 @@ def handle_gesture():
 
         gesture = get_gesture2(model, scaler).upper()
         send_action(Act[gesture])
-        PLAYER.update(AFTER)
+        PLAYER.update("AFTER")
         time.sleep(0.5)
 
         if not GAME_OVER:
