@@ -23,9 +23,9 @@ client = mqtt.Client()
 num_pixels = 12
 pixels = neopixel.NeoPixel(board.D18, num_pixels)
 LED_OFF = (0, 0, 0)
-LED_DIST = (127, 0, 0)
-LED_ACTION = (0, 0, 127)
-LED_HIT = (127, 127, 0)
+LED_RED = (127, 0, 0)
+LED_BLUE = (0, 0, 127)
+LED_YEL = (127, 127, 0)
 
 
 ####################
@@ -46,7 +46,6 @@ def LED_flash(LED):
         time.sleep(.1)
 
         if L_LOCK.isSet():
-            L_LOCK.clear()
             break
 
 def LED_snake(LED):
@@ -60,15 +59,15 @@ def LED_snake(LED):
             time.sleep(.05)
 
         if L_LOCK.isSet():
-            L_LOCK.clear()
             break
 
 # Commands
-default_command = (LED_show, [LED_DIST])
+default_command = (LED_show, [LED_RED])
 command_map = {
     DIST : default_command,
-    ACTION : (LED_snake, [LED_ACTION]),
-    HIT : (LED_flash, [LED_HIT]),
+    ACTION : (LED_snake, [LED_BLUE]),
+    AFTER : (LED_show, [LED_BLUE])
+    HIT : (LED_flash, [LED_YEL]),
 }
 
 ####################
@@ -81,14 +80,19 @@ class Player:
         self.threads = []
 
     def update(self, command):
+        if L_LOCK.isSet():
+            return
+
         L_LOCK.set()
         for t in self.threads:
             t.join()
 
         func, args = command_map.get(command, default_command)
         t = threading.Thread(target=func, args=args)
-        t.start()
         self.threads.append(t)
+
+        L_LOCK.clear()
+        t.start()
 
 PLAYER = Player()
 
@@ -155,6 +159,7 @@ def handle_gesture():
 
         gesture = get_gesture2(model, scaler).upper()
         send_action(Act[gesture])
+        PLAYER.update(AFTER)
         time.sleep(0.5)
 
         if not GAME_OVER:
@@ -184,7 +189,7 @@ def main():
 
     threads = []
     t_args = {
-        LED_show : [LED_DIST],
+        LED_show : [LED_RED],
         handle_gesture : [],
     }
     for func, args in t_args.items():
