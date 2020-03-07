@@ -18,7 +18,7 @@ from speech_detection.speech_detection import speech_setup, get_speech, get_spee
 ####################
 
 class Player:
-    def __init__(self, name="", lives=150.0, ammo=0.0, defense="?"):
+    def __init__(self, name="", lives=150.0, ammo=50.0, defense="?"):
         # Status
         self.name = name
         self.lives = lives
@@ -177,6 +177,7 @@ def process_order(order, value1, value2):
     if order == DIST:
         print()
         PLAYER.update_top("Move to new distance!")
+        PLAYER.update_bottom("")
         PLAYER.update_color(BLACK)
         PLAYER.update_status(defense='?')
         D_LOCK.set()
@@ -186,6 +187,7 @@ def process_order(order, value1, value2):
         V_LOCK.set()
 
     if order == ACTION_COUNT:
+        PLAYER.update_top("Get ready...")
         PLAYER.update_bottom("action in {}".format(value1))
 
     if order == PLAYER.name:
@@ -193,9 +195,10 @@ def process_order(order, value1, value2):
             action = Act[value1]
             print("Received action: {}".format(action))
             if action in [Act.RELOAD, Act.BLOCK, Act.SHOOT]:
+                PLAYER.update_top("")
                 PLAYER.update_bottom(action.name)
         except KeyError:
-            pass        
+            PLAYER.update_bottom(value1)        
 
     if order == STATUS:
         status = json.loads(value1)
@@ -209,6 +212,7 @@ def process_order(order, value1, value2):
 
 def process_order_player(order, value1, value2):
     if order == ACTION:
+        PLAYER.update_top("Reading gestures...")
         PLAYER.update_bottom("NOW")
 
     if order == STOP_GAME:
@@ -238,7 +242,7 @@ def detect_distance(headset):
         timer.start()
         
         while timer.isAlive():
-            new_val = GetDistance(cap, PLAYER.name, 0.6)
+            new_val = GetDistance(cap, PLAYER.name, 0.5)
             PLAYER.update_temp_def(str(round(new_val, SIGFIG)))
 
         send_action(Act.DIST, PLAYER.temp_def)
