@@ -18,18 +18,18 @@ from speech_detection.speech_detection import speech_setup, get_speech
 ####################
 
 class Player:
-    def __init__(self, name="", lives=150.0, ammo=0.0):
+    def __init__(self, name="", lives=150.0, ammo=0.0, defense="?"):
         # Status
         self.name = name
         self.lives = lives
         self.ammo = ammo
-        self.defense = "?"
+        self.defense = defense
 
         # Display
         self.color = (0, 0, 0)
         self.top = name
         self.bottom = ""
-        self.temp_def = "?"
+        self.temp_def = defense
 
     def update_name(self, new_name):
         self.name = new_name
@@ -108,12 +108,12 @@ clock = pygame.time.Clock()
 ### Creating the main surface ###
 WIDTH = 0 # 1280
 HEIGHT = 0 # 780
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) # Or FULLSCREEN
+main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) # Or NOFRAME
 main_origin = main_surface.get_rect()
 
 ### Music ###
 pygame.mixer.music.load("music/Nimbus2000.ogg")
-sound_effect = pygame.mixer.Sound("music/SoundEffect.ogg")
+sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
 
 ### Misc ###
 WHITE = (255, 255, 255)
@@ -288,7 +288,9 @@ def draw_main():
     l_lives = Status("health", True, ypos=-75, background=PLAYER.color)
     l_defense = Status("defense", True, xpos=400, ypos=-75, background=PLAYER.color)
 
-    all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense, l_ammo, l_lives, l_defense)
+    all_sprites = pygame.sprite.RenderPlain(top, bottom,
+                                            ammo, lives, defense,
+                                            l_ammo, l_lives, l_defense)
     all_sprites.draw(main_surface)
 
 
@@ -329,7 +331,7 @@ def main():
         threads.append(t)
 
     client.publish(TOPIC_SETUP, name)
-    ### Have laptop repeatedly send this and wait for ACK from server ###
+    sound_suit_up.play()
 
 
     ####################

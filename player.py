@@ -36,6 +36,13 @@ def LED_show(LED):
     pixels.fill(LED)
     pixels.show()
 
+def LED_show_snake(LED):
+    pixels.fill(LED_OFF)
+    for i in range(num_pixels):
+        pixels[i] = (LED)
+        pixels.show()
+        time.sleep(.05)
+
 def LED_flash(LED):
     while True:
         pixels.fill(LED)
@@ -64,6 +71,7 @@ def LED_snake(LED):
 # Commands
 default_command = (LED_show, [LED_RED])
 command_map = {
+    "START" : (LED_show_snake, [LED_RED])
     DIST : default_command,
     ACTION : (LED_snake, [LED_BLUE]),
     "AFTER" : (LED_show, [LED_BLUE]),
@@ -189,7 +197,7 @@ def main():
 
     threads = []
     t_args = {
-        LED_show : [LED_RED],
+        LED_show_snake : [LED_RED],
         handle_gesture : [],
     }
     for func, args in t_args.items():
