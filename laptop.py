@@ -114,6 +114,7 @@ main_origin = main_surface.get_rect()
 ### Music ###
 pygame.mixer.music.load("music/Nimbus2000.ogg")
 sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
+sound_shoot = pygame.mixer.Sound("music/Repulsor.ogg")
 
 ### Misc ###
 WHITE = (255, 255, 255)
