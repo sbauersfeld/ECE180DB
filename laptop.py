@@ -10,7 +10,7 @@ import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance
-from speech_detection.speech_detection import speech_setup, get_speech
+from speech_detection.speech_detection import speech_setup, get_speech, get_speech2, translate_speech
 
 
 ####################
@@ -241,7 +241,6 @@ def detect_distance(headset):
             new_val = GetDistance(cap, PLAYER.name, 0.6)
             PLAYER.update_temp_def(str(round(new_val, SIGFIG)))
 
-        PLAYER.update_top("Voice registered")
         send_action(Act.DIST, PLAYER.temp_def)
 
         if not GAME_OVER:
@@ -267,8 +266,21 @@ def detect_voice(headset):
         V_LOCK.wait()
 
 def detect_voice_start(microphone):
-    PLAYER.update_top("Say 'start' to continue!")
-    get_speech(microphone, start_phrase)
+    while True:
+        PLAYER.update_top("Say 'start' to continue!")
+        recognizer, audio = get_speech2(microphone)
+        PLAYER.update_top("Detected voice!")
+
+        success, value = translate_speech(recognizer, audio)
+        if success:
+            if value in start_phrase:
+                PLAYER.update_top("Voice registered!")
+                break
+            PLAYER.update_top("- {} -".format(value))
+        else:
+            PLAYER.update_top(value)
+
+        time.sleep(1.5)
 
 
 ####################

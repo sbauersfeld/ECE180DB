@@ -46,6 +46,31 @@ def get_speech(microphone, trigger=["end", "and"], energy = 300, pause=0.5):
             if command in trigger:
                 break
 
+def get_speech2(microphone, adjust=True, energy = 300, pause=0.5):
+    r = sr.Recognizer()
+    r.energy_threshold = energy
+    r.pause_threshold = pause
+
+    with microphone as source:
+        if adjust:
+            # r.adjust_for_ambient_noise(source)
+            print(r.energy_threshold)
+            print(r.pause_threshold)
+        audio = r.listen(source, phrase_time_limit=2)
+
+    return r, audio
+
+def translate_speech(recognizer, audio):
+    try:
+        command = recognizer.recognize_google(audio).lower()
+        return True, command
+    except sr.UnknownValueError:
+        print("Google Speech Recognition could not understand audio")
+        return False, "Could not understand!"
+    except sr.RequestError as e:
+        print("Could not request results from Google Speech Recognition service; {0}".format(e))
+        return False, "No service connection!"
+
 def main():
     name = sys.argv[1] if len(sys.argv) == 2 else "Headset (SoundBuds Slim Hands-F"
     m = speech_setup(name)
