@@ -88,6 +88,7 @@ class Status(pygame.sprite.Sprite):
 
 ### GameStuff ###
 GAME_OVER = False
+PLAYER_WIN = ""
 D_LOCK = threading.Event()
 V_LOCK = threading.Event()
 PLAYER = Player()
@@ -217,7 +218,10 @@ def process_order_player(order, value1, value2):
 
     if order == STOP_GAME:
         global GAME_OVER
+        global PLAYER_WIN
         GAME_OVER = True
+        PLAYER_WIN = value1
+
         D_LOCK.set()
         V_LOCK.set()
     
@@ -357,8 +361,8 @@ def main():
 
     # pygame.mixer.music.play(-1, 0.5)
 
-    player_win = False
     global GAME_OVER
+    global PLAYER_WIN
     while not GAME_OVER:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
@@ -366,7 +370,7 @@ def main():
                 sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 GAME_OVER = True
-                player_win = True
+                PLAYER_WIN = PLAYER.name
 
         # Visuals
         draw_main()
@@ -383,22 +387,20 @@ def main():
     # pygame.mixer.music.play(-1, 0.5)
 
     # Visuals
-    print("Finished game!")
-    game_over = font_big.render("GAME OVER", True, WHITE, BLACK)
+    print("Finished the game!")
+    game_over = font_large.render("GAME OVER", True, WHITE, BLACK)
     g_o_rect = game_over.get_rect()
     g_o_rect.centerx = main_origin.centerx
     g_o_rect.centery = main_origin.centery - 50
 
-    if player_win:
-        winner = font_small.render("Player Wins!", True, WHITE, BLACK)
-        win_rect = winner.get_rect()
-        win_rect.centerx = g_o_rect.centerx
-        win_rect.centery = g_o_rect.centery + 75
+    winner = font_small.render("--- {} wins! ---".format(PLAYER_WIN), True, WHITE, BLACK)
+    win_rect = winner.get_rect()
+    win_rect.centerx = g_o_rect.centerx
+    win_rect.centery = g_o_rect.centery + 85
 
     main_surface.fill(BLACK)
     main_surface.blit(game_over, g_o_rect)
-    if player_win:
-        main_surface.blit(winner, win_rect)
+    main_surface.blit(winner, win_rect)
 
     done = False
     while not done:

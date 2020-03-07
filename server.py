@@ -318,6 +318,7 @@ def main():
     #     request_for(VOICE)
 
     round_num = 0
+    winner = ""
     while True:
         # Start new round
         send_to_player(DIST)
@@ -345,17 +346,17 @@ def main():
         alive = [player for (name,player) in players.items() if not player.is_dead()]
         if len(alive) == 1 and NUM_PLAYERS > 1:
             print("\nWINNER! {} has won the game!".format(alive[0]))
-            ### NOTIFY LAPTOP ON WHO WON ###
+            winner = alive[0].name
             break
         if len(alive) <= 0:
             print("\nDRAW! There are no remaining players.")
-            ### NOTIFY LAPTOP ABOUT DRAW ###
+            winner = "Nobody"
             break
 
         time.sleep(3)
 
     # End Game
-    send_to_player(STOP_GAME)
+    send_to_player(STOP_GAME, winner)
     time.sleep(2)
 
 if __name__ == '__main__':

@@ -16,16 +16,17 @@ TOPIC_ACTION = TOPIC_GLOBAL + "/action" # For actions done by players; player to
 SEP = "___"
 SIGFIG = 1
 
-# Standard Messages
+# Phases
 DIST = "START_DIST"
 ACTION = "START_ACTION"
 VOICE = "START_VOICE"
 
-STOP_GAME = "STOP_GAME"
-STATUS = "STATUS"
+# Other Messages
 ACTION_COUNT = "ACTION_COUNT"
 HIT = "GOT_HIT"
+STATUS = "STATUS"
 DISPLAY = "DISPLAY"
+STOP_GAME = "STOP_GAME"
 
 ####################
 ##  Classes
