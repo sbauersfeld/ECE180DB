@@ -35,6 +35,20 @@ class Player:
         self.name = new_name
         self.top = new_name
 
+    def update_status(self, status=None, lives=None, ammo=None, defense=None):
+        if status:
+            self.lives = status["lives"]
+            self.ammo = status["ammo"]
+            self.defense = status["defense"]
+            return
+
+        if lives:
+            self.lives = lives
+        if ammo:
+            self.ammo = ammo
+        if defense:
+            self.defense = defense
+
     def update_color(self, new_color):
         self.color = new_color
 
@@ -163,7 +177,7 @@ def process_order(order, value1, value2):
         print()
         PLAYER.update_top("Move to new distance!")
         PLAYER.update_color(BLACK)
-        PLAYER.defense = '?'
+        PLAYER.update_status(defense='?')
         D_LOCK.set()
 
     if order == VOICE:
@@ -187,9 +201,7 @@ def process_order(order, value1, value2):
         print(status)
 
         if status["name"] == PLAYER.name:
-            PLAYER.ammo = status["ammo"]
-            PLAYER.lives = status["lives"]
-            PLAYER.defense = status["defense"]
+            PLAYER.update_status(status)
 
     if order == DISPLAY:
         PLAYER.update_bottom(value1)
