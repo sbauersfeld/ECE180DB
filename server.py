@@ -116,7 +116,7 @@ class Player:
             self.ammo = round(self.ammo - required_ammo, SIGFIG)
         else:
             print("ACTION: {} tried to shoot, but failed".format(self.name))
-            send_to_laptop(self.name, "Not enough {}}".format(AMMO))
+            send_to_laptop(self.name, "Not enough {}".format(AMMO))
 
     def block(self):
         print("ACTION: {} blocked!".format(self.name))
