@@ -59,7 +59,7 @@ stark_industries = pygame.transform.scale(stark_industries, (420, 165))
 avengers_logo = pygame.image.load("images/avengers2.png")
 avengers_logo = pygame.transform.scale(avengers_logo, (435, 160))
 
-### Misc ###
+### Text fonts and colors ###
 WHITE = (255, 255, 255)
 RED = (225, 0, 0)
 BLACK = (0, 0, 0)
@@ -147,7 +147,7 @@ class Status(pygame.sprite.Sprite):
         self.rect.centery += ypos
 
 PLAYER = Player()
-OTHER = Player()
+OTHER = Player(lives="?", ammo="?")
 
 
 ####################
@@ -346,6 +346,26 @@ def draw_main(blit_images, labels):
     all_sprites.add((other_ammo, other_lives, other_defense))
     all_sprites.draw(main_surface)
 
+def draw_tutorial(labels, progress_check=False, progress_check2=False):
+    top = Status(PLAYER.top, "text", ypos=-300, hit_change=PLAYER.color)
+    bottom = Status(PLAYER.bottom, "text", ypos=305)
+    all_sprites = pygame.sprite.RenderPlain(top, bottom)
+
+    if progress_check:
+        ammo = Status(PLAYER.ammo, xpos=-400, ypos=10)
+        lives = Status(PLAYER.lives, ypos=10, hit_change=PLAYER.color)
+        defense = Status(PLAYER.defense, xpos=400, ypos=10)
+        all_sprites.add(labels)
+        all_sprites.add((ammo, lives, defense))
+
+    if progress_check2:
+        other_ammo = Status(OTHER.ammo, "other", xpos=-400, ypos=105)
+        other_lives = Status(OTHER.lives, "other", ypos=105)
+        other_defense = Status(OTHER.defense, "other", xpos=400, ypos=105)
+        all_sprites.add((other_ammo, other_lives, other_defense))
+
+    all_sprites.draw(main_surface)
+
 def setup_images():
     # Arc Reactor
     arc_rect = arc_reactor.get_rect()
@@ -430,14 +450,15 @@ def main():
 
     # Finish setup
     game_images, end_images, labels = setup_images()
-    draw_main(game_images, labels)
-    sound_suit_up.play()
-    client.publish(TOPIC_SETUP, name)
 
 
     ####################
     ##  Start Game
     ####################
+
+    draw_main(game_images, labels)
+    sound_suit_up.play()
+    client.publish(TOPIC_SETUP, name)
 
     pygame.mixer.music.load("music/Nimbus2000.ogg")
     # pygame.mixer.music.play(-1, 0.5)
