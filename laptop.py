@@ -63,14 +63,6 @@ YPOS_BOTTOM = round(305 * HEIGHT_FACTOR)
 sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
 sound_shoot = pygame.mixer.Sound("music/Repulsor.ogg")
 
-### Images ###
-arc_reactor = pygame.image.load("images/arc_reactor.png")
-arc_reactor = pygame.transform.scale(arc_reactor, (360, 360))
-stark_industries = pygame.image.load("images/stark_industries2.png")
-stark_industries = pygame.transform.scale(stark_industries, (420, 165))
-avengers_logo = pygame.image.load("images/avengers2.png")
-avengers_logo = pygame.transform.scale(avengers_logo, (435, 160))
-
 ### Text fonts and colors ###
 WHITE = (255, 255, 255)
 RED = (225, 0, 0)
@@ -81,8 +73,8 @@ font_large = pygame.font.SysFont("Helvetica", 120)
 font_big = pygame.font.SysFont("Helvetica", 80)
 font_small = pygame.font.SysFont("Helvetica", 50)
 
-### Text state map ###
-state_map = {
+### Text type map ###
+text_map = {
     Text.NUM : (font_huge, WHITE),
     Text.TEXT : (font_large, WHITE),
     Text.ENEMY : (font_big, GRAY),
@@ -142,14 +134,14 @@ class Player:
         self.update_bottom(new_def)
 
 class Status(pygame.sprite.Sprite):
-    def __init__(self, value, state, xpos, ypos, hit_change=None,
+    def __init__(self, value, text_type, xpos, ypos, hit_change=None,
                 xval=None, yval=None, background=None):
         ### Status information ###
         self.value = str(value)
 
         ### Creating the object ###
         pygame.sprite.Sprite.__init__(self)
-        font, color = state_map.get(state)
+        font, color = text_map.get(text_type)
         if hit_change:
             color = hit_change
         self.image = font.render(self.value, True, color, background)
@@ -382,6 +374,14 @@ def draw_tutorial(labels, progress_check=False, progress_check2=False):
     all_sprites.draw(main_surface)
 
 def setup_images():
+    ### Images ###
+    arc_reactor = pygame.image.load("images/arc_reactor.png")
+    arc_reactor = pygame.transform.scale(arc_reactor, (360, 360))
+    stark_industries = pygame.image.load("images/stark_industries2.png")
+    stark_industries = pygame.transform.scale(stark_industries, (420, 165))
+    avengers_logo = pygame.image.load("images/avengers2.png")
+    avengers_logo = pygame.transform.scale(avengers_logo, (435, 160))
+
     # Arc Reactor
     arc_rect = arc_reactor.get_rect()
     arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
