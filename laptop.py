@@ -65,7 +65,7 @@ class Player:
         self.update_bottom(new_def)
 
 class Status(pygame.sprite.Sprite):
-    def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None, background=(0, 0, 0)):
+    def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None, background=None):
         ### Status information ###
         self.value = str(value)
 
@@ -217,8 +217,7 @@ def process_order_player(order, value1, value2):
         PLAYER.update_bottom("NOW")
 
     if order == STOP_GAME:
-        global GAME_OVER
-        global PLAYER_WIN
+        global GAME_OVER, PLAYER_WIN
         GAME_OVER = True
         PLAYER_WIN = value1
 
@@ -300,16 +299,16 @@ def detect_voice_start(microphone):
 def draw_main():
     main_surface.fill(PLAYER.color)
 
-    top = Status(PLAYER.top, ypos=-275, background=PLAYER.color)
-    bottom = Status(PLAYER.bottom, ypos=250, background=PLAYER.color)
+    top = Status(PLAYER.top, ypos=-275)
+    bottom = Status(PLAYER.bottom, ypos=250)
 
-    ammo = Status(PLAYER.ammo, xpos=-400, ypos=-0, background=PLAYER.color)
-    lives = Status(PLAYER.lives, ypos=-0, background=PLAYER.color)
-    defense = Status(PLAYER.defense, xpos=400, ypos=-0, background=PLAYER.color)
+    ammo = Status(PLAYER.ammo, xpos=-400)
+    lives = Status(PLAYER.lives)
+    defense = Status(PLAYER.defense, xpos=400)
 
-    l_ammo = Status(AMMO, True, xpos=-400, ypos=-75, background=PLAYER.color)
-    l_lives = Status(LIVES, True, ypos=-75, background=PLAYER.color)
-    l_defense = Status(DEFENSE, True, xpos=400, ypos=-75, background=PLAYER.color)
+    l_ammo = Status(AMMO, True, xpos=-400, ypos=-75)
+    l_lives = Status(LIVES, True, ypos=-75)
+    l_defense = Status(DEFENSE, True, xpos=400, ypos=-75)
 
     all_sprites = pygame.sprite.RenderPlain(top, bottom,
                                             ammo, lives, defense,
@@ -341,8 +340,6 @@ def main():
     print("Listening...")
     client.loop_start()
 
-    ### Handle connection with player ###
-
     threads = []
     t_args = {
         detect_distance : [headset],
@@ -353,8 +350,9 @@ def main():
         t.start()
         threads.append(t)
 
-    client.publish(TOPIC_SETUP, name)
+    draw_main()
     sound_suit_up.play()
+    client.publish(TOPIC_SETUP, name)
 
 
     ####################
@@ -363,8 +361,7 @@ def main():
 
     # pygame.mixer.music.play(-1, 0.5)
 
-    global GAME_OVER
-    global PLAYER_WIN
+    global GAME_OVER, PLAYER_WIN
     while not GAME_OVER:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
