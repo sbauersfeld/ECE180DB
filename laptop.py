@@ -37,9 +37,13 @@ pygame.init()
 clock = pygame.time.Clock()
 
 ### Creating the main surface ###
+if platform.system() == "Darwin":
+    pygame_flags = pygame.NOFRAME
+else:
+    pygame_flags = pygame.FULLSCREEN
 WIDTH = 0 # 1280
 HEIGHT = 0 # 780
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) # Or NOFRAME
+main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame_flags)
 main_origin = main_surface.get_rect()
 
 ### Music ###
