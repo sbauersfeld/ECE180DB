@@ -16,6 +16,11 @@ TOPIC_ACTION = TOPIC_GLOBAL + "/action" # For actions done by players; player to
 SEP = "___"
 SIGFIG = None
 
+# Game Labels
+AMMO = "energy"
+LIVES = "health"
+DEFENSE = "distance"
+
 # Game Variables
 LIVES_MAX = round(150.0, SIGFIG)
 DAMAGE_MAX = round(125.0, SIGFIG)

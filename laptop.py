@@ -37,9 +37,9 @@ class Player:
 
     def update_status(self, status=None, lives=None, ammo=None, defense=None):
         if status:
-            self.lives = status["lives"]
-            self.ammo = status["ammo"]
-            self.defense = status["defense"]
+            self.lives = status[LIVES]
+            self.ammo = status[AMMO]
+            self.defense = status[DEFENSE]
             return
 
         if lives:
@@ -177,7 +177,7 @@ def send_action(action, value=""):
 def process_order(order, value1, value2):
     if order == DIST:
         print()
-        PLAYER.update_top("Move to new distance!")
+        PLAYER.update_top("Move to new {}!".format(DEFENSE))
         PLAYER.update_bottom("")
         PLAYER.update_color(BLACK)
         PLAYER.update_status(defense='?')
@@ -307,9 +307,9 @@ def draw_main():
     lives = Status(PLAYER.lives, ypos=-0, background=PLAYER.color)
     defense = Status(PLAYER.defense, xpos=400, ypos=-0, background=PLAYER.color)
 
-    l_ammo = Status("ammo", True, xpos=-400, ypos=-75, background=PLAYER.color)
-    l_lives = Status("health", True, ypos=-75, background=PLAYER.color)
-    l_defense = Status("defense", True, xpos=400, ypos=-75, background=PLAYER.color)
+    l_ammo = Status(AMMO, True, xpos=-400, ypos=-75, background=PLAYER.color)
+    l_lives = Status(LIVES, True, ypos=-75, background=PLAYER.color)
+    l_defense = Status(DEFENSE, True, xpos=400, ypos=-75, background=PLAYER.color)
 
     all_sprites = pygame.sprite.RenderPlain(top, bottom,
                                             ammo, lives, defense,

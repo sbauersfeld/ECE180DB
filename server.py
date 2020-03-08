@@ -61,9 +61,9 @@ class Player:
 
         status = {
             "name" : self.name,
-            "lives" : self.lives,
-            "ammo" : self.ammo,
-            "defense" : self.defense,
+            LIVES : self.lives,
+            AMMO : self.ammo,
+            DEFENSE : self.defense,
         }
 
         output = json.dumps(status)
@@ -116,7 +116,7 @@ class Player:
             self.ammo = round(self.ammo - required_ammo, SIGFIG)
         else:
             print("ACTION: {} tried to shoot, but failed".format(self.name))
-            send_to_laptop(self.name, "Not enough ammo")
+            send_to_laptop(self.name, "Not enough {}}".format(AMMO))
 
     def block(self):
         print("ACTION: {} blocked!".format(self.name))
