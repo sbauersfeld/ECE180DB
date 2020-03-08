@@ -59,7 +59,7 @@ def LED_snake(LED):
     while True:
         for i in range(num_pixels):
             pixels.fill(LED_OFF)
-            for j in [0, 4, 8]:
+            for j in [0, 6]:
                 pixels[i-j-1] = (LED)
                 pixels[i-j] = (LED)
             pixels.show()
@@ -71,7 +71,7 @@ def LED_snake(LED):
 # Commands
 default_command = (LED_show, [LED_RED])
 command_map = {
-    "START" : (LED_show_snake, [LED_RED])
+    "START" : (LED_show_snake, [LED_RED]),
     DIST : default_command,
     ACTION : (LED_snake, [LED_BLUE]),
     "AFTER" : (LED_show, [LED_BLUE]),
@@ -145,7 +145,9 @@ def process_orders(order, value1, value2):
     if order == STOP_GAME:
         global GAME_OVER
         GAME_OVER = True
+
         A_LOCK.set()
+        L_LOCK.set()
 
     if order == PLAYER.name:
         if value1 == HIT:
