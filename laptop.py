@@ -117,6 +117,14 @@ pygame.mixer.music.load("music/Nimbus2000.ogg")
 sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
 sound_shoot = pygame.mixer.Sound("music/Repulsor.ogg")
 
+### Images ###
+arc_reactor = pygame.image.load("images/arc_reactor2.png")
+arc_reactor = pygame.transform.scale(arc_reactor, (360, 360))
+stark_industries = pygame.image.load("images/stark_industries2.png")
+stark_industries = pygame.transform.scale(stark_industries, (420, 165))
+avengers_logo = pygame.image.load("images/avengers2.png")
+avengers_logo = pygame.transform.scale(avengers_logo, (435, 160))
+
 ### Misc ###
 WHITE = (255, 255, 255)
 RED = (225, 0, 0)
@@ -299,16 +307,36 @@ def detect_voice_start(microphone):
 def draw_main():
     main_surface.fill(PLAYER.color)
 
-    top = Status(PLAYER.top, ypos=-275)
-    bottom = Status(PLAYER.bottom, ypos=250)
+    # Arc Reactor
+    arc_rect = arc_reactor.get_rect()
+    arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
+    arc_rect.centery -= 10
+    main_surface.blit(arc_reactor, arc_rect)
 
-    ammo = Status(PLAYER.ammo, xpos=-400)
-    lives = Status(PLAYER.lives)
-    defense = Status(PLAYER.defense, xpos=400)
+    # Stark Industries
+    stark_rect = stark_industries.get_rect()
+    stark_rect.bottomleft = main_origin.bottomleft
+    stark_rect.centerx += 10
+    stark_rect.centery -= 10
+    main_surface.blit(stark_industries, stark_rect)
 
-    l_ammo = Status(AMMO, True, xpos=-400, ypos=-75)
-    l_lives = Status(LIVES, True, ypos=-75)
-    l_defense = Status(DEFENSE, True, xpos=400, ypos=-75)
+    # Avengers Logo
+    avengers_rect = avengers_logo.get_rect()
+    avengers_rect.bottomright = main_origin.bottomright
+    avengers_rect.centerx -= 10
+    avengers_rect.centery -= 10
+    main_surface.blit(avengers_logo, avengers_rect)
+
+    top = Status(PLAYER.top, ypos=-300)
+    bottom = Status(PLAYER.bottom, ypos=305)
+
+    ammo = Status(PLAYER.ammo, xpos=-400, ypos=15)
+    lives = Status(PLAYER.lives, ypos=15)
+    defense = Status(PLAYER.defense, xpos=400, ypos=15)
+
+    l_ammo = Status(AMMO, True, xpos=-400, ypos=-60)
+    l_lives = Status(LIVES, True, ypos=-60)
+    l_defense = Status(DEFENSE, True, xpos=400, ypos=-60)
 
     all_sprites = pygame.sprite.RenderPlain(top, bottom,
                                             ammo, lives, defense,
