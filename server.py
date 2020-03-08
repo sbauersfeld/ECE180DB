@@ -54,16 +54,20 @@ class Player:
     ##  Game State functions
     ####################
 
-    def status(self, console_output=False):
+    def status(self, console_output=False, starting_round=False):
         if console_output:
             output = "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
             return output
+
+        temp_defense = self.defense
+        if starting_round:
+            temp_defense = "?"
 
         status = {
             "name" : self.name,
             LIVES : self.lives,
             AMMO : self.ammo,
-            DEFENSE : self.defense,
+            DEFENSE : temp_defense,
         }
 
         output = json.dumps(status)
@@ -314,6 +318,8 @@ def main():
     winner = ""
     while True:
         # Start new round
+        for name, player in players.items():
+            send_to_laptop(STATUS, player.status(starting_round=True))
         send_to_player(DIST)
         round_num += 1
         print("\nStarting round {0}".format(round_num))

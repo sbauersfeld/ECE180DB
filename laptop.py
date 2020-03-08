@@ -65,14 +65,14 @@ class Player:
         self.update_bottom(new_def)
 
 class Status(pygame.sprite.Sprite):
-    def __init__(self, value="?", title=False, xpos=0, ypos=0, xval=None, yval=None, background=None):
+    def __init__(self, value="?", state="num", xpos=0, ypos=0, background=None, xval=None, yval=None):
         ### Status information ###
         self.value = str(value)
 
         ### Creating the object ###
         pygame.sprite.Sprite.__init__(self)
-        font = font_small if title else font_large
-        self.image = font.render(self.value, True, WHITE, background)
+        font, color = state_map.get(state)
+        self.image = font.render(self.value, True, color, background)
         self.rect = self.image.get_rect()
 
         ### Establishing the location ###
@@ -92,6 +92,7 @@ PLAYER_WIN = ""
 D_LOCK = threading.Event()
 V_LOCK = threading.Event()
 PLAYER = Player()
+OTHER = Player()
 client = mqtt.Client()
 
 ### Voice ###
@@ -117,7 +118,7 @@ sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
 sound_shoot = pygame.mixer.Sound("music/Repulsor.ogg")
 
 ### Images ###
-arc_reactor = pygame.image.load("images/arc_reactor2.png")
+arc_reactor = pygame.image.load("images/arc_reactor.png")
 arc_reactor = pygame.transform.scale(arc_reactor, (360, 360))
 stark_industries = pygame.image.load("images/stark_industries2.png")
 stark_industries = pygame.transform.scale(stark_industries, (420, 165))
@@ -128,9 +129,17 @@ avengers_logo = pygame.transform.scale(avengers_logo, (435, 160))
 WHITE = (255, 255, 255)
 RED = (225, 0, 0)
 BLACK = (0, 0, 0)
-font_large = pygame.font.SysFont("Helvetica", 150)
-font_big = pygame.font.SysFont("Helvetica", 72)
+GRAY = (155, 155, 155)
+font_huge = pygame.font.SysFont("Helvetica", 180)
+font_large = pygame.font.SysFont("Helvetica", 120)
+font_big = pygame.font.SysFont("Helvetica", 80)
 font_small = pygame.font.SysFont("Helvetica", 50)
+state_map = {
+    "num" : (font_huge, WHITE),
+    "text" : (font_large, WHITE),
+    "other" : (font_big, GRAY),
+    "label" : (font_small, WHITE),
+}
 
 
 ####################
@@ -187,7 +196,6 @@ def process_order(order, value1, value2):
         PLAYER.update_top("Move to new {}!".format(DEFENSE))
         PLAYER.update_bottom("...")
         PLAYER.update_color(BLACK)
-        PLAYER.update_status(defense='?')
         D_LOCK.set()
 
     if order == VOICE:
@@ -214,6 +222,11 @@ def process_order(order, value1, value2):
 
         if status["name"] == PLAYER.name:
             PLAYER.update_status(status)
+        elif status["name"] == OTHER.name:
+            OTHER.update_status(status)
+        elif OTHER.name == "":
+            OTHER.update_name(status["name"])
+            OTHER.update_status(status)
 
     if order == DISPLAY:
         PLAYER.update_bottom(value1)
@@ -309,22 +322,26 @@ def draw_main(blit_images, labels):
         image, rect = blit_image
         main_surface.blit(image, rect)
 
-    top = Status(PLAYER.top, ypos=-300)
-    bottom = Status(PLAYER.bottom, ypos=305)
+    top = Status(PLAYER.top, "text", ypos=-300)
+    bottom = Status(PLAYER.bottom, "text", ypos=305)
 
-    ammo = Status(PLAYER.ammo, xpos=-400, ypos=15)
-    lives = Status(PLAYER.lives, ypos=15)
-    defense = Status(PLAYER.defense, xpos=400, ypos=15)
+    ammo = Status(PLAYER.ammo, xpos=-400, ypos=10)
+    lives = Status(PLAYER.lives, ypos=10)
+    defense = Status(PLAYER.defense, xpos=400, ypos=10)
+
+    other_ammo = Status(OTHER.ammo, "other", xpos=-400, ypos=105)
+    other_lives = Status(OTHER.lives, "other", ypos=105)
+    other_defense = Status(OTHER.defense, "other", xpos=400, ypos=105)
 
     all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense)
     all_sprites.add(labels)
+    all_sprites.add((other_ammo, other_lives, other_defense))
     all_sprites.draw(main_surface)
 
 def setup_images():
     # Arc Reactor
     arc_rect = arc_reactor.get_rect()
     arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
-    arc_rect.centery -= 10
 
     # Stark Industries
     stark_rect = stark_industries.get_rect()
@@ -360,9 +377,9 @@ def setup_images():
     end_images = image_game_over, image_winner
 
     # Labels
-    l_ammo = Status(AMMO, True, xpos=-400, ypos=-60)
-    l_lives = Status(LIVES, True, ypos=-60)
-    l_defense = Status(DEFENSE, True, xpos=400, ypos=-60)
+    l_ammo = Status(AMMO, "label", xpos=-400, ypos=-85)
+    l_lives = Status(LIVES, "label", ypos=-85)
+    l_defense = Status(DEFENSE, "label", xpos=400, ypos=-85)
     labels = (l_ammo, l_lives, l_defense)
 
     return game_images, end_images, labels
