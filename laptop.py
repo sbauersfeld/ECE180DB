@@ -113,7 +113,6 @@ main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) # Or 
 main_origin = main_surface.get_rect()
 
 ### Music ###
-pygame.mixer.music.load("music/Nimbus2000.ogg")
 sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
 sound_shoot = pygame.mixer.Sound("music/Repulsor.ogg")
 
@@ -304,28 +303,11 @@ def detect_voice_start(microphone):
 ##  Pygame Functions
 ####################
 
-def draw_main():
+def draw_main(blit_images, labels):
     main_surface.fill(PLAYER.color)
-
-    # Arc Reactor
-    arc_rect = arc_reactor.get_rect()
-    arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
-    arc_rect.centery -= 10
-    main_surface.blit(arc_reactor, arc_rect)
-
-    # Stark Industries
-    stark_rect = stark_industries.get_rect()
-    stark_rect.bottomleft = main_origin.bottomleft
-    stark_rect.centerx += 10
-    stark_rect.centery -= 10
-    main_surface.blit(stark_industries, stark_rect)
-
-    # Avengers Logo
-    avengers_rect = avengers_logo.get_rect()
-    avengers_rect.bottomright = main_origin.bottomright
-    avengers_rect.centerx -= 10
-    avengers_rect.centery -= 10
-    main_surface.blit(avengers_logo, avengers_rect)
+    for blit_image in blit_images:
+        image, rect = blit_image
+        main_surface.blit(image, rect)
 
     top = Status(PLAYER.top, ypos=-300)
     bottom = Status(PLAYER.bottom, ypos=305)
@@ -334,13 +316,8 @@ def draw_main():
     lives = Status(PLAYER.lives, ypos=15)
     defense = Status(PLAYER.defense, xpos=400, ypos=15)
 
-    l_ammo = Status(AMMO, True, xpos=-400, ypos=-60)
-    l_lives = Status(LIVES, True, ypos=-60)
-    l_defense = Status(DEFENSE, True, xpos=400, ypos=-60)
-
-    all_sprites = pygame.sprite.RenderPlain(top, bottom,
-                                            ammo, lives, defense,
-                                            l_ammo, l_lives, l_defense)
+    all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense)
+    all_sprites.add(labels)
     all_sprites.draw(main_surface)
 
 
@@ -364,6 +341,7 @@ def main():
         name = input("Please enter your name: ")
     PLAYER.update_name(name)
     headset = headset_map.get(name, "scott")
+    global GAME_OVER, PLAYER_WIN
 
     print("Listening...")
     client.loop_start()
@@ -378,18 +356,65 @@ def main():
         t.start()
         threads.append(t)
 
-    draw_main()
-    sound_suit_up.play()
-    client.publish(TOPIC_SETUP, name)
+
+    ####################
+    ##  Visuals
+    ####################
+
+    # Arc Reactor
+    arc_rect = arc_reactor.get_rect()
+    arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
+    arc_rect.centery -= 10
+
+    # Stark Industries
+    stark_rect = stark_industries.get_rect()
+    stark_rect.bottomleft = main_origin.bottomleft
+    stark_rect.centerx += 10
+    stark_rect.centery -= 10
+
+    # Avengers Logo
+    avengers_rect = avengers_logo.get_rect()
+    avengers_rect.bottomright = main_origin.bottomright
+    avengers_rect.centerx -= 10
+    avengers_rect.centery -= 10
+
+    # Images
+    image_arc = (arc_reactor, arc_rect)
+    image_stark = (stark_industries, stark_rect)
+    image_avengers = (avengers_logo, avengers_rect)
+    blit_images = (image_arc, image_stark, image_avengers)
+
+    # Labels
+    l_ammo = Status(AMMO, True, xpos=-400, ypos=-60)
+    l_lives = Status(LIVES, True, ypos=-60)
+    l_defense = Status(DEFENSE, True, xpos=400, ypos=-60)
+    labels = (l_ammo, l_lives, l_defense)
+
+    # Game Over Text
+    game_over = font_large.render("GAME OVER", True, WHITE, BLACK)
+    g_o_rect = game_over.get_rect()
+    g_o_rect.centerx = main_origin.centerx
+    g_o_rect.centery = main_origin.centery - 50
+
+    # Winner Text
+    winner = font_small.render("--- {} wins! ---".format(PLAYER_WIN), True, WHITE, BLACK)
+    win_rect = winner.get_rect()
+    win_rect.centerx = g_o_rect.centerx
+    win_rect.centery = g_o_rect.centery + 85
 
 
     ####################
     ##  Start Game
     ####################
 
+    pygame.mixer.music.load("music/Nimbus2000.ogg")
     # pygame.mixer.music.play(-1, 0.5)
 
-    global GAME_OVER, PLAYER_WIN
+    # Finish setup
+    draw_main(blit_images, labels)
+    sound_suit_up.play()
+    client.publish(TOPIC_SETUP, name)
+
     while not GAME_OVER:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
@@ -400,7 +425,7 @@ def main():
                 PLAYER_WIN = PLAYER.name
 
         # Visuals
-        draw_main()
+        draw_main(blit_images, labels)
         
         pygame.display.update()
         clock.tick(12)
@@ -415,16 +440,6 @@ def main():
 
     # Visuals
     print("Finished the game!")
-    game_over = font_large.render("GAME OVER", True, WHITE, BLACK)
-    g_o_rect = game_over.get_rect()
-    g_o_rect.centerx = main_origin.centerx
-    g_o_rect.centery = main_origin.centery - 50
-
-    winner = font_small.render("--- {} wins! ---".format(PLAYER_WIN), True, WHITE, BLACK)
-    win_rect = winner.get_rect()
-    win_rect.centerx = g_o_rect.centerx
-    win_rect.centery = g_o_rect.centery + 85
-
     main_surface.fill(BLACK)
     main_surface.blit(game_over, g_o_rect)
     main_surface.blit(winner, win_rect)
