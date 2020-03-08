@@ -15,13 +15,6 @@ NUM_PLAYERS = 2
 P_LOCK = threading.Event()
 client = mqtt.Client()
 
-# Game Variables
-LIVES_MAX = 150.0
-DAMAGE_MAX = 125.0
-DIST_MAX = 75.0
-DIST_MIN = 0.0
-AMMO_RELOAD = 50.0
-
 
 ####################
 ##  Classes
@@ -38,7 +31,7 @@ class Player:
         self.is_blocking = False
         self.is_hit = False
         self.next_act = None
-        self.damage = 0.0
+        self.damage = 0
 
         # Action handling
         self.process = {
@@ -106,7 +99,7 @@ class Player:
         self.is_blocking = False
         self.is_hit = False
         self.next_act = None
-        self.damage = 0.0
+        self.damage = 0
 
     ####################
     ##  Player Actions
@@ -134,7 +127,7 @@ class Player:
             print("HIT: {} was shot but blocked it!".format(self.name))
         else:
             print("HIT: {} was shot and took damage!".format(self.name))
-            self.lives = round(self.lives - max(self.damage - self.defense, 0.0), SIGFIG)
+            self.lives = round(self.lives - max(self.damage - self.defense, 0), SIGFIG)
             send_to_player(self.name, HIT)
 
     ####################
@@ -143,7 +136,7 @@ class Player:
 
     def update_distance(self, val_string):
         try:
-            new_defense = float(val_string)
+            new_defense = round(float(val_string), SIGFIG)
             self.defense = min(max(new_defense, DIST_MIN), DIST_MAX)
             print("{}'s defense updated to {}".format(self.name, self.defense))
         except ValueError:

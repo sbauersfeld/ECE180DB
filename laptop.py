@@ -18,7 +18,7 @@ from speech_detection.speech_detection import speech_setup, get_speech, get_spee
 ####################
 
 class Player:
-    def __init__(self, name="", lives=150.0, ammo=50.0, defense="?"):
+    def __init__(self, name="", lives=LIVES_MAX, ammo=AMMO_RELOAD, defense="?"):
         # Status
         self.name = name
         self.lives = lives
@@ -247,7 +247,9 @@ def detect_distance(headset):
         
         while timer.isAlive():
             new_val = GetDistance(cap, PLAYER.name, 0.5)
-            PLAYER.update_temp_def(str(round(new_val, SIGFIG)))
+            float_val = float(new_val)  # Necessary since new_val is type np.float64
+                                        # round(new_val, None) does not return an int
+            PLAYER.update_temp_def(str(round(float_val, SIGFIG)))
 
         send_action(Act.DIST, PLAYER.temp_def)
 

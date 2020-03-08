@@ -14,7 +14,14 @@ TOPIC_ACTION = TOPIC_GLOBAL + "/action" # For actions done by players; player to
 
 # Variables
 SEP = "___"
-SIGFIG = 1
+SIGFIG = None
+
+# Game Variables
+LIVES_MAX = round(150.0, SIGFIG)
+DAMAGE_MAX = round(125.0, SIGFIG)
+DIST_MAX = round(75.0, SIGFIG)
+DIST_MIN = round(0.0, SIGFIG)
+AMMO_RELOAD = round(50.0, SIGFIG)
 
 # Phases
 DIST = "START_DIST"
