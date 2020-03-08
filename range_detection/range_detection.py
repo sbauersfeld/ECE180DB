@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import cv2
 import imutils
+import time
 
 player_default = ([160,150,150], [180,255,255], 500)
 player_map = {
@@ -58,10 +59,13 @@ def GetDistance(cap, name="scott", CAP_TIME=1, FPS=30):
 	dist = (KNOWN_HEIGHT * focalLength) / np.median(pixel_heights[:limit])
 	return dist
 
-def TestDistance(name="scott"):
+def TestDistance(name="scott", TIMEOUT=None):
 	cap = cv2.VideoCapture(0)
 	focalLength = player_map.get(name, player_default)[-1]
 	idx = 0
+
+	if TIMEOUT:
+		t_end = time.time() + TIMEOUT
 	while(True):
 		idx += 1
 		_, frame = cap.read()
@@ -81,6 +85,8 @@ def TestDistance(name="scott"):
 
 		cv2.imshow('frame', filtered_frame)
 		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
+		if TIMEOUT and time.time() > t_end:
 			break
 
 	cap.release()

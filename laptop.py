@@ -449,6 +449,14 @@ def main():
     print("Listening...")
     client.loop_start()
 
+    # Finish setup
+    game_images, end_images, labels = setup_images()
+
+
+    ####################
+    ##  Start Game
+    ####################
+
     threads = []
     t_args = {
         detect_distance : [headset],
@@ -458,14 +466,6 @@ def main():
         t = threading.Thread(target=func, args=args, daemon=True)
         t.start()
         threads.append(t)
-
-    # Finish setup
-    game_images, end_images, labels = setup_images()
-
-
-    ####################
-    ##  Start Game
-    ####################
 
     draw_main(game_images, labels)
     sound_suit_up.play()
