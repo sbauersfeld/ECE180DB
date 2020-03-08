@@ -42,10 +42,21 @@ if platform.system() == "Darwin":
     pygame_flags = pygame.NOFRAME
 else:
     pygame_flags = pygame.FULLSCREEN
-WIDTH = 0 # 1280
-HEIGHT = 0 # 780
-main_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame_flags)
+main_surface = pygame.display.set_mode((0, 0), pygame_flags)
 main_origin = main_surface.get_rect()
+
+### Display position ###
+WIDTH, HEIGHT = main_surface.get_size()
+M_WIDTH, M_HEIGHT = 1440, 900
+WIDTH_FACTOR = WIDTH/M_WIDTH
+HEIGHT_FACTOR = HEIGHT/M_HEIGHT
+
+XPOS_SIDE = round(400 * WIDTH_FACTOR)
+YPOS_STATUS = round(10 * HEIGHT_FACTOR)
+YPOS_LABEL = round(-85 * HEIGHT_FACTOR)
+YPOS_OTHER = round(105 * HEIGHT_FACTOR)
+YPOS_TOP = round(-300 * HEIGHT_FACTOR)
+YPOS_BOTTOM = round(305 * HEIGHT_FACTOR)
 
 ### Music ###
 sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
@@ -330,16 +341,16 @@ def draw_main(blit_images, labels):
         image, rect = blit_image
         main_surface.blit(image, rect)
 
-    top = Status(PLAYER.top, "text", ypos=-300, hit_change=PLAYER.color)
-    bottom = Status(PLAYER.bottom, "text", ypos=305)
+    top = Status(PLAYER.top, "text", ypos=YPOS_TOP, hit_change=PLAYER.color)
+    bottom = Status(PLAYER.bottom, "text", ypos=YPOS_BOTTOM)
 
-    ammo = Status(PLAYER.ammo, xpos=-400, ypos=10)
-    lives = Status(PLAYER.lives, ypos=10, hit_change=PLAYER.color)
-    defense = Status(PLAYER.defense, xpos=400, ypos=10)
+    ammo = Status(PLAYER.ammo, xpos=-XPOS_SIDE, ypos=YPOS_STATUS)
+    lives = Status(PLAYER.lives, ypos=YPOS_STATUS, hit_change=PLAYER.color)
+    defense = Status(PLAYER.defense, xpos=XPOS_SIDE, ypos=YPOS_STATUS)
 
-    other_ammo = Status(OTHER.ammo, "other", xpos=-400, ypos=105)
-    other_lives = Status(OTHER.lives, "other", ypos=105)
-    other_defense = Status(OTHER.defense, "other", xpos=400, ypos=105)
+    other_ammo = Status(OTHER.ammo, "other", xpos=-XPOS_SIDE, ypos=YPOS_OTHER)
+    other_lives = Status(OTHER.lives, "other", ypos=YPOS_OTHER)
+    other_defense = Status(OTHER.defense, "other", xpos=XPOS_SIDE, ypos=YPOS_OTHER)
 
     all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense)
     all_sprites.add(labels)
@@ -347,21 +358,21 @@ def draw_main(blit_images, labels):
     all_sprites.draw(main_surface)
 
 def draw_tutorial(labels, progress_check=False, progress_check2=False):
-    top = Status(PLAYER.top, "text", ypos=-300, hit_change=PLAYER.color)
-    bottom = Status(PLAYER.bottom, "text", ypos=305)
+    top = Status(PLAYER.top, "text", ypos=YPOS_TOP, hit_change=PLAYER.color)
+    bottom = Status(PLAYER.bottom, "text", ypos=YPOS_BOTTOM)
     all_sprites = pygame.sprite.RenderPlain(top, bottom)
 
     if progress_check:
-        ammo = Status(PLAYER.ammo, xpos=-400, ypos=10)
-        lives = Status(PLAYER.lives, ypos=10, hit_change=PLAYER.color)
-        defense = Status(PLAYER.defense, xpos=400, ypos=10)
+        ammo = Status(PLAYER.ammo, xpos=-XPOS_SIDE, ypos=YPOS_STATUS)
+        lives = Status(PLAYER.lives, ypos=YPOS_STATUS, hit_change=PLAYER.color)
+        defense = Status(PLAYER.defense, xpos=XPOS_SIDE, ypos=YPOS_STATUS)
         all_sprites.add(labels)
         all_sprites.add((ammo, lives, defense))
 
     if progress_check2:
-        other_ammo = Status(OTHER.ammo, "other", xpos=-400, ypos=105)
-        other_lives = Status(OTHER.lives, "other", ypos=105)
-        other_defense = Status(OTHER.defense, "other", xpos=400, ypos=105)
+        other_ammo = Status(OTHER.ammo, "other", xpos=-XPOS_SIDE, ypos=YPOS_OTHER)
+        other_lives = Status(OTHER.lives, "other", ypos=YPOS_OTHER)
+        other_defense = Status(OTHER.defense, "other", xpos=XPOS_SIDE, ypos=YPOS_OTHER)
         all_sprites.add((other_ammo, other_lives, other_defense))
 
     all_sprites.draw(main_surface)
@@ -405,9 +416,9 @@ def setup_images():
     end_images = image_game_over, image_winner
 
     # Labels
-    l_ammo = Status(AMMO, "label", xpos=-400, ypos=-85)
-    l_lives = Status(LIVES, "label", ypos=-85)
-    l_defense = Status(DEFENSE, "label", xpos=400, ypos=-85)
+    l_ammo = Status(AMMO, "label", xpos=-XPOS_SIDE, ypos=YPOS_LABEL)
+    l_lives = Status(LIVES, "label", ypos=YPOS_LABEL)
+    l_defense = Status(DEFENSE, "label", xpos=XPOS_SIDE, ypos=YPOS_LABEL)
     labels = (l_ammo, l_lives, l_defense)
 
     return game_images, end_images, labels
