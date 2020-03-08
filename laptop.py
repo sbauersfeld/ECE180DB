@@ -52,6 +52,7 @@ WIDTH_FACTOR = WIDTH/M_WIDTH
 HEIGHT_FACTOR = HEIGHT/M_HEIGHT
 
 XPOS_SIDE = round(400 * WIDTH_FACTOR)
+XPOS_ZERO = round(0 * WIDTH_FACTOR)
 YPOS_STATUS = round(10 * HEIGHT_FACTOR)
 YPOS_LABEL = round(-85 * HEIGHT_FACTOR)
 YPOS_OTHER = round(105 * HEIGHT_FACTOR)
@@ -79,11 +80,13 @@ font_huge = pygame.font.SysFont("Helvetica", 180)
 font_large = pygame.font.SysFont("Helvetica", 120)
 font_big = pygame.font.SysFont("Helvetica", 80)
 font_small = pygame.font.SysFont("Helvetica", 50)
+
+### Text state map ###
 state_map = {
-    "num" : (font_huge, WHITE),
-    "text" : (font_large, WHITE),
-    "other" : (font_big, GRAY),
-    "label" : (font_small, WHITE),
+    Text.NUM : (font_huge, WHITE),
+    Text.TEXT : (font_large, WHITE),
+    Text.ENEMY : (font_big, GRAY),
+    Text.LABEL : (font_small, WHITE),
 }
 
 
@@ -139,7 +142,8 @@ class Player:
         self.update_bottom(new_def)
 
 class Status(pygame.sprite.Sprite):
-    def __init__(self, value="?", state="num", xpos=0, ypos=0, hit_change=None, xval=None, yval=None):
+    def __init__(self, value, state, xpos, ypos, hit_change=None,
+                xval=None, yval=None, background=None):
         ### Status information ###
         self.value = str(value)
 
@@ -148,7 +152,7 @@ class Status(pygame.sprite.Sprite):
         font, color = state_map.get(state)
         if hit_change:
             color = hit_change
-        self.image = font.render(self.value, True, color)
+        self.image = font.render(self.value, True, color, background)
         self.rect = self.image.get_rect()
 
         ### Establishing the location ###
@@ -210,16 +214,16 @@ def send_action(action, value=""):
     return ret
 
 def process_order(order, value1, value2):
+    if order == VOICE:
+        PLAYER.update_bottom("Say 'start' to continue...")
+        V_LOCK.set()
+
     if order == DIST:
         print()
         PLAYER.update_top("Move to new {}!".format(DEFENSE))
         PLAYER.update_bottom("...")
         PLAYER.update_color(WHITE)
         D_LOCK.set()
-
-    if order == VOICE:
-        PLAYER.update_bottom("Say 'start' to continue...")
-        V_LOCK.set()
 
     if order == ACTION_COUNT:
         PLAYER.update_top("Get ready...")
@@ -280,7 +284,7 @@ def detect_distance(headset):
     print("Range detection active!")
     D_LOCK.wait()
     while not GAME_OVER:
-        timer = threading.Timer(5, detect_voice_start, [microphone])
+        timer = threading.Timer(5, detect_voice_start, [microphone, start_phrase])
         timer.start()
         
         while timer.isAlive():
@@ -313,15 +317,15 @@ def detect_voice(headset):
             V_LOCK.clear()
         V_LOCK.wait()
 
-def detect_voice_start(microphone):
+def detect_voice_start(microphone, trigger):
     while True:
-        PLAYER.update_top("Say 'start' to continue!")
+        PLAYER.update_top("Say '{}' to continue!".format(trigger[0]))
         recognizer, audio = get_speech2(microphone)
         PLAYER.update_top("Detected voice!")
 
         success, value = translate_speech(recognizer, audio)
         if success:
-            if value in start_phrase:
+            if value in trigger:
                 PLAYER.update_top("Voice registered!")
                 break
             PLAYER.update_top("- {} -".format(value))
@@ -341,39 +345,39 @@ def draw_main(blit_images, labels):
         image, rect = blit_image
         main_surface.blit(image, rect)
 
-    top = Status(PLAYER.top, "text", ypos=YPOS_TOP, hit_change=PLAYER.color)
-    bottom = Status(PLAYER.bottom, "text", ypos=YPOS_BOTTOM)
+    top = Status(PLAYER.top, Text.TEXT, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
+    bottom = Status(PLAYER.bottom, Text.TEXT, XPOS_ZERO, YPOS_BOTTOM)
 
-    ammo = Status(PLAYER.ammo, xpos=-XPOS_SIDE, ypos=YPOS_STATUS)
-    lives = Status(PLAYER.lives, ypos=YPOS_STATUS, hit_change=PLAYER.color)
-    defense = Status(PLAYER.defense, xpos=XPOS_SIDE, ypos=YPOS_STATUS)
+    ammo = Status(PLAYER.ammo, Text.NUM, -XPOS_SIDE, YPOS_STATUS)
+    lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, hit_change=PLAYER.color)
+    defense = Status(PLAYER.defense, Text.NUM, XPOS_SIDE, YPOS_STATUS)
 
-    other_ammo = Status(OTHER.ammo, "other", xpos=-XPOS_SIDE, ypos=YPOS_OTHER)
-    other_lives = Status(OTHER.lives, "other", ypos=YPOS_OTHER)
-    other_defense = Status(OTHER.defense, "other", xpos=XPOS_SIDE, ypos=YPOS_OTHER)
+    enemy_ammo = Status(OTHER.ammo, Text.ENEMY, -XPOS_SIDE, YPOS_OTHER)
+    enemy_lives = Status(OTHER.lives, Text.ENEMY, XPOS_ZERO, YPOS_OTHER)
+    enemy_defense = Status(OTHER.defense, Text.ENEMY, XPOS_SIDE, YPOS_OTHER)
 
     all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense)
     all_sprites.add(labels)
-    all_sprites.add((other_ammo, other_lives, other_defense))
+    all_sprites.add((enemy_ammo, enemy_lives, enemy_defense))
     all_sprites.draw(main_surface)
 
 def draw_tutorial(labels, progress_check=False, progress_check2=False):
-    top = Status(PLAYER.top, "text", ypos=YPOS_TOP, hit_change=PLAYER.color)
-    bottom = Status(PLAYER.bottom, "text", ypos=YPOS_BOTTOM)
+    top = Status(PLAYER.top, Text.TEXT, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
+    bottom = Status(PLAYER.bottom, Text.TEXT, XPOS_ZERO, YPOS_BOTTOM)
     all_sprites = pygame.sprite.RenderPlain(top, bottom)
 
     if progress_check:
-        ammo = Status(PLAYER.ammo, xpos=-XPOS_SIDE, ypos=YPOS_STATUS)
-        lives = Status(PLAYER.lives, ypos=YPOS_STATUS, hit_change=PLAYER.color)
-        defense = Status(PLAYER.defense, xpos=XPOS_SIDE, ypos=YPOS_STATUS)
+        ammo = Status(PLAYER.ammo, Text.NUM, -XPOS_SIDE, YPOS_STATUS)
+        lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, hit_change=PLAYER.color)
+        defense = Status(PLAYER.defense, Text.NUM, XPOS_SIDE, YPOS_STATUS)
         all_sprites.add(labels)
         all_sprites.add((ammo, lives, defense))
 
     if progress_check2:
-        other_ammo = Status(OTHER.ammo, "other", xpos=-XPOS_SIDE, ypos=YPOS_OTHER)
-        other_lives = Status(OTHER.lives, "other", ypos=YPOS_OTHER)
-        other_defense = Status(OTHER.defense, "other", xpos=XPOS_SIDE, ypos=YPOS_OTHER)
-        all_sprites.add((other_ammo, other_lives, other_defense))
+        enemy_ammo = Status(OTHER.ammo, Text.ENEMY, -XPOS_SIDE, YPOS_OTHER)
+        enemy_lives = Status(OTHER.lives, Text.ENEMY, XPOS_ZERO, YPOS_OTHER)
+        enemy_defense = Status(OTHER.defense, Text.ENEMY, XPOS_SIDE, YPOS_OTHER)
+        all_sprites.add((enemy_ammo, enemy_lives, enemy_defense))
 
     all_sprites.draw(main_surface)
 
@@ -416,9 +420,9 @@ def setup_images():
     end_images = image_game_over, image_winner
 
     # Labels
-    l_ammo = Status(AMMO, "label", xpos=-XPOS_SIDE, ypos=YPOS_LABEL)
-    l_lives = Status(LIVES, "label", ypos=YPOS_LABEL)
-    l_defense = Status(DEFENSE, "label", xpos=XPOS_SIDE, ypos=YPOS_LABEL)
+    l_ammo = Status(AMMO, Text.LABEL, -XPOS_SIDE, YPOS_LABEL)
+    l_lives = Status(LIVES, Text.LABEL, XPOS_ZERO, YPOS_LABEL)
+    l_defense = Status(DEFENSE, Text.LABEL, XPOS_SIDE, YPOS_LABEL)
     labels = (l_ammo, l_lives, l_defense)
 
     return game_images, end_images, labels
@@ -451,6 +455,15 @@ def main():
 
     # Finish setup
     game_images, end_images, labels = setup_images()
+
+
+    ####################
+    ##  Tutorial
+    ####################
+
+    # Use TestDistance() to show the camera screen (for 5 seconds?)
+    # Test voice and gesture control
+    # Slowly introduce each display element by draw_tutorial() w/arguments
 
 
     ####################

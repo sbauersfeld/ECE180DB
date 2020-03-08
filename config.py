@@ -51,3 +51,9 @@ class Act(Enum):
     BLOCK = 3
     DIST = 4
     VOICE = 5
+
+class Text(Enum):
+	NUM = 0
+	TEXT = 1
+	ENEMY = 2
+	LABEL = 3
