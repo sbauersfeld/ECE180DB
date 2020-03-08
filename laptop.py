@@ -27,13 +27,13 @@ class Player:
 
         # Display
         self.color = (0, 0, 0)
-        self.top = name
-        self.bottom = ""
+        self.top = "Waiting for server..."
+        self.bottom = name
         self.temp_def = defense
 
     def update_name(self, new_name):
         self.name = new_name
-        self.top = new_name
+        self.bottom = new_name
 
     def update_status(self, status=None, lives=None, ammo=None, defense=None):
         if status:
@@ -186,7 +186,7 @@ def process_order(order, value1, value2):
     if order == DIST:
         print()
         PLAYER.update_top("Move to new {}!".format(DEFENSE))
-        PLAYER.update_bottom("")
+        PLAYER.update_bottom("...")
         PLAYER.update_color(BLACK)
         PLAYER.update_status(defense='?')
         D_LOCK.set()

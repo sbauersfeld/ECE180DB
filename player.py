@@ -59,9 +59,9 @@ def LED_snake(LED):
     while True:
         for i in range(num_pixels):
             pixels.fill(LED_OFF)
-            pixels[i-2] = (LED)
-            pixels[i-1] = (LED)
-            pixels[i] = (LED)
+            for j in [0, 4, 8]:
+                pixels[i-j-1] = (LED)
+                pixels[i-j] = (LED)
             pixels.show()
             time.sleep(.05)
 

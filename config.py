@@ -24,7 +24,7 @@ DEFENSE = "distance"
 # Game Variables
 LIVES_MAX = round(150.0, SIGFIG)
 DAMAGE_MAX = round(125.0, SIGFIG)
-DIST_MAX = round(75.0, SIGFIG)
+DIST_MAX = round(100.0, SIGFIG)
 DIST_MIN = round(0.0, SIGFIG)
 AMMO_RELOAD = round(50.0, SIGFIG)
 
