@@ -14,75 +14,6 @@ from speech_detection.speech_detection import speech_setup, get_speech, get_spee
 
 
 ####################
-##  Classes
-####################
-
-class Player:
-    def __init__(self, name="", lives=LIVES_MAX, ammo=AMMO_RELOAD, defense="?"):
-        # Status
-        self.name = name
-        self.lives = lives
-        self.ammo = ammo
-        self.defense = defense
-
-        # Display
-        self.color = (0, 0, 0)
-        self.top = "Waiting for server..."
-        self.bottom = name
-        self.temp_def = defense
-
-    def update_name(self, new_name):
-        self.name = new_name
-        self.bottom = new_name
-
-    def update_status(self, status=None, lives=None, ammo=None, defense=None):
-        if status:
-            self.lives = status[LIVES]
-            self.ammo = status[AMMO]
-            self.defense = status[DEFENSE]
-            return
-
-        if lives:
-            self.lives = lives
-        if ammo:
-            self.ammo = ammo
-        if defense:
-            self.defense = defense
-
-    def update_color(self, new_color):
-        self.color = new_color
-
-    def update_top(self, new_msg):
-        self.top = new_msg
-        print("TOP: {}".format(new_msg))
-
-    def update_bottom(self, new_msg):
-        self.bottom = new_msg
-        print("BOTTOM: {}".format(new_msg))
-
-    def update_temp_def(self, new_def):
-        self.temp_def = new_def
-        self.update_bottom(new_def)
-
-class Status(pygame.sprite.Sprite):
-    def __init__(self, value="?", state="num", xpos=0, ypos=0, background=None, xval=None, yval=None):
-        ### Status information ###
-        self.value = str(value)
-
-        ### Creating the object ###
-        pygame.sprite.Sprite.__init__(self)
-        font, color = state_map.get(state)
-        self.image = font.render(self.value, True, color, background)
-        self.rect = self.image.get_rect()
-
-        ### Establishing the location ###
-        self.rect.centerx = main_origin.centerx if not xval else xval
-        self.rect.centery = main_origin.centery if not yval else yval
-        self.rect.centerx += xpos
-        self.rect.centery += ypos
-
-
-####################
 ##  Global Variables
 ####################
 
@@ -91,8 +22,6 @@ GAME_OVER = False
 PLAYER_WIN = ""
 D_LOCK = threading.Event()
 V_LOCK = threading.Event()
-PLAYER = Player()
-OTHER = Player()
 client = mqtt.Client()
 
 ### Voice ###
@@ -140,6 +69,80 @@ state_map = {
     "other" : (font_big, GRAY),
     "label" : (font_small, WHITE),
 }
+
+
+####################
+##  Classes
+####################
+
+class Player:
+    def __init__(self, name="", lives=LIVES_MAX, ammo=AMMO_RELOAD, defense="?"):
+        # Status
+        self.name = name
+        self.lives = lives
+        self.ammo = ammo
+        self.defense = defense
+
+        # Display
+        self.color = WHITE
+        self.top = "Waiting for server..."
+        self.bottom = name
+        self.temp_def = defense
+
+    def update_name(self, new_name):
+        self.name = new_name
+        self.bottom = new_name
+
+    def update_status(self, status=None, lives=None, ammo=None, defense=None):
+        if status:
+            self.lives = status[LIVES]
+            self.ammo = status[AMMO]
+            self.defense = status[DEFENSE]
+            return
+
+        if lives:
+            self.lives = lives
+        if ammo:
+            self.ammo = ammo
+        if defense:
+            self.defense = defense
+
+    def update_color(self, new_color):
+        self.color = new_color
+
+    def update_top(self, new_msg):
+        self.top = new_msg
+        print("TOP: {}".format(new_msg))
+
+    def update_bottom(self, new_msg):
+        self.bottom = new_msg
+        print("BOTTOM: {}".format(new_msg))
+
+    def update_temp_def(self, new_def):
+        self.temp_def = new_def
+        self.update_bottom(new_def)
+
+class Status(pygame.sprite.Sprite):
+    def __init__(self, value="?", state="num", xpos=0, ypos=0, hit_change=None, xval=None, yval=None):
+        ### Status information ###
+        self.value = str(value)
+
+        ### Creating the object ###
+        pygame.sprite.Sprite.__init__(self)
+        font, color = state_map.get(state)
+        if hit_change:
+            color = hit_change
+        self.image = font.render(self.value, True, color)
+        self.rect = self.image.get_rect()
+
+        ### Establishing the location ###
+        self.rect.centerx = main_origin.centerx if not xval else xval
+        self.rect.centery = main_origin.centery if not yval else yval
+        self.rect.centerx += xpos
+        self.rect.centery += ypos
+
+PLAYER = Player()
+OTHER = Player()
 
 
 ####################
@@ -195,7 +198,7 @@ def process_order(order, value1, value2):
         print()
         PLAYER.update_top("Move to new {}!".format(DEFENSE))
         PLAYER.update_bottom("...")
-        PLAYER.update_color(BLACK)
+        PLAYER.update_color(WHITE)
         D_LOCK.set()
 
     if order == VOICE:
@@ -317,16 +320,16 @@ def detect_voice_start(microphone):
 ####################
 
 def draw_main(blit_images, labels):
-    main_surface.fill(PLAYER.color)
+    main_surface.fill(BLACK)
     for blit_image in blit_images:
         image, rect = blit_image
         main_surface.blit(image, rect)
 
-    top = Status(PLAYER.top, "text", ypos=-300)
+    top = Status(PLAYER.top, "text", ypos=-300, hit_change=PLAYER.color)
     bottom = Status(PLAYER.bottom, "text", ypos=305)
 
     ammo = Status(PLAYER.ammo, xpos=-400, ypos=10)
-    lives = Status(PLAYER.lives, ypos=10)
+    lives = Status(PLAYER.lives, ypos=10, hit_change=PLAYER.color)
     defense = Status(PLAYER.defense, xpos=400, ypos=10)
 
     other_ammo = Status(OTHER.ammo, "other", xpos=-400, ypos=105)
