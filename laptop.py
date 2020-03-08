@@ -320,6 +320,53 @@ def draw_main(blit_images, labels):
     all_sprites.add(labels)
     all_sprites.draw(main_surface)
 
+def setup_images():
+    # Arc Reactor
+    arc_rect = arc_reactor.get_rect()
+    arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
+    arc_rect.centery -= 10
+
+    # Stark Industries
+    stark_rect = stark_industries.get_rect()
+    stark_rect.bottomleft = main_origin.bottomleft
+    stark_rect.centerx += 10
+    stark_rect.centery -= 10
+
+    # Avengers Logo
+    avengers_rect = avengers_logo.get_rect()
+    avengers_rect.bottomright = main_origin.bottomright
+    avengers_rect.centerx -= 10
+    avengers_rect.centery -= 10
+
+    # Game Over Text
+    game_over = font_large.render("GAME OVER", True, WHITE, BLACK)
+    g_o_rect = game_over.get_rect()
+    g_o_rect.centerx = main_origin.centerx
+    g_o_rect.centery = main_origin.centery - 50
+
+    # Winner Text
+    winner = font_small.render("--- {} wins! ---".format(PLAYER_WIN), True, WHITE, BLACK)
+    win_rect = winner.get_rect()
+    win_rect.centerx = g_o_rect.centerx
+    win_rect.centery = g_o_rect.centery + 85
+
+    # Images
+    image_arc = arc_reactor, arc_rect
+    image_stark = stark_industries, stark_rect
+    image_avengers = avengers_logo, avengers_rect
+    image_game_over = game_over, g_o_rect
+    image_winner = winner, win_rect
+    game_images = image_arc, image_stark, image_avengers
+    end_images = image_game_over, image_winner
+
+    # Labels
+    l_ammo = Status(AMMO, True, xpos=-400, ypos=-60)
+    l_lives = Status(LIVES, True, ypos=-60)
+    l_defense = Status(DEFENSE, True, xpos=400, ypos=-60)
+    labels = (l_ammo, l_lives, l_defense)
+
+    return game_images, end_images, labels
+
 
 ####################
 ##  Main function
@@ -356,51 +403,11 @@ def main():
         t.start()
         threads.append(t)
 
-
-    ####################
-    ##  Visuals
-    ####################
-
-    # Arc Reactor
-    arc_rect = arc_reactor.get_rect()
-    arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
-    arc_rect.centery -= 10
-
-    # Stark Industries
-    stark_rect = stark_industries.get_rect()
-    stark_rect.bottomleft = main_origin.bottomleft
-    stark_rect.centerx += 10
-    stark_rect.centery -= 10
-
-    # Avengers Logo
-    avengers_rect = avengers_logo.get_rect()
-    avengers_rect.bottomright = main_origin.bottomright
-    avengers_rect.centerx -= 10
-    avengers_rect.centery -= 10
-
-    # Images
-    image_arc = (arc_reactor, arc_rect)
-    image_stark = (stark_industries, stark_rect)
-    image_avengers = (avengers_logo, avengers_rect)
-    blit_images = (image_arc, image_stark, image_avengers)
-
-    # Labels
-    l_ammo = Status(AMMO, True, xpos=-400, ypos=-60)
-    l_lives = Status(LIVES, True, ypos=-60)
-    l_defense = Status(DEFENSE, True, xpos=400, ypos=-60)
-    labels = (l_ammo, l_lives, l_defense)
-
-    # Game Over Text
-    game_over = font_large.render("GAME OVER", True, WHITE, BLACK)
-    g_o_rect = game_over.get_rect()
-    g_o_rect.centerx = main_origin.centerx
-    g_o_rect.centery = main_origin.centery - 50
-
-    # Winner Text
-    winner = font_small.render("--- {} wins! ---".format(PLAYER_WIN), True, WHITE, BLACK)
-    win_rect = winner.get_rect()
-    win_rect.centerx = g_o_rect.centerx
-    win_rect.centery = g_o_rect.centery + 85
+    # Finish setup
+    game_images, end_images, labels = setup_images()
+    draw_main(game_images, labels)
+    sound_suit_up.play()
+    client.publish(TOPIC_SETUP, name)
 
 
     ####################
@@ -409,11 +416,6 @@ def main():
 
     pygame.mixer.music.load("music/Nimbus2000.ogg")
     # pygame.mixer.music.play(-1, 0.5)
-
-    # Finish setup
-    draw_main(blit_images, labels)
-    sound_suit_up.play()
-    client.publish(TOPIC_SETUP, name)
 
     while not GAME_OVER:
         for event in pygame.event.get():
@@ -425,7 +427,7 @@ def main():
                 PLAYER_WIN = PLAYER.name
 
         # Visuals
-        draw_main(blit_images, labels)
+        draw_main(game_images, labels)
         
         pygame.display.update()
         clock.tick(12)
@@ -441,8 +443,9 @@ def main():
     # Visuals
     print("Finished the game!")
     main_surface.fill(BLACK)
-    main_surface.blit(game_over, g_o_rect)
-    main_surface.blit(winner, win_rect)
+    for blit_image in end_images:
+        image, rect = blit_image
+        main_surface.blit(image, rect)
 
     done = False
     while not done:
