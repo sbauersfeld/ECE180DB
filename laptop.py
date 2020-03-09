@@ -62,7 +62,7 @@ YPOS_BOTTOM = round(305 * HEIGHT_FACTOR)
 
 ### Music ###
 sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
-sound_shoot = pygame.mixer.Sound("music/Repulsor.ogg")
+sound_shoot = pygame.mixer.Sound("music/Repulsor1.ogg")
 
 ### Text fonts and colors ###
 WHITE = (255, 255, 255)
@@ -340,21 +340,24 @@ def draw_main(blit_images, labels):
 
     top = Status(PLAYER.top, Text.TEXT, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
     bottom = Status(PLAYER.bottom, Text.TEXT, XPOS_ZERO, YPOS_BOTTOM)
+    all_sprites = pygame.sprite.RenderPlain(top, bottom)
 
     ammo = Status(PLAYER.ammo, Text.NUM, -XPOS_SIDE, YPOS_STATUS)
     lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, hit_change=PLAYER.color)
     defense = Status(PLAYER.defense, Text.NUM, XPOS_SIDE, YPOS_STATUS)
+    all_sprites.add(labels)
+    all_sprites.add((ammo, lives, defense))
 
     enemy_ammo = Status(OTHER.ammo, Text.ENEMY, -XPOS_SIDE, YPOS_OTHER)
     enemy_lives = Status(OTHER.lives, Text.ENEMY, XPOS_ZERO, YPOS_OTHER)
     enemy_defense = Status(OTHER.defense, Text.ENEMY, XPOS_SIDE, YPOS_OTHER)
-
-    all_sprites = pygame.sprite.RenderPlain(top, bottom, ammo, lives, defense)
-    all_sprites.add(labels)
     all_sprites.add((enemy_ammo, enemy_lives, enemy_defense))
+
     all_sprites.draw(main_surface)
 
 def draw_tutorial(labels, progress_check=False, progress_check2=False):
+    main_surface.fill(BLACK)
+
     top = Status(PLAYER.top, Text.TEXT, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
     bottom = Status(PLAYER.bottom, Text.TEXT, XPOS_ZERO, YPOS_BOTTOM)
     all_sprites = pygame.sprite.RenderPlain(top, bottom)
@@ -476,6 +479,9 @@ def main():
     ##  Start Game
     ####################
 
+    pygame.mixer.music.load("music/SuitUp2.mp3")
+    pygame.mixer.music.play(0)
+
     threads = []
     t_args = {
         detect_distance : [headset],
@@ -487,7 +493,6 @@ def main():
         threads.append(t)
 
     draw_main(game_images, labels)
-    sound_suit_up.play()
     client.publish(TOPIC_SETUP, name)
 
     while not GAME_OVER:
@@ -513,7 +518,7 @@ def main():
     end_images = setup_images_end()
     pygame.mixer.music.load("music/EndCredits.mp3")
     if PLAYER_WIN == PLAYER.name:
-        pygame.mixer.music.play(-1, 0.5)
+        pygame.mixer.music.play(-1, 1)
 
     # Visuals
     print("Finished the game!")
