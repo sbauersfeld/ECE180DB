@@ -162,8 +162,16 @@ class Status(pygame.sprite.Sprite):
         self.rect.centerx += xpos
         self.rect.centery += ypos
 
+class Tutorial:
+    def __init__(self):
+        pass
+
+    def next():
+        pass
+
 PLAYER = Player()
 OTHER = Player(lives="", ammo="", defense="")
+TUTORIAL = Tutorial()
 
 
 ####################
@@ -385,6 +393,33 @@ def draw_display(blit_images=(), labels=(), enable_status=True, enable_enemy=Tru
 def draw_tutorial(blit_images=(), labels=(), progress_check=False, progress_check2=False):
     draw_display(blit_images, labels, progress_check, progress_check2)
 
+def hold_splash(images, vel=5, d_max=225, d_min=440, fade_out=300):
+    sound_activate.play()
+    count, alpha = 0, 0
+
+    SPLASH_OVER = False
+    while not SPLASH_OVER:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
+                SPLASH_OVER = True
+
+        main_surface.fill(BLACK)
+        image, rect = images[0]
+        image.set_alpha(alpha)
+        main_surface.blit(image,rect)
+
+        count += vel
+        alpha = count
+        if count >= d_min:
+            SPLASH_OVER = True
+        elif count >= fade_out:
+            alpha = d_max - (count-fade_out)
+        elif count >= d_max:
+            alpha = d_max
+
+        pygame.display.update()
+        clock.tick(60)
+
 def setup_images():
     ### Pictures ###
     arc_reactor = pygame.image.load("images/arc_reactor1.png")
@@ -393,10 +428,14 @@ def setup_images():
     stark_industries = pygame.transform.scale(stark_industries, (420, 165))
     avengers_logo = pygame.image.load("images/avengers2.png")
     avengers_logo = pygame.transform.scale(avengers_logo, (435, 160))
+    arc_reactor_fade = pygame.image.load("images/arc_reactor0.png").convert()
+    arc_reactor_fade = pygame.transform.scale(arc_reactor_fade, (360, 360))
 
     # Arc Reactor
     arc_rect = arc_reactor.get_rect()
     arc_rect.centerx, arc_rect.centery = main_origin.centerx, main_origin.centery
+    fade_rect = arc_reactor_fade.get_rect()
+    fade_rect.centerx, fade_rect.centery = main_origin.centerx, main_origin.centery
 
     # Stark Industries
     stark_rect = stark_industries.get_rect()
@@ -417,7 +456,9 @@ def setup_images():
     game_images = image_arc, image_stark, image_avengers
 
     # Tutorial Images
-    tutorial_images = ()
+    image_arc_fade = arc_reactor_fade, fade_rect
+    splash_images = image_arc_fade,
+    tutorial_images = image_arc,
 
     # Labels
     l_ammo = Status(AMMO, Text.LABEL, -XPOS_SIDE, YPOS_LABEL)
@@ -425,7 +466,7 @@ def setup_images():
     l_defense = Status(DEFENSE, Text.LABEL, XPOS_SIDE, YPOS_LABEL)
     labels = (l_ammo, l_lives, l_defense)
 
-    return game_images, labels, tutorial_images
+    return game_images, labels, tutorial_images, splash_images
 
 def setup_images_end():
     # Game Over Text
@@ -465,7 +506,8 @@ def main():
         time.sleep(0.25)
         name = sys.argv[1].lower()
     else:
-        name = input("Please enter your name: ")
+        print("Please input a name!")
+        sys.exit()
     PLAYER.update_name(name)
     headset = headset_map.get(name)
     global GAME_OVER, PLAYER_WIN
@@ -475,12 +517,15 @@ def main():
 
     # Finish setup
     threads = []
-    game_images, labels, tutorial_images = setup_images()
+    game_images, labels, tutorial_images, splash_images = setup_images()
 
 
     ####################
     ##  Tutorial
     ####################
+
+    hold_splash(splash_images)
+    PLAYER.update_bottom("Hello!")
 
     t_args = {}
     for func, args in t_args.items():
