@@ -28,7 +28,7 @@ client = mqtt.Client()
 ### Voice ###
 start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
                 "search", "bikes", "strikes", "starks", "steps", "stopped",
-                "art"]
+                "art", "starts"]
 headset_map = {
     "scott" : "Headset (SoundBuds Slim Hands-F",
     "jon" : "SP620",
@@ -106,13 +106,12 @@ class Player:
 
         # Display
         self.color = WHITE
-        self.top = "Waiting for server..."
-        self.bottom = name
+        self.top = ""
+        self.bottom = ""
         self.temp_def = defense
 
     def update_name(self, new_name):
         self.name = new_name
-        self.bottom = new_name
 
     def update_status(self, status=None, lives=None, ammo=None, defense=None):
         if status:
@@ -232,6 +231,8 @@ def process_order(order, value1, value2):
         PLAYER.update_bottom("action in {}".format(value1))
 
     if order == PLAYER.name:
+        # Add if statements here for individual
+
         try:
             action = Act[value1]
             print("Received action: {}".format(action))
@@ -239,6 +240,7 @@ def process_order(order, value1, value2):
                 PLAYER.update_top("")
                 PLAYER.update_bottom(action.name)
         except KeyError:
+            # For individual display messages
             PLAYER.update_bottom(value1)        
 
     if order == STATUS:
@@ -254,6 +256,7 @@ def process_order(order, value1, value2):
             OTHER.update_status(status)
 
     if order == DISPLAY:
+        # For display messages to all
         PLAYER.update_bottom(value1)
 
 def process_order_player(order, value1, value2):
@@ -279,19 +282,19 @@ def process_order_player(order, value1, value2):
 ##  Functions
 ####################
 
-def detect_voice(microphone, trigger=[]):
-    PLAYER.update_top("Say '{}' to continue!".format(trigger[0]))
+def detect_voice(microphone, trigger=[], print_func=PLAYER.update_top):
+    print_func("Say '{}' to continue!".format(trigger[0]))
     recognizer, audio = get_speech2(microphone)
-    PLAYER.update_top("Detected voice!")
+    print_func("Detected voice!")
 
     success, value = translate_speech(recognizer, audio)
     if success:
         if not trigger or value in trigger:
-            PLAYER.update_top("Voice registered!")
+            print_func("Voice registered!")
             return value
-        PLAYER.update_top("- {} -".format(value))
+        print_func("- {} -".format(value))
     else:
-        PLAYER.update_top(value)
+        print_func(value)
 
     return None
 
@@ -496,6 +499,8 @@ def main():
         t.start()
         threads.append(t)
 
+    PLAYER.update_top("Waiting for server...")
+    PLAYER.update_bottom(name)
     draw_display(game_images, labels)
     client.publish(TOPIC_SETUP, name)
 

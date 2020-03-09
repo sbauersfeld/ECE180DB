@@ -56,7 +56,7 @@ class Player:
 
     def status(self, console_output=False, starting_round=False):
         if console_output:
-            output = "{} : {} l, {} a, {} d".format(self.name, self.lives, self.ammo, self.defense)
+            output = "{} : {} a, {} l, {} d".format(self.name, self.ammo, self.lives, self.defense)
             return output
 
         temp_defense = self.defense
