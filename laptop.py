@@ -311,6 +311,29 @@ def detect_voice(microphone, trigger=[], print_func=PLAYER.update_top):
 ##  Threads
 ####################
 
+def detect_for_trigger(microphone, trigger):
+    while True:
+        ret = detect_voice(microphone, trigger)
+        if ret is not None:
+            break
+
+        time.sleep(1.5)
+
+def detect_voice_tutorial(headset):
+    microphone = speech_setup(headset)
+
+    print("Speech detection active!")
+    V_LOCK.wait()
+    while not GAME_OVER:
+        get_speech(microphone, start_phrase)
+
+        PLAYER.update_bottom("Voice registered")
+        send_action(Act.VOICE)
+
+        if not GAME_OVER:
+            V_LOCK.clear()
+        V_LOCK.wait()
+
 def detect_distance(headset):
     cap = cv2.VideoCapture(0)
     cap_setting = camera_map.get(PLAYER.name, camera_default)
@@ -336,29 +359,6 @@ def detect_distance(headset):
 
     cap.release()
     cv2.destroyAllWindows()
-
-def detect_voice_tutorial(headset):
-    microphone = speech_setup(headset)
-
-    print("Speech detection active!")
-    V_LOCK.wait()
-    while not GAME_OVER:
-        get_speech(microphone, start_phrase)
-
-        PLAYER.update_bottom("Voice registered")
-        send_action(Act.VOICE)
-
-        if not GAME_OVER:
-            V_LOCK.clear()
-        V_LOCK.wait()
-
-def detect_for_trigger(microphone, trigger):
-    while True:
-        ret = detect_voice(microphone, trigger)
-        if ret is not None:
-            break
-
-        time.sleep(1.5)
 
 
 ####################
@@ -549,7 +549,7 @@ def main():
 
         # Camera
         if test_camera:
-            passTestDistance(camera_map.get(PLAYER.name, camera_default), 5)
+            TestDistance(camera_map.get(PLAYER.name, camera_default), 5)
 
         # Check for sound
         if channel.get_busy():
