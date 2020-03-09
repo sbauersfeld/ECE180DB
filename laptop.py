@@ -34,6 +34,15 @@ headset_map = {
     "jon" : "SP620",
 }
 
+### Camera ###
+camera_default = ([160,150,150], [180,255,255], 500)
+camera_map = {
+    "scott" :   ([160,150,150], [180,255,255], 500),
+    "jon" :     ([160,50,50],   [180,255,255], 1000),
+    "wilson" :  ([160,150,150], [180,255,255], 500),
+    "jesse" :   ([160,150,150], [180,255,255], 500)
+}
+
 ### Pygame ###
 pygame.init()
 clock = pygame.time.Clock()
@@ -272,6 +281,7 @@ def process_order_player(order, value1, value2):
 
 def detect_distance(headset):
     cap = cv2.VideoCapture(0)
+    cap_setting = camera_map.get(PLAYER.name, camera_default)
     microphone = speech_setup(headset)
 
     print("Range detection active!")
@@ -281,7 +291,7 @@ def detect_distance(headset):
         timer.start()
         
         while timer.isAlive():
-            new_val = GetDistance(cap, PLAYER.name, 0.5)
+            new_val = GetDistance(cap, cap_setting, 0.5)
             float_val = float(new_val)  # Necessary since new_val is type np.float64
                                         # round(new_val, None) does not return an int
             PLAYER.update_temp_def(str(round(float_val, SIGFIG)))
@@ -439,7 +449,7 @@ def main():
     else:
         name = input("Please enter your name: ")
     PLAYER.update_name(name)
-    headset = headset_map.get(name, "scott")
+    headset = headset_map.get(name)
     global GAME_OVER, PLAYER_WIN
 
     print("Listening...")
@@ -468,7 +478,6 @@ def main():
     threads = []
     t_args = {
         detect_distance : [headset],
-        # detect_voice : [headset],
     }
     for func, args in t_args.items():
         t = threading.Thread(target=func, args=args, daemon=True)

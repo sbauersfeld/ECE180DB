@@ -12,11 +12,11 @@ player_map = {
 	"jesse" : 	([160,150,150], [180,255,255], 500)
 }
 
-def filter_color(frame, name):
+def filter_color(frame, settings):
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-	lower_red = np.array(player_map.get(name, player_default)[0])
-	upper_red = np.array(player_map.get(name, player_default)[1])
+	lower_red = np.array(settings[0])
+	upper_red = np.array(settings[1])
 	mask = cv2.inRange(hsv, lower_red, upper_red)
 
 	res = cv2.bitwise_and(frame, frame, mask=mask)
@@ -37,16 +37,16 @@ def find_marker(image):
 # initialize the known object width
 KNOWN_HEIGHT = 4.0
 
-def GetDistance(cap, name="scott", CAP_TIME=1, FPS=30):
+def GetDistance(cap, settings=player_default, CAP_TIME=1, FPS=30):
 	CAP_COUNT = int(FPS * CAP_TIME)
-	focalLength = player_map.get(name, player_default)[-1]
+	focalLength = settings[-1]
 	pixel_heights = np.zeros(CAP_COUNT)
 	limit = 0
 	pixel_idx = 0
 	for _ in range(CAP_COUNT):
 		_, frame = cap.read()
 
-		filtered_frame = filter_color(frame, name)
+		filtered_frame = filter_color(frame, settings)
 		marker, _ = find_marker(filtered_frame)
 
 		if len(marker) != 0:
@@ -59,9 +59,9 @@ def GetDistance(cap, name="scott", CAP_TIME=1, FPS=30):
 	dist = (KNOWN_HEIGHT * focalLength) / np.median(pixel_heights[:limit])
 	return dist
 
-def TestDistance(name="scott", TIMEOUT=None):
+def TestDistance(settings=player_default, TIMEOUT=None):
 	cap = cv2.VideoCapture(0)
-	focalLength = player_map.get(name, player_default)[-1]
+	focalLength = settings[-1]
 	idx = 0
 
 	if TIMEOUT:
@@ -70,7 +70,7 @@ def TestDistance(name="scott", TIMEOUT=None):
 		idx += 1
 		_, frame = cap.read()
 
-		filtered_frame = filter_color(frame, name)
+		filtered_frame = filter_color(frame, settings)
 		marker, _ = find_marker(filtered_frame)
 
 		if len(marker) != 0:
@@ -94,4 +94,5 @@ def TestDistance(name="scott", TIMEOUT=None):
 
 if __name__ == "__main__":
 	name = sys.argv[1] if len(sys.argv) == 2 else "scott"
-	TestDistance(name)
+	settings = player_map.get(name, player_default)
+	TestDistance(settings)
