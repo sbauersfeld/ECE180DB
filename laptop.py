@@ -159,7 +159,7 @@ OTHER = Player(lives="", ammo="", defense="")
 
 
 ####################
-##  MQTT callback functions
+##  MQTT Functions
 ####################
 
 def on_message(client, userdata, msg):
@@ -194,17 +194,17 @@ def on_message_player(client, userdata, msg):
 
     process_order_player(order, value1, value2)
 
-
-####################
-##  Functions
-####################
-
 def send_action(action, value=""):
     message = SEP.join([PLAYER.name, action.name, value])
     ret = client.publish(TOPIC_ACTION, message)
 
     print("Sent: {}".format(message))
     return ret
+
+
+####################
+##  Functions
+####################
 
 def process_order(order, value1, value2):
     if order == VOICE:
@@ -332,7 +332,7 @@ def detect_voice_start(microphone, trigger):
 ##  Pygame Functions
 ####################
 
-def draw_main(blit_images, labels):
+def draw_display(blit_images=(), labels=(), enable_status=True, enable_enemy=True):
     main_surface.fill(BLACK)
     for blit_image in blit_images:
         image, rect = blit_image
@@ -342,34 +342,14 @@ def draw_main(blit_images, labels):
     bottom = Status(PLAYER.bottom, Text.TEXT, XPOS_ZERO, YPOS_BOTTOM)
     all_sprites = pygame.sprite.RenderPlain(top, bottom)
 
-    ammo = Status(PLAYER.ammo, Text.NUM, -XPOS_SIDE, YPOS_STATUS)
-    lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, hit_change=PLAYER.color)
-    defense = Status(PLAYER.defense, Text.NUM, XPOS_SIDE, YPOS_STATUS)
-    all_sprites.add(labels)
-    all_sprites.add((ammo, lives, defense))
-
-    enemy_ammo = Status(OTHER.ammo, Text.ENEMY, -XPOS_SIDE, YPOS_OTHER)
-    enemy_lives = Status(OTHER.lives, Text.ENEMY, XPOS_ZERO, YPOS_OTHER)
-    enemy_defense = Status(OTHER.defense, Text.ENEMY, XPOS_SIDE, YPOS_OTHER)
-    all_sprites.add((enemy_ammo, enemy_lives, enemy_defense))
-
-    all_sprites.draw(main_surface)
-
-def draw_tutorial(labels, progress_check=False, progress_check2=False):
-    main_surface.fill(BLACK)
-
-    top = Status(PLAYER.top, Text.TEXT, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
-    bottom = Status(PLAYER.bottom, Text.TEXT, XPOS_ZERO, YPOS_BOTTOM)
-    all_sprites = pygame.sprite.RenderPlain(top, bottom)
-
-    if progress_check:
+    if enable_status:
         ammo = Status(PLAYER.ammo, Text.NUM, -XPOS_SIDE, YPOS_STATUS)
         lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, hit_change=PLAYER.color)
         defense = Status(PLAYER.defense, Text.NUM, XPOS_SIDE, YPOS_STATUS)
         all_sprites.add(labels)
         all_sprites.add((ammo, lives, defense))
 
-    if progress_check2:
+    if enable_enemy:
         enemy_ammo = Status(OTHER.ammo, Text.ENEMY, -XPOS_SIDE, YPOS_OTHER)
         enemy_lives = Status(OTHER.lives, Text.ENEMY, XPOS_ZERO, YPOS_OTHER)
         enemy_defense = Status(OTHER.defense, Text.ENEMY, XPOS_SIDE, YPOS_OTHER)
@@ -377,9 +357,12 @@ def draw_tutorial(labels, progress_check=False, progress_check2=False):
 
     all_sprites.draw(main_surface)
 
+def draw_tutorial(labels=(), progress_check=False, progress_check2=False):
+    draw_display((), labels, progress_check, progress_check2)
+
 def setup_images():
     ### Pictures ###
-    arc_reactor = pygame.image.load("images/arc_reactor.png")
+    arc_reactor = pygame.image.load("images/arc_reactor1.png")
     arc_reactor = pygame.transform.scale(arc_reactor, (360, 360))
     stark_industries = pygame.image.load("images/stark_industries2.png")
     stark_industries = pygame.transform.scale(stark_industries, (420, 165))
@@ -492,7 +475,7 @@ def main():
         t.start()
         threads.append(t)
 
-    draw_main(game_images, labels)
+    draw_display(game_images, labels)
     client.publish(TOPIC_SETUP, name)
 
     while not GAME_OVER:
@@ -505,7 +488,7 @@ def main():
                 PLAYER_WIN = PLAYER.name
 
         # Visuals
-        draw_main(game_images, labels)
+        draw_display(game_images, labels)
         
         pygame.display.update()
         clock.tick(12)

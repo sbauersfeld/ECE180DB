@@ -131,7 +131,8 @@ class Player:
             print("HIT: {} was shot but blocked it!".format(self.name))
         else:
             print("HIT: {} was shot and took damage!".format(self.name))
-            self.lives = round(self.lives - max(self.damage - self.defense, 0), SIGFIG)
+            new_lives = self.lives - max(self.damage - self.defense, 0)
+            self.lives = round(max(new_lives, 0), SIGFIG)
             send_to_player(self.name, HIT)
 
     ####################
@@ -173,7 +174,7 @@ class Player:
 
 
 ####################
-##  MQTT functions
+##  MQTT Functions
 ####################
 
 def on_message(client, userdata, msg):
@@ -341,6 +342,9 @@ def main():
         for t in threads:
             t.join()
 
+        # Give time to process round
+        time.sleep(3)
+
         # Check game state
         alive = [player for (name,player) in players.items() if not player.is_dead()]
         if len(alive) == 1 and NUM_PLAYERS > 1:
@@ -351,8 +355,6 @@ def main():
             print("\nDRAW! There are no remaining players.")
             winner = "Nobody"
             break
-
-        time.sleep(3)
 
     # End Game
     send_to_player(STOP_GAME, winner)

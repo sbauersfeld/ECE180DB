@@ -106,7 +106,7 @@ PLAYER = Player()
 
 
 ####################
-##  Functions
+##  MQTT Functions
 ####################
 
 def on_message(client, userdata, msg):
@@ -133,6 +133,11 @@ def send_action(action, value=""):
 
     print("Sent: {}".format(message))
     return ret
+
+
+####################
+##  Functions
+####################
 
 def process_orders(order, value1, value2):
     if order == DIST:
