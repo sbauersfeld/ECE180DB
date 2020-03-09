@@ -10,7 +10,7 @@ from pygame.locals import *
 import numpy as np
 import cv2
 import imutils
-from range_detection.range_detection import GetDistance
+from range_detection.range_detection import GetDistance, TestDistance
 from speech_detection.speech_detection import speech_setup, get_speech, get_speech2, translate_speech
 
 
@@ -70,7 +70,7 @@ YPOS_TOP = round(-300 * HEIGHT_FACTOR)
 YPOS_BOTTOM = round(305 * HEIGHT_FACTOR)
 
 ### Music ###
-sound_suit_up = pygame.mixer.Sound("music/SuitUp.ogg")
+sound_intro = pygame.mixer.Sound("music/SuitUp.ogg")
 sound_shoot = pygame.mixer.Sound("music/Repulsor1.ogg")
 
 ### Text fonts and colors ###
@@ -382,8 +382,8 @@ def draw_display(blit_images=(), labels=(), enable_status=True, enable_enemy=Tru
 
     all_sprites.draw(main_surface)
 
-def draw_tutorial(labels=(), progress_check=False, progress_check2=False):
-    draw_display((), labels, progress_check, progress_check2)
+def draw_tutorial(blit_images=(), labels=(), progress_check=False, progress_check2=False):
+    draw_display(blit_images, labels, progress_check, progress_check2)
 
 def setup_images():
     ### Pictures ###
@@ -416,13 +416,16 @@ def setup_images():
     image_avengers = avengers_logo, avengers_rect
     game_images = image_arc, image_stark, image_avengers
 
+    # Tutorial Images
+    tutorial_images = ()
+
     # Labels
     l_ammo = Status(AMMO, Text.LABEL, -XPOS_SIDE, YPOS_LABEL)
     l_lives = Status(LIVES, Text.LABEL, XPOS_ZERO, YPOS_LABEL)
     l_defense = Status(DEFENSE, Text.LABEL, XPOS_SIDE, YPOS_LABEL)
     labels = (l_ammo, l_lives, l_defense)
 
-    return game_images, labels
+    return game_images, labels, tutorial_images
 
 def setup_images_end():
     # Game Over Text
@@ -471,26 +474,55 @@ def main():
     client.loop_start()
 
     # Finish setup
-    game_images, labels = setup_images()
+    threads = []
+    game_images, labels, tutorial_images = setup_images()
 
 
     ####################
     ##  Tutorial
     ####################
 
-    # Use TestDistance() to show the camera screen (for 5 seconds?)
-    # Test voice and gesture control
-    # Slowly introduce each display element by draw_tutorial() w/arguments
+    t_args = {}
+    for func, args in t_args.items():
+        t = threading.Thread(target=func, args=args, daemon=True)
+        t.start()
+        threads.append(t)
+
+    channel = sound_intro.play()
+    test_camera = False ### Change this ###
+
+    TUTORIAL_OVER = False
+    while not TUTORIAL_OVER:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
+                TUTORIAL_OVER = True
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                TUTORIAL_OVER = True
+
+        # Visuals
+        draw_tutorial(tutorial_images, labels)
+
+        # Camera
+        if test_camera:
+            passTestDistance(camera_map.get(PLAYER.name, camera_default), 5)
+
+        # Check for sound
+        if channel.get_busy():
+            TUTORIAL_OVER = False
+        
+        pygame.display.update()
+        clock.tick(60)
+
+    ### This should apply after each while loop lol ###
+    for t in threads:
+        t.join()
+    threads.clear()
 
 
     ####################
     ##  Start Game
     ####################
 
-    pygame.mixer.music.load("music/SuitUp2.mp3")
-    pygame.mixer.music.play(0)
-
-    threads = []
     t_args = {
         detect_distance : [headset],
     }
@@ -501,7 +533,8 @@ def main():
 
     PLAYER.update_top("Waiting for server...")
     PLAYER.update_bottom(name)
-    draw_display(game_images, labels)
+    pygame.mixer.music.load("music/SuitUp2.mp3")
+    pygame.mixer.music.play(0)
     client.publish(TOPIC_SETUP, name)
 
     while not GAME_OVER:
@@ -536,14 +569,14 @@ def main():
         image, rect = blit_image
         main_surface.blit(image, rect)
 
-    done = False
-    while not done:
+    END_OVER = False
+    while not END_OVER:
         # Quit conditions
         for event in pygame.event.get():
             if event.type == QUIT:
-                done = True
+                END_OVER = True
             if event.type == KEYDOWN and event.key == K_ESCAPE:
-                done = True
+                END_OVER = True
 
         # Visuals
         pygame.display.update()
