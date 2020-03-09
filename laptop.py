@@ -20,14 +20,15 @@ from speech_detection.speech_detection import speech_setup, get_speech, get_spee
 
 ### GameStuff ###
 GAME_OVER = False
-PLAYER_WIN = ""
+PLAYER_WIN = "Nobody"
 D_LOCK = threading.Event()
 V_LOCK = threading.Event()
 client = mqtt.Client()
 
 ### Voice ###
 start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
-                "search", "bikes", "strikes", "starks"]
+                "search", "bikes", "strikes", "starks", "steps", "stopped",
+                "art"]
 headset_map = {
     "scott" : "Headset (SoundBuds Slim Hands-F",
     "jon" : "SP620",
@@ -154,7 +155,7 @@ class Status(pygame.sprite.Sprite):
         self.rect.centery += ypos
 
 PLAYER = Player()
-OTHER = Player(lives="?", ammo="?")
+OTHER = Player(lives="", ammo="", defense="")
 
 
 ####################
@@ -374,7 +375,7 @@ def draw_tutorial(labels, progress_check=False, progress_check2=False):
     all_sprites.draw(main_surface)
 
 def setup_images():
-    ### Images ###
+    ### Pictures ###
     arc_reactor = pygame.image.load("images/arc_reactor.png")
     arc_reactor = pygame.transform.scale(arc_reactor, (360, 360))
     stark_industries = pygame.image.load("images/stark_industries2.png")
@@ -398,6 +399,21 @@ def setup_images():
     avengers_rect.centerx -= 10
     avengers_rect.centery -= 10
 
+    # Images
+    image_arc = arc_reactor, arc_rect
+    image_stark = stark_industries, stark_rect
+    image_avengers = avengers_logo, avengers_rect
+    game_images = image_arc, image_stark, image_avengers
+
+    # Labels
+    l_ammo = Status(AMMO, Text.LABEL, -XPOS_SIDE, YPOS_LABEL)
+    l_lives = Status(LIVES, Text.LABEL, XPOS_ZERO, YPOS_LABEL)
+    l_defense = Status(DEFENSE, Text.LABEL, XPOS_SIDE, YPOS_LABEL)
+    labels = (l_ammo, l_lives, l_defense)
+
+    return game_images, labels
+
+def setup_images_end():
     # Game Over Text
     game_over = font_large.render("GAME OVER", True, WHITE, BLACK)
     g_o_rect = game_over.get_rect()
@@ -411,21 +427,11 @@ def setup_images():
     win_rect.centery = g_o_rect.centery + 85
 
     # Images
-    image_arc = arc_reactor, arc_rect
-    image_stark = stark_industries, stark_rect
-    image_avengers = avengers_logo, avengers_rect
     image_game_over = game_over, g_o_rect
     image_winner = winner, win_rect
-    game_images = image_arc, image_stark, image_avengers
     end_images = image_game_over, image_winner
 
-    # Labels
-    l_ammo = Status(AMMO, Text.LABEL, -XPOS_SIDE, YPOS_LABEL)
-    l_lives = Status(LIVES, Text.LABEL, XPOS_ZERO, YPOS_LABEL)
-    l_defense = Status(DEFENSE, Text.LABEL, XPOS_SIDE, YPOS_LABEL)
-    labels = (l_ammo, l_lives, l_defense)
-
-    return game_images, end_images, labels
+    return end_images
 
 
 ####################
@@ -454,7 +460,7 @@ def main():
     client.loop_start()
 
     # Finish setup
-    game_images, end_images, labels = setup_images()
+    game_images, labels = setup_images()
 
 
     ####################
@@ -484,9 +490,6 @@ def main():
     sound_suit_up.play()
     client.publish(TOPIC_SETUP, name)
 
-    pygame.mixer.music.load("music/Nimbus2000.ogg")
-    # pygame.mixer.music.play(-1, 0.5)
-
     while not GAME_OVER:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
@@ -507,8 +510,10 @@ def main():
     ##  End Game
     ####################
 
-    pygame.mixer.music.load("music/LeavingHogwarts.ogg")
-    # pygame.mixer.music.play(-1, 0.5)
+    end_images = setup_images_end()
+    pygame.mixer.music.load("music/EndCredits.mp3")
+    if PLAYER_WIN == PLAYER.name:
+        pygame.mixer.music.play(-1, 0.5)
 
     # Visuals
     print("Finished the game!")
