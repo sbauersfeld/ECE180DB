@@ -227,28 +227,8 @@ def send_to_player(order, value1="", value2=""):
 
 
 ####################
-##  Functions
+##  Process Messages
 ####################
-
-def count_laptop(order, countdown, freq=1):
-    while countdown > 0:
-        send_to_laptop(order, str(countdown))
-        print("Do {} in {}...".format(order, countdown))
-        countdown -= freq
-        time.sleep(freq)
-
-def request_for(command):
-    for name, player in players.items():
-        player.listen_for(command)
-
-    if command in [ACTION]:
-        send_to_player(command)
-    else:
-        send_to_laptop(command)
-
-    print("Waiting for {}...".format(command))
-    for name, player in players.items():
-        player.wait_for(command)
 
 def process_response(player, action, value):
     if player.is_dead():
@@ -280,6 +260,31 @@ def process_round(name):
     player.run()
     send_to_laptop(STATUS, player.status())
     print("Finished processing " + name)
+
+
+####################
+##  Functions
+####################
+
+def count_laptop(order, countdown, freq=1):
+    while countdown > 0:
+        send_to_laptop(order, str(countdown))
+        print("Do {} in {}...".format(order, countdown))
+        countdown -= freq
+        time.sleep(freq)
+
+def request_for(command):
+    for name, player in players.items():
+        player.listen_for(command)
+
+    if command in [ACTION]:
+        send_to_player(command)
+    else:
+        send_to_laptop(command)
+
+    print("Waiting for {}...".format(command))
+    for name, player in players.items():
+        player.wait_for(command)
 
 
 ####################

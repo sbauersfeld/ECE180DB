@@ -212,7 +212,7 @@ def send_action(action, value=""):
 
 
 ####################
-##  Functions
+##  Process Messages
 ####################
 
 def process_order(order, value1, value2):
@@ -276,6 +276,27 @@ def process_order_player(order, value1, value2):
 
 
 ####################
+##  Functions
+####################
+
+def detect_voice(microphone, trigger=[]):
+    PLAYER.update_top("Say '{}' to continue!".format(trigger[0]))
+    recognizer, audio = get_speech2(microphone)
+    PLAYER.update_top("Detected voice!")
+
+    success, value = translate_speech(recognizer, audio)
+    if success:
+        if not trigger or value in trigger:
+            PLAYER.update_top("Voice registered!")
+            return value
+        PLAYER.update_top("- {} -".format(value))
+    else:
+        PLAYER.update_top(value)
+
+    return None
+
+
+####################
 ##  Threads
 ####################
 
@@ -287,7 +308,7 @@ def detect_distance(headset):
     print("Range detection active!")
     D_LOCK.wait()
     while not GAME_OVER:
-        timer = threading.Timer(5, detect_voice_start, [microphone, start_phrase])
+        timer = threading.Timer(5, detect_for_trigger, [microphone, start_phrase])
         timer.start()
         
         while timer.isAlive():
@@ -305,7 +326,7 @@ def detect_distance(headset):
     cap.release()
     cv2.destroyAllWindows()
 
-def detect_voice(headset):
+def detect_voice_tutorial(headset):
     microphone = speech_setup(headset)
 
     print("Speech detection active!")
@@ -320,20 +341,11 @@ def detect_voice(headset):
             V_LOCK.clear()
         V_LOCK.wait()
 
-def detect_voice_start(microphone, trigger):
+def detect_for_trigger(microphone, trigger):
     while True:
-        PLAYER.update_top("Say '{}' to continue!".format(trigger[0]))
-        recognizer, audio = get_speech2(microphone)
-        PLAYER.update_top("Detected voice!")
-
-        success, value = translate_speech(recognizer, audio)
-        if success:
-            if value in trigger:
-                PLAYER.update_top("Voice registered!")
-                break
-            PLAYER.update_top("- {} -".format(value))
-        else:
-            PLAYER.update_top(value)
+        ret = detect_voice(microphone, trigger)
+        if ret is not None:
+            break
 
         time.sleep(1.5)
 
