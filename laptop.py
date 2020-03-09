@@ -70,8 +70,8 @@ YPOS_TOP = round(-300 * HEIGHT_FACTOR)
 YPOS_BOTTOM = round(305 * HEIGHT_FACTOR)
 
 ### Music ###
-sound_intro = pygame.mixer.Sound("music/SuitUp.ogg")
-sound_shoot = pygame.mixer.Sound("music/Repulsor1.ogg")
+sound_activate = pygame.mixer.Sound("music/Activate.ogg")
+sound_tutorial = pygame.mixer.Sound("music/Tutorial.ogg")
 
 ### Text fonts and colors ###
 WHITE = (255, 255, 255)
@@ -488,7 +488,7 @@ def main():
         t.start()
         threads.append(t)
 
-    channel = sound_intro.play()
+    channel = sound_tutorial.play()
     test_camera = False ### Change this ###
 
     TUTORIAL_OVER = False
@@ -533,7 +533,7 @@ def main():
 
     PLAYER.update_top("Waiting for server...")
     PLAYER.update_bottom(name)
-    pygame.mixer.music.load("music/SuitUp2.mp3")
+    pygame.mixer.music.load("music/SuitUp.mp3")
     pygame.mixer.music.play(0)
     client.publish(TOPIC_SETUP, name)
 
