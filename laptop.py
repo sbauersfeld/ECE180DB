@@ -165,6 +165,7 @@ class Status(pygame.sprite.Sprite):
 class Tutorial:
     def __init__(self):
         # Status
+        self.OVER = False
         self.show_camera = False
         self.channel = None
 
@@ -182,16 +183,43 @@ class Tutorial:
         self.channel = sound_tutorial.play()
         PLAYER.update_bottom("Hello!")
 
-    def next(self, lock=None):
-        if self.current >= self.lock_num:
+    def run(self):
+        pass
+
+    def next(self, next_lock=None):
+        old_current = self.current
+
+        if next_lock is None:
+            self.current += 1
+            if self.current >= self.lock_num:
+                self.end()
+
+            print("Finished: Tutorial {}/{}".format(old_current+1, self.lock_num))
+            self.lock_map[old_current].set()
+
+        elif next_lock in range(self.lock_num):
+            self.current = next_lock
+            for lock in range(self.current, self.lock_num):
+                self.lock_map[lock].clear()
+
+            self.lock_map[old_current].set()
+            self.lock_map[old_current].clear()
+
+    def wait(self):
+        if self.current not in range(self.lock_num):
             return
 
-        if lock is None:
-            self.lock_map[self.current].set()
-            self.current += 1
-        elif lock in range(self.lock_num):
-            self.lock_map[lock].set()
-            self.current = lock+1
+        # Make timeout value be part of the lock_map
+        print("Waiting for: {}".format(self.current))
+        return self.lock_map[self.current].wait(timeout=5)
+
+    def end(self):
+        self.OVER = True
+        for num, lock in self.lock_map.items():
+            lock.set()
+
+    def is_finished(self):
+        return self.OVER
 
     def is_talking(self):
         if self.channel is None:
@@ -348,6 +376,15 @@ def detect_for_trigger(microphone, trigger):
             break
 
         time.sleep(1.5)
+
+def handle_tutorial():
+    set_check = False
+    while not TUTORIAL.is_finished():
+        TUTORIAL.run()
+
+        set_check = TUTORIAL.wait()
+        if not set_check:
+            TUTORIAL.next()
 
 def detect_voice_tutorial(headset):
     microphone = speech_setup(headset)
@@ -558,26 +595,26 @@ def main():
     ##  Tutorial
     ####################
 
-    t_args = {}
+    TUTORIAL.start(splash_images)
+    t_args = {
+        handle_tutorial : [],
+    }
     for func, args in t_args.items():
         t = threading.Thread(target=func, args=args, daemon=True)
         t.start()
         threads.append(t)
 
-    TUTORIAL.start(splash_images)
-
-    TUTORIAL_OVER = False
-    while not TUTORIAL_OVER:
+    while not TUTORIAL.is_finished():
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
-                TUTORIAL_OVER = True
+                TUTORIAL.end()
                 sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                TUTORIAL_OVER = True
+                TUTORIAL.next()
 
-                # Check for sound
-                if not TUTORIAL.is_talking():
-                    TUTORIAL_OVER = True
+                # # Check for sound
+                # if not TUTORIAL.is_talking():
+                #     TUTORIAL.end()
 
         # Visuals
         draw_tutorial(tutorial_images, labels)
