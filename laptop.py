@@ -164,10 +164,40 @@ class Status(pygame.sprite.Sprite):
 
 class Tutorial:
     def __init__(self):
-        pass
+        # Status
+        self.show_camera = False
+        self.channel = None
 
-    def next():
-        pass
+        # Locks
+        self.lock_num = 8  ### Make a global variable?
+        self.current = 0
+        self.lock_map = {}
+        for i in range(self.lock_num):
+            self.lock_map[i] = threading.Event()
+
+    def start(self, images=None):
+        if images is not None:
+            hold_splash(images)
+
+        self.channel = sound_tutorial.play()
+        PLAYER.update_bottom("Hello!")
+
+    def next(self, lock=None):
+        if self.current >= self.lock_num:
+            return
+
+        if lock is None:
+            self.lock_map[self.current].set()
+            self.current += 1
+        elif lock in range(self.lock_num):
+            self.lock_map[lock].set()
+            self.current = lock+1
+
+    def is_talking(self):
+        if self.channel is None:
+            return False
+        
+        return self.channel.get_busy()
 
 PLAYER = Player()
 OTHER = Player(lives="", ammo="", defense="")
@@ -402,6 +432,10 @@ def hold_splash(images, vel=5, d_max=225, d_min=440, fade_out=300):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
                 SPLASH_OVER = True
+                sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                SPLASH_OVER = True
+
 
         main_surface.fill(BLACK)
         image, rect = images[0]
@@ -524,36 +558,34 @@ def main():
     ##  Tutorial
     ####################
 
-    hold_splash(splash_images)
-    PLAYER.update_bottom("Hello!")
-
     t_args = {}
     for func, args in t_args.items():
         t = threading.Thread(target=func, args=args, daemon=True)
         t.start()
         threads.append(t)
 
-    channel = sound_tutorial.play()
-    test_camera = False ### Change this ###
+    TUTORIAL.start(splash_images)
 
     TUTORIAL_OVER = False
     while not TUTORIAL_OVER:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
                 TUTORIAL_OVER = True
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 TUTORIAL_OVER = True
+
+                # Check for sound
+                if not TUTORIAL.is_talking():
+                    TUTORIAL_OVER = True
 
         # Visuals
         draw_tutorial(tutorial_images, labels)
 
+        ### This needs to be changed - currently calls every frame
         # Camera
-        if test_camera:
+        if TUTORIAL.show_camera:
             TestDistance(camera_map.get(PLAYER.name, camera_default), 5)
-
-        # Check for sound
-        if channel.get_busy():
-            TUTORIAL_OVER = False
         
         pygame.display.update()
         clock.tick(60)
