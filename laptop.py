@@ -178,16 +178,45 @@ class Tutorial:
         self.script_map = {}
         self.lock_map = {}
 
+    ####################
+    ##  States
+    ####################
+
+    def reset(self):
+        self.show_camera = False
+        self.check1 = False
+        self.check2 = False
+
+    def is_finished(self):
+        return self.OVER
+
+    def is_talking(self):
+        if self.channel is None:
+            return False
+        
+        return self.channel.get_busy()
+
+    ####################
+    ##  Actions
+    ####################
+
     def start(self, images=None):
+        print("\nPreparing tutorial...")
         with open("script.txt") as f:
-            for count, line in enumerate(f):
-                try:
-                    period_str, text1, text2 = line.strip().split(SEP)
-                    self.script_map[count] = int(period_str), text1, text2
-                    self.lock_map[count] = threading.Event()
+            wait_time, top, bottom = 0, "", ""
+
+            for line in f:
+                if "-----" in line:
+                    self.script_map[self.max_lines] = wait_time, top, bottom
+                    self.lock_map[self.max_lines] = threading.Event()
                     self.max_lines += 1
-                except ValueError:
-                    print("Unexpected line: {}".format(line.strip()))
+                elif "N: " in line:
+                    val = line.replace("N: ", "").strip()
+                    wait_time = int(val)
+                elif "T: " in line:
+                    top = line.replace("T: ", "").strip()
+                elif "B: " in line:
+                    bottom = line.replace("B: ", "").strip()
 
         if images is not None:
             hold_splash(images)
@@ -201,18 +230,14 @@ class Tutorial:
     def run(self):
         self.run_lock.acquire()
 
-        print("\nStarting: Tutorial {}/{}".format(self.current+1, self.max_lines))
         self.reset()
+        print("\nStarting: Tutorial {}/{}".format(self.current+1, self.max_lines))
         period, text1, text2 = self.script_map[self.current]
+
         PLAYER.update_top(text1)
         PLAYER.update_bottom(text2)
 
         self.run_lock.release()
-
-    def reset(self):
-        self.show_camera = False
-        self.check1 = False
-        self.check2 = False
 
     def next(self, next_lock=None):
         if not self.run_lock.acquire(False):
@@ -250,15 +275,6 @@ class Tutorial:
         self.OVER = True
         for num, lock in self.lock_map.items():
             lock.set()
-
-    def is_finished(self):
-        return self.OVER
-
-    def is_talking(self):
-        if self.channel is None:
-            return False
-        
-        return self.channel.get_busy()
 
 PLAYER = Player()
 OTHER = Player(lives="", ammo="", defense="")
