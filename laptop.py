@@ -166,8 +166,10 @@ class Tutorial:
     def __init__(self):
         # Status
         self.OVER = False
-        self.show_camera = False
         self.channel = None
+        self.show_camera = False
+        self.check1 = False
+        self.check2 = False
 
         # Script
         self.max_lines = 0
@@ -176,8 +178,15 @@ class Tutorial:
         self.lock_map = {}
 
     def start(self, images=None):
-        for i in range(self.max_lines):
-            self.lock_map[i] = threading.Event()
+        with open("script.txt") as f:
+            for count, line in enumerate(f):
+                try:
+                    period_str, text1, text2 = line.strip().split(SEP)
+                    self.script_map[count] = int(period_str), text1, text2
+                    self.lock_map[count] = threading.Event()
+                    self.max_lines += 1
+                except ValueError:
+                    print("Unexpected line: {}".format(line.strip()))
 
         if images is not None:
             hold_splash(images)
@@ -189,7 +198,15 @@ class Tutorial:
         self.channel = sound_tutorial.play()
 
     def run(self):
-        pass
+        self.reset()
+        period, text1, text2 = self.script_map[self.current]
+        PLAYER.update_top(text1)
+        PLAYER.update_bottom(text2)
+
+    def reset(self):
+        self.show_camera = False
+        self.check1 = False
+        self.check2 = False
 
     def next(self, next_lock=None):
         old_current = self.current
@@ -214,9 +231,9 @@ class Tutorial:
         if self.current not in range(self.max_lines):
             return
 
-        # Make timeout value be part of the lock_map
-        print("Waiting for: {}".format(self.current))
-        return self.lock_map[self.current].wait(timeout=5)
+        period, text1, text2 = self.script_map[self.current]
+        print("Waiting {} for: {}".format(period, self.current))
+        return self.lock_map[self.current].wait(timeout=period)
 
     def end(self):
         self.OVER = True
@@ -622,12 +639,13 @@ def main():
                 #     TUTORIAL.end()
 
         # Visuals
-        draw_tutorial(tutorial_images, labels)
+        draw_tutorial(tutorial_images, labels, TUTORIAL.check1, TUTORIAL.check2)
 
         ### This needs to be changed - currently calls every frame
         # Camera
         if TUTORIAL.show_camera:
             TestDistance(camera_map.get(PLAYER.name, camera_default), 5)
+            TUTORIAL.show_camera = False
         
         pygame.display.update()
         clock.tick(60)
