@@ -33,6 +33,21 @@ def find_marker(image):
 
 	c = max(cnts, key = cv2.contourArea)
 	return cv2.minAreaRect(c), c
+
+def draw_label(img, text, pos, bg_color):
+    font_face = cv2.FONT_HERSHEY_SIMPLEX
+    scale = 3
+    color = (255, 255, 255)
+    thickness = cv2.FILLED
+    margin = 2
+
+    txt_size = cv2.getTextSize(text, font_face, scale, thickness)
+
+    end_x = pos[0] + txt_size[0][0] + margin
+    end_y = pos[1] - txt_size[0][1] - margin
+
+    cv2.rectangle(img, pos, (end_x, end_y), bg_color, thickness)
+    cv2.putText(img, text, pos, font_face, scale, color, 3, cv2.LINE_AA)
 	
 # initialize the known object width
 KNOWN_HEIGHT = 4.0
@@ -59,10 +74,11 @@ def GetDistance(cap, settings=player_default, CAP_TIME=1, FPS=30):
 	dist = (KNOWN_HEIGHT * focalLength) / np.median(pixel_heights[:limit])
 	return dist
 
-def TestDistance(settings=player_default, TIMEOUT=None):
+def TestDistance(settings=player_default, display_output=False, cutoff=30, TIMEOUT=None):
 	cap = cv2.VideoCapture(0)
 	focalLength = settings[-1]
 	idx = 0
+	label_dist = -1
 
 	if TIMEOUT:
 		t_end = time.time() + TIMEOUT
@@ -80,8 +96,13 @@ def TestDistance(settings=player_default, TIMEOUT=None):
 
 			measured_height = marker[1][1]
 			dist = (KNOWN_HEIGHT * focalLength) / measured_height
-			if idx % 30 == 0:
-				print("distance:", dist)
+			if idx % cutoff == 0:
+				label_dist = round(dist)
+				if not display_output:
+					print("distance:", dist)
+
+		if display_output:
+			draw_label(filtered_frame, str(label_dist), (30,100), (0,0,0))
 
 		cv2.imshow('frame', filtered_frame)
 		if cv2.waitKey(1) & 0xFF == ord('q'):

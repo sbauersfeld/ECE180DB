@@ -644,7 +644,7 @@ def main():
         ### This needs to be changed - currently calls every frame
         # Camera
         if TUTORIAL.show_camera:
-            TestDistance(camera_map.get(PLAYER.name, camera_default), 5)
+            TestDistance(camera_map.get(PLAYER.name, camera_default), True, 20, 10)
             TUTORIAL.show_camera = False
         
         pygame.display.update()
