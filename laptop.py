@@ -32,7 +32,6 @@ headset_map = {
 start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
                 "search", "bikes", "strikes", "starks", "steps", "stopped",
                 "art", "starts"]
-cont_phrase = ["continue"]
 
 ### Camera ###
 camera_default = ([160,150,150], [180,255,255], 500)
@@ -78,6 +77,7 @@ WHITE = (255, 255, 255)
 RED = (225, 0, 0)
 BLACK = (0, 0, 0)
 GRAY = (155, 155, 155)
+DARK = (55, 55, 55)
 font_large = pygame.font.SysFont("Helvetica", 120)
 font_small = pygame.font.SysFont("Helvetica", 50)
 
@@ -177,6 +177,7 @@ class Tutorial:
         self.show_camera = False
         self.check1 = False
         self.check2 = False
+        self.status_color = [DARK, DARK, DARK]
 
         # Script
         self.max_lines = 0
@@ -193,6 +194,7 @@ class Tutorial:
         self.show_camera = False
         self.check1 = False
         self.check2 = False
+        self.status_color = [DARK, DARK, DARK]
 
     def is_finished(self):
         return self.OVER
@@ -224,8 +226,14 @@ class Tutorial:
                     wait_time = int(val)
                 elif "T: " in line:
                     top = line.replace("T: ", "").strip()
+                    for keyword in [LIVES, AMMO, DEFENSE]:
+                        if keyword in top:
+                            self.action_map[self.max_lines].append(keyword)
                 elif "B: " in line:
                     bottom = line.replace("B: ", "").strip()
+                    for keyword in [LIVES, AMMO, DEFENSE]:
+                        if keyword in bottom:
+                            self.action_map[self.max_lines].append(keyword)
                 elif "A: " in line:
                     for keyword in ["check1", "check2", "gesture", "voice", "camera"]:
                         if keyword in line:
@@ -255,10 +263,15 @@ class Tutorial:
             print(actions)
             if "check1" in actions:
                 self.check1 = True
+                if not any(x in actions for x in [LIVES, AMMO, DEFENSE, "check2"]):
+                    self.status_color = [WHITE, WHITE, WHITE]
+
             if "check2" in actions:
                 self.check2 = True
+
             if "gesture" in actions:
                 pass
+
             if "voice" in actions:
                 if self.microphone is None:
                     return
@@ -266,10 +279,20 @@ class Tutorial:
                 t = thread_with_trace(target=handle_voice, args=[self.microphone], kwargs={"print_func":PLAYER.update_bottom})
                 t.start()
                 self.threads.append(t)
+
             if "camera" in actions:
                 t = thread_with_trace(target=handle_distance_tutorial, args=[self.camera])
                 t.start()
                 self.threads.append(t)
+
+            if LIVES in actions:
+                self.status_color[0] = WHITE
+
+            if AMMO in actions:
+                self.status_color[1] = WHITE
+
+            if DEFENSE in actions:
+                self.status_color[2] = WHITE
 
     def wait(self):
         if self.current not in range(self.max_lines):
@@ -449,12 +472,12 @@ def detect_voice(microphone, trigger=[], print_func=PLAYER.update_top):
     else:
         print_func("Say anything!")
     recognizer, audio = get_speech2(microphone)
-    print_func("Detected voice!")
+    print_func("Analyzing audio...")
 
     success, value = translate_speech(recognizer, audio)
     if success:
         if value in trigger:
-            print_func("Voice registered!")
+            print_func("Distance measured!")
             return value
         print_func("- {} -".format(value))
     else:
@@ -524,7 +547,7 @@ def handle_distance(microphone):
 ##  Pygame Functions
 ####################
 
-def draw_display(images=(), labels=(), enable_status=True, enable_enemy=True, text_type=Text.TEXT):
+def draw_display(images=(), labels=(), text_type=Text.TEXT, enable_status=True, enable_enemy=True):
     main_surface.fill(BLACK)
     for blit_image in images:
         image, rect = blit_image
@@ -549,8 +572,34 @@ def draw_display(images=(), labels=(), enable_status=True, enable_enemy=True, te
 
     all_sprites.draw(main_surface)
 
-def draw_tutorial(images=(), labels=(), progress_check=False, progress_check2=False):
-    draw_display(images, labels, progress_check, progress_check2, text_type=Text.TUTORIAL)
+def draw_tutorial(images=()):
+    main_surface.fill(BLACK)
+    for blit_image in images:
+        image, rect = blit_image
+        main_surface.blit(image, rect)
+
+    top = Status(PLAYER.top, Text.TUTORIAL, XPOS_ZERO, YPOS_TOP, text_color=PLAYER.color)
+    bottom = Status(PLAYER.bottom, Text.TUTORIAL, XPOS_ZERO, YPOS_BOTTOM)
+    all_sprites = pygame.sprite.RenderPlain(top, bottom)
+
+    if TUTORIAL.check1:
+        ammo = Status(PLAYER.ammo, Text.NUM, -XPOS_SIDE, YPOS_STATUS, TUTORIAL.status_color[1])
+        lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, TUTORIAL.status_color[0])
+        defense = Status(PLAYER.defense, Text.NUM, XPOS_SIDE, YPOS_STATUS, TUTORIAL.status_color[2])
+        all_sprites.add((ammo, lives, defense))
+
+        l_ammo = Status(AMMO, Text.LABEL, -XPOS_SIDE, YPOS_LABEL, TUTORIAL.status_color[1])
+        l_lives = Status(LIVES, Text.LABEL, XPOS_ZERO, YPOS_LABEL, TUTORIAL.status_color[0])
+        l_defense = Status(DEFENSE, Text.LABEL, XPOS_SIDE, YPOS_LABEL, TUTORIAL.status_color[2])
+        all_sprites.add((l_ammo, l_lives, l_defense))
+
+    if TUTORIAL.check2:
+        enemy_ammo = Status(OTHER.ammo, Text.ENEMY, -XPOS_SIDE, YPOS_OTHER, WHITE)
+        enemy_lives = Status(OTHER.lives, Text.ENEMY, XPOS_ZERO, YPOS_OTHER, WHITE)
+        enemy_defense = Status(OTHER.defense, Text.ENEMY, XPOS_SIDE, YPOS_OTHER, WHITE)
+        all_sprites.add((enemy_ammo, enemy_lives, enemy_defense))
+
+    all_sprites.draw(main_surface)
 
 def hold_splash(images, vel=5, d_max=225, d_min=440, fade_out=300):
     sound_activate.play()
@@ -711,7 +760,7 @@ def main():
                 TUTORIAL.prev()
 
         # Visuals
-        draw_tutorial(tutorial_images, labels, TUTORIAL.check1, TUTORIAL.check2)
+        draw_tutorial(tutorial_images)
 
         ### This needs to be changed - currently calls every frame
         # Camera
