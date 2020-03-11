@@ -58,3 +58,4 @@ class Text(Enum):
 	TEXT = 1
 	ENEMY = 2
 	LABEL = 3
+	TUTORIAL = 4

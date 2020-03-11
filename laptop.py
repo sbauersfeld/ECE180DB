@@ -26,13 +26,13 @@ V_LOCK = threading.Event()
 client = mqtt.Client()
 
 ### Voice ###
-start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
-                "search", "bikes", "strikes", "starks", "steps", "stopped",
-                "art", "starts"]
 headset_map = {
     "scott" : "Headset (SoundBuds Slim Hands-F",
     "jon" : "SP620",
 }
+start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
+                "search", "bikes", "strikes", "starks", "steps", "stopped",
+                "art", "starts"]
 
 ### Camera ###
 camera_default = ([160,150,150], [180,255,255], 500)
@@ -78,16 +78,15 @@ WHITE = (255, 255, 255)
 RED = (225, 0, 0)
 BLACK = (0, 0, 0)
 GRAY = (155, 155, 155)
-font_huge = pygame.font.SysFont("Helvetica", 180)
 font_large = pygame.font.SysFont("Helvetica", 120)
-font_big = pygame.font.SysFont("Helvetica", 80)
 font_small = pygame.font.SysFont("Helvetica", 50)
 
 ### Text type map ###
 text_map = {
-    Text.NUM : (font_huge, WHITE),
+    Text.NUM : (pygame.font.SysFont("Helvetica", 180), WHITE),
     Text.TEXT : (font_large, WHITE),
-    Text.ENEMY : (font_big, GRAY),
+    Text.TUTORIAL : (pygame.font.SysFont("Helvetica", 100), WHITE),
+    Text.ENEMY : (pygame.font.SysFont("Helvetica", 80), GRAY),
     Text.LABEL : (font_small, WHITE),
 }
 
@@ -454,14 +453,14 @@ def detect_distance(headset):
 ##  Pygame Functions
 ####################
 
-def draw_display(blit_images=(), labels=(), enable_status=True, enable_enemy=True):
+def draw_display(images=(), labels=(), enable_status=True, enable_enemy=True, text_type=Text.TEXT):
     main_surface.fill(BLACK)
-    for blit_image in blit_images:
+    for blit_image in images:
         image, rect = blit_image
         main_surface.blit(image, rect)
 
-    top = Status(PLAYER.top, Text.TEXT, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
-    bottom = Status(PLAYER.bottom, Text.TEXT, XPOS_ZERO, YPOS_BOTTOM)
+    top = Status(PLAYER.top, text_type, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
+    bottom = Status(PLAYER.bottom, text_type, XPOS_ZERO, YPOS_BOTTOM)
     all_sprites = pygame.sprite.RenderPlain(top, bottom)
 
     if enable_status:
@@ -479,8 +478,8 @@ def draw_display(blit_images=(), labels=(), enable_status=True, enable_enemy=Tru
 
     all_sprites.draw(main_surface)
 
-def draw_tutorial(blit_images=(), labels=(), progress_check=False, progress_check2=False):
-    draw_display(blit_images, labels, progress_check, progress_check2)
+def draw_tutorial(images=(), labels=(), progress_check=False, progress_check2=False):
+    draw_display(images, labels, progress_check, progress_check2, text_type=Text.TUTORIAL)
 
 def hold_splash(images, vel=5, d_max=225, d_min=440, fade_out=300):
     sound_activate.play()
@@ -631,6 +630,8 @@ def main():
             if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
                 TUTORIAL.end()
                 sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                TUTORIAL.end()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 TUTORIAL.next()
 
@@ -648,7 +649,7 @@ def main():
             TUTORIAL.show_camera = False
         
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(12)
 
     ### This should apply after each while loop lol ###
     for t in threads:
