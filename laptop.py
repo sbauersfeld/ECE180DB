@@ -261,11 +261,13 @@ class Tutorial:
                 if self.microphone is None:
                     return
 
-                t = thread_with_trace(target=detect_for_trigger, args=(self.microphone, cont_phrase))
+                t = thread_with_trace(target=handle_voice, args=[self.microphone], kwargs={"print_func":PLAYER.update_bottom})
                 t.start()
                 self.threads.append(t)
             if "camera" in actions:
-                pass
+                t = thread_with_trace(target=handle_distance_tutorial, args=[self.camera])
+                t.start()
+                self.threads.append(t)
 
     def wait(self):
         if self.current not in range(self.max_lines):
@@ -442,13 +444,16 @@ def process_order_player(order, value1, value2):
 ####################
 
 def detect_voice(microphone, trigger=[], print_func=PLAYER.update_top):
-    print_func("Say '{}' to continue!".format(trigger[0]))
+    if trigger:
+        print_func("Say '{}' to continue!".format(trigger[0]))
+    else:
+        print_func("Say anything!")
     recognizer, audio = get_speech2(microphone)
     print_func("Detected voice!")
 
     success, value = translate_speech(recognizer, audio)
     if success:
-        if not trigger or value in trigger:
+        if value in trigger:
             print_func("Voice registered!")
             return value
         print_func("- {} -".format(value))
@@ -457,10 +462,8 @@ def detect_voice(microphone, trigger=[], print_func=PLAYER.update_top):
 
     return None
 
-def detect_distance(camera, speed=0.5):
-    cap_setting = camera_map.get(PLAYER.name, camera_default)
-
-    new_val = GetDistance(camera, cap_setting, speed)
+def detect_distance(camera, setting, speed=0.5):
+    new_val = GetDistance(camera, setting, speed)
 
     float_val = float(new_val)  # Necessary since new_val is type np.float64
     PLAYER.update_temp_def(str(round(float_val, SIGFIG)))
@@ -470,9 +473,9 @@ def detect_distance(camera, speed=0.5):
 ##  Threads
 ####################
 
-def detect_for_trigger(microphone, trigger):
+def handle_voice(microphone, trigger=[], print_func=PLAYER.update_top):
     while True:
-        ret = detect_voice(microphone, trigger)
+        ret = detect_voice(microphone, trigger, print_func)
         if ret is not None:
             break
 
@@ -487,26 +490,34 @@ def handle_tutorial():
         if not set_check:
             TUTORIAL.next()
 
+def handle_distance_tutorial(camera):
+    cap_setting = camera_map.get(PLAYER.name, camera_default)
+
+    while True:
+        detect_distance(camera, cap_setting)
+
 def handle_distance(microphone):
     cap = cv2.VideoCapture(0)
+    cap_setting = camera_map.get(PLAYER.name, camera_default)
 
-    print("Range detection active!")
-    D_LOCK.wait()
-    while not GAME_OVER:
-        timer = threading.Timer(5, detect_for_trigger, [microphone, start_phrase])
-        timer.start()
-        
-        while timer.isAlive():
-            detect_distance(cap)
-
-        send_action(Act.DIST, PLAYER.temp_def)
-
-        if not GAME_OVER:
-            D_LOCK.clear()
+    try:
+        print("Range detection active!")
         D_LOCK.wait()
+        while not GAME_OVER:
+            timer = threading.Timer(5, handle_voice, [microphone, start_phrase])
+            timer.start()
+            
+            while timer.isAlive():
+                detect_distance(cap, cap_setting)
 
-    cap.release()
-    cv2.destroyAllWindows()
+            send_action(Act.DIST, PLAYER.temp_def)
+
+            if not GAME_OVER:
+                D_LOCK.clear()
+            D_LOCK.wait()
+    except SystemExit:
+        cap.release()
+        cv2.destroyAllWindows()
 
 
 ####################

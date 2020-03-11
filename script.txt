@@ -6,14 +6,34 @@ N: 3
 T: Welcome to this tutorial.
 B: 
 -----
-N: 7
+N: 5
 T: Your task is to fight
 B: as Iron Man!
+-----
+N: 20
+T: Test speech recognition!
+B: 
+A: voice
+-----
+N: 7
+T: You will start each round
+B: with speech recognition.
+A: 
+-----
+N: 20
+T: Test distance measurement!
+B: ...
+A: camera
+-----
+N: 7
+T: Your distance will affect
+B: your damage and ability to shoot.
+A: 
 -----
 N: 10
 T: 
 B: 
-A: voice
+A: 
 -----
 N: 7
 T: Your status values
@@ -31,13 +51,13 @@ B: energy is greater than distance.
 A: check1
 -----
 N: 7
-T: Both your and your enemy's distance
-B: affects how much damage you take.
+T: Both you and your enemy's distance
+B: affect how much damage you take.
 A: check1
 -----
 N: 7
 T: The greater the combined distance,
-B: the less damage your health takes.
+B: the less damage done to health.
 A: check1
 -----
 T: Your health determines
