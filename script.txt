@@ -4,7 +4,7 @@ B:
 -----
 N: 5
 T: Welcome to this tutorial.
-B: Press 'space' to skip ahead.
+B: Press 'q' to skip tutorial.
 -----
 N: 5
 T: Your task is to fight
@@ -38,24 +38,10 @@ T: Your distance will affect
 B: your damage and ability to shoot.
 A: 
 -----
-N: 2
-T: Testing gesture measurement!
-B: 
------
-N: 20
-T: 
-B: 
-A: gesture
------
 N: 7
 T: Your gestures will determine
 B: which action you do.
 A: 
------
-N: 10
-T: 
-B: 
-A: # Somehow ask if you want to repeat something? Might not be necessary cuz arrows
 -----
 N: 7
 T: Your status values

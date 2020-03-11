@@ -196,6 +196,11 @@ class Tutorial:
         self.check2 = False
         self.status_color = [DARK, DARK, DARK]
 
+        for t in self.threads:
+            t.kill()
+            t.join()
+        self.threads.clear()
+
     def is_finished(self):
         return self.OVER
 
@@ -223,7 +228,7 @@ class Tutorial:
                     self.action_map[self.max_lines] = []
                 elif "N: " in line:
                     val = line.replace("N: ", "").strip()
-                    wait_time = int(val)
+                    wait_time = float(val)
                 elif "T: " in line:
                     top = line.replace("T: ", "").strip()
                     for keyword in [LIVES, AMMO, DEFENSE]:
@@ -277,17 +282,14 @@ class Tutorial:
                     return
 
                 t = thread_with_trace(target=handle_voice, args=[self.microphone], kwargs={"print_func":PLAYER.update_bottom})
-                t.start()
                 self.threads.append(t)
 
             if "camera" in actions:
                 t = thread_with_trace(target=handle_distance_tutorial, args=[self.camera])
-                t.start()
                 self.threads.append(t)
 
             if any(x in actions for x in ["gesture", "voice", "camera"]):
-                t = thread_with_trace(target=countdown, args=[period])
-                t.start()
+                t = thread_with_trace(target=countdown, args=[round(period)])
                 self.threads.append(t)
 
             if LIVES in actions:
@@ -298,6 +300,9 @@ class Tutorial:
 
             if DEFENSE in actions:
                 self.status_color[2] = WHITE
+
+            for t in self.threads:
+                t.start()
 
     def wait(self):
         if self.current not in range(self.max_lines):
@@ -316,9 +321,6 @@ class Tutorial:
             return
 
         old_current = self.current
-        for t in self.threads:
-            t.kill()
-            t.join()
 
         if next_lock is None:
             self.current += 1
