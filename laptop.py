@@ -285,6 +285,11 @@ class Tutorial:
                 t.start()
                 self.threads.append(t)
 
+            if any(x in actions for x in ["gesture", "voice", "camera"]):
+                t = thread_with_trace(target=countdown, args=[period])
+                t.start()
+                self.threads.append(t)
+
             if LIVES in actions:
                 self.status_color[0] = WHITE
 
@@ -495,6 +500,12 @@ def detect_distance(camera, setting, speed=0.5):
 ####################
 ##  Threads
 ####################
+
+def countdown(countdown, freq=1, print_func=PLAYER.update_top):
+    while countdown > 0:
+        print_func("Continuing in {}...".format(countdown))
+        countdown -= freq
+        time.sleep(freq)
 
 def handle_voice(microphone, trigger=[], print_func=PLAYER.update_top):
     while True:

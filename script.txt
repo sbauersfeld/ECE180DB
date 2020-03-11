@@ -10,8 +10,12 @@ N: 5
 T: Your task is to fight
 B: as Iron Man!
 -----
-N: 20
+N: 2
 T: Testing speech recognition!
+B: 
+-----
+N: 20
+T: 
 B: 
 A: voice
 -----
@@ -20,8 +24,12 @@ T: You will start each round
 B: with speech recognition.
 A: 
 -----
-N: 20
+N: 2
 T: Testing distance measurement!
+B: 
+-----
+N: 20
+T: 
 B: ...
 A: camera
 -----
@@ -30,10 +38,24 @@ T: Your distance will affect
 B: your damage and ability to shoot.
 A: 
 -----
+N: 2
+T: Testing gesture measurement!
+B: 
+-----
+N: 20
+T: 
+B: 
+A: gesture
+-----
+N: 7
+T: Your gestures will determine
+B: which action you do.
+A: 
+-----
 N: 10
 T: 
 B: 
-A: 
+A: # Somehow ask if you want to repeat something? Might not be necessary cuz arrows
 -----
 N: 7
 T: Your status values

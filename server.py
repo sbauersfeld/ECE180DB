@@ -310,7 +310,11 @@ def main():
     client.subscribe(TOPIC_ACTION)
     client.message_callback_add(TOPIC_ACTION, on_message_action)
 
-    # # Training mode
+
+    ####################
+    ##  Tutorial
+    ####################
+
     # while True:
     #     send_to_laptop(DISPLAY, "Training Mode!")
     #     time.sleep(4)
@@ -319,6 +323,11 @@ def main():
 
     #     send_to_laptop(DISPLAY, "Continue?")
     #     request_for(VOICE)
+
+
+    ####################
+    ##  Start Game
+    ####################
 
     round_num = 0
     winner = ""
@@ -360,6 +369,11 @@ def main():
             print("\nDRAW! There are no remaining players.")
             winner = "Nobody"
             break
+
+
+    ####################
+    ##  End Game
+    ####################
 
     # End Game
     send_to_player(STOP_GAME, winner)
