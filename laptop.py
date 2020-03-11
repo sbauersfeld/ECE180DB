@@ -162,9 +162,12 @@ class Status(pygame.sprite.Sprite):
 
 class Tutorial:
     def __init__(self):
-        # Status
+        # Variables
         self.OVER = False
         self.channel = None
+        self.run_lock = threading.Lock()
+
+        # State
         self.show_camera = False
         self.check1 = False
         self.check2 = False
@@ -196,10 +199,15 @@ class Tutorial:
         self.channel = sound_tutorial.play()
 
     def run(self):
+        self.run_lock.acquire()
+
+        print("\nStarting: Tutorial {}/{}".format(self.current+1, self.max_lines))
         self.reset()
         period, text1, text2 = self.script_map[self.current]
         PLAYER.update_top(text1)
         PLAYER.update_bottom(text2)
+
+        self.run_lock.release()
 
     def reset(self):
         self.show_camera = False
@@ -207,6 +215,9 @@ class Tutorial:
         self.check2 = False
 
     def next(self, next_lock=None):
+        if not self.run_lock.acquire(False):
+            return
+
         old_current = self.current
 
         if next_lock is None:
@@ -225,12 +236,14 @@ class Tutorial:
             self.lock_map[old_current].set()
             self.lock_map[old_current].clear()
 
+        self.run_lock.release()
+
     def wait(self):
         if self.current not in range(self.max_lines):
             return
 
         period, text1, text2 = self.script_map[self.current]
-        print("Waiting {} for: {}".format(period, self.current))
+        print("Waiting: {} seconds for: {}".format(period, self.current+1))
         return self.lock_map[self.current].wait(timeout=period)
 
     def end(self):
@@ -379,10 +392,10 @@ def detect_voice(microphone, trigger=[], print_func=PLAYER.update_top):
 
     return None
 
-def detect_distance(camera):
+def detect_distance(camera, speed=0.5):
     cap_setting = camera_map.get(PLAYER.name, camera_default)
 
-    new_val = GetDistance(camera, cap_setting, 0.5)
+    new_val = GetDistance(camera, cap_setting, speed)
 
     float_val = float(new_val)  # Necessary since new_val is type np.float64
     PLAYER.update_temp_def(str(round(float_val, SIGFIG)))
@@ -617,10 +630,6 @@ def main():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 TUTORIAL.next()
 
-                # # Check for sound
-                # if not TUTORIAL.is_talking():
-                #     TUTORIAL.end()
-
         # Visuals
         draw_tutorial(tutorial_images, labels, TUTORIAL.check1, TUTORIAL.check2)
 
@@ -636,6 +645,7 @@ def main():
     ### This should apply after each while loop lol ###
     for t in threads:
         t.join()
+    print()
     threads.clear()
 
 
