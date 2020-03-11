@@ -22,7 +22,6 @@ from speech_detection.speech_detection import speech_setup, get_speech, get_spee
 GAME_OVER = False
 PLAYER_WIN = "Nobody"
 D_LOCK = threading.Event()
-V_LOCK = threading.Event()
 client = mqtt.Client()
 
 ### Voice ###
@@ -302,10 +301,6 @@ def send_action(action, value=""):
 ####################
 
 def process_order(order, value1, value2):
-    if order == VOICE:
-        PLAYER.update_bottom("Say 'start' to continue...")
-        V_LOCK.set()
-
     if order == DIST:
         print()
         PLAYER.update_top("Move to new {}!".format(DEFENSE))
@@ -357,7 +352,6 @@ def process_order_player(order, value1, value2):
         PLAYER_WIN = value1
 
         D_LOCK.set()
-        V_LOCK.set()
     
     if order == PLAYER.name:
         if value1 == HIT:
@@ -385,6 +379,14 @@ def detect_voice(microphone, trigger=[], print_func=PLAYER.update_top):
 
     return None
 
+def detect_distance(camera):
+    cap_setting = camera_map.get(PLAYER.name, camera_default)
+
+    new_val = GetDistance(camera, cap_setting, 0.5)
+
+    float_val = float(new_val)  # Necessary since new_val is type np.float64
+    PLAYER.update_temp_def(str(round(float_val, SIGFIG)))
+
 
 ####################
 ##  Threads
@@ -407,25 +409,8 @@ def handle_tutorial():
         if not set_check:
             TUTORIAL.next()
 
-def detect_voice_tutorial(headset):
-    microphone = speech_setup(headset)
-
-    print("Speech detection active!")
-    V_LOCK.wait()
-    while not GAME_OVER:
-        get_speech(microphone, start_phrase)
-
-        PLAYER.update_bottom("Voice registered")
-        send_action(Act.VOICE)
-
-        if not GAME_OVER:
-            V_LOCK.clear()
-        V_LOCK.wait()
-
-def detect_distance(headset):
+def handle_distance(microphone):
     cap = cv2.VideoCapture(0)
-    cap_setting = camera_map.get(PLAYER.name, camera_default)
-    microphone = speech_setup(headset)
 
     print("Range detection active!")
     D_LOCK.wait()
@@ -434,10 +419,7 @@ def detect_distance(headset):
         timer.start()
         
         while timer.isAlive():
-            new_val = GetDistance(cap, cap_setting, 0.5)
-            float_val = float(new_val)  # Necessary since new_val is type np.float64
-                                        # round(new_val, None) does not return an int
-            PLAYER.update_temp_def(str(round(float_val, SIGFIG)))
+            detect_distance(cap)
 
         send_action(Act.DIST, PLAYER.temp_def)
 
@@ -601,7 +583,6 @@ def main():
         print("Please input a name!")
         sys.exit()
     PLAYER.update_name(name)
-    headset = headset_map.get(name)
     global GAME_OVER, PLAYER_WIN
 
     print("Listening...")
@@ -609,6 +590,7 @@ def main():
 
     # Finish setup
     threads = []
+    microphone = speech_setup(headset_map.get(name))
     game_images, labels, tutorial_images, splash_images = setup_images()
 
 
@@ -662,7 +644,7 @@ def main():
     ####################
 
     t_args = {
-        detect_distance : [headset],
+        handle_distance : [microphone],
     }
     for func, args in t_args.items():
         t = threading.Thread(target=func, args=args, daemon=True)
