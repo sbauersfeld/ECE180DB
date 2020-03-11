@@ -176,6 +176,7 @@ class Tutorial:
         self.max_lines = 0
         self.current = 0
         self.script_map = {}
+        self.action_map = {}
         self.lock_map = {}
 
     ####################
@@ -204,12 +205,14 @@ class Tutorial:
         print("\nPreparing tutorial...")
         with open("script.txt") as f:
             wait_time, top, bottom = 0, "", ""
+            self.action_map[self.max_lines] = []
 
             for line in f:
                 if "-----" in line:
                     self.script_map[self.max_lines] = wait_time, top, bottom
                     self.lock_map[self.max_lines] = threading.Event()
                     self.max_lines += 1
+                    self.action_map[self.max_lines] = []
                 elif "N: " in line:
                     val = line.replace("N: ", "").strip()
                     wait_time = int(val)
@@ -217,6 +220,10 @@ class Tutorial:
                     top = line.replace("T: ", "").strip()
                 elif "B: " in line:
                     bottom = line.replace("B: ", "").strip()
+                elif "A: " in line:
+                    for keyword in ["check1", "check2", "gesture", "voice", "camera"]:
+                        if keyword in line:
+                            self.action_map[self.max_lines].append(keyword)
 
         if images is not None:
             hold_splash(images)
@@ -233,9 +240,22 @@ class Tutorial:
         self.reset()
         print("\nStarting: Tutorial {}/{}".format(self.current+1, self.max_lines))
         period, text1, text2 = self.script_map[self.current]
+        actions = self.action_map[self.current]
 
         PLAYER.update_top(text1)
         PLAYER.update_bottom(text2)
+
+        print(actions)
+        if "check1" in actions:
+            self.check1 = True
+        if "check2" in actions:
+            self.check2 = True
+        if "gesture" in actions:
+            pass
+        if "voice" in actions:
+            pass
+        if "camera" in actions:
+            pass
 
         self.run_lock.release()
 
@@ -277,7 +297,7 @@ class Tutorial:
             lock.set()
 
 PLAYER = Player()
-OTHER = Player(lives="", ammo="", defense="")
+OTHER = Player(lives="?", ammo="?", defense="?")
 TUTORIAL = Tutorial()
 
 

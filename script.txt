@@ -10,3 +10,13 @@ N: 7
 T: Your task is to fight
 B: as Iron Man!
 -----
+N: 7
+T: Your status values
+B: are displayed here.
+A: check1 
+-----
+N: 10
+T: Your enemy's status values
+B: are displayed under yours
+A: check1 check2
+-----
