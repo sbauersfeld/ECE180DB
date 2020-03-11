@@ -165,7 +165,7 @@ class Tutorial:
         # Variables
         self.OVER = False
         self.channel = None
-        self.run_lock = threading.Lock()
+        self.run_lock = threading.RLock()
 
         # State
         self.show_camera = False
@@ -198,7 +198,7 @@ class Tutorial:
         return self.channel.get_busy()
 
     ####################
-    ##  Actions
+    ##  Tutorial Flow
     ####################
 
     def start(self, images=None):
@@ -259,6 +259,18 @@ class Tutorial:
 
         self.run_lock.release()
 
+    def wait(self):
+        if self.current not in range(self.max_lines):
+            return
+
+        period, text1, text2 = self.script_map[self.current]
+        print("Waiting: {} seconds for: {}".format(period, self.current+1))
+        return self.lock_map[self.current].wait(timeout=period)
+
+    ####################
+    ##  Actions
+    ####################
+
     def next(self, next_lock=None):
         if not self.run_lock.acquire(False):
             return
@@ -283,18 +295,18 @@ class Tutorial:
 
         self.run_lock.release()
 
-    def wait(self):
-        if self.current not in range(self.max_lines):
-            return
-
-        period, text1, text2 = self.script_map[self.current]
-        print("Waiting: {} seconds for: {}".format(period, self.current+1))
-        return self.lock_map[self.current].wait(timeout=period)
+    def prev(self):
+        self.next(self.current-1)
 
     def end(self):
+        if not self.run_lock.acquire(False):
+            return
+
         self.OVER = True
         for num, lock in self.lock_map.items():
             lock.set()
+
+        self.run_lock.release()
 
 PLAYER = Player()
 OTHER = Player(lives="?", ammo="?", defense="?")
@@ -665,6 +677,10 @@ def main():
                 TUTORIAL.end()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 TUTORIAL.next()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
+                TUTORIAL.next()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
+                TUTORIAL.prev()
 
         # Visuals
         draw_tutorial(tutorial_images, labels, TUTORIAL.check1, TUTORIAL.check2)

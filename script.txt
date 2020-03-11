@@ -13,10 +13,45 @@ B: as Iron Man!
 N: 7
 T: Your status values
 B: are displayed here.
-A: check1 
+A: check1
 -----
-N: 10
+N: 7
+T: Your energy and distance determines
+B: whether you can shoot or not.
+A: check1
+-----
+N: 7
+T: You can only shoot if
+B: energy is greater than distance.
+A: check1
+-----
+N: 7
+T: Both your and your enemy's distance
+B: affects how much damage you take.
+A: check1
+-----
+N: 7
+T: The greater the combined distance,
+B: the less damage your health takes.
+A: check1
+-----
+N: 7
 T: Your enemy's status values
 B: are displayed under yours
+A: check1 check2
+-----
+N: 7
+T: Your health determines
+B: if you're still alive.
+A: check1
+-----
+N: 7
+T: You lose the game
+B: if your health reaches 0.
+A: check1
+-----
+N: 3
+T: Good luck!
+B: Enjoy!
 A: check1 check2
 -----
