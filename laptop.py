@@ -169,19 +169,24 @@ class Tutorial:
         self.show_camera = False
         self.channel = None
 
-        # Locks
-        self.lock_num = 8  ### Make a global variable?
+        # Script
+        self.max_lines = 0
         self.current = 0
+        self.script_map = {}
         self.lock_map = {}
-        for i in range(self.lock_num):
-            self.lock_map[i] = threading.Event()
 
     def start(self, images=None):
+        for i in range(self.max_lines):
+            self.lock_map[i] = threading.Event()
+
         if images is not None:
             hold_splash(images)
 
+        if self.max_lines <= 0:
+            self.end()
+            return
+
         self.channel = sound_tutorial.play()
-        PLAYER.update_bottom("Hello!")
 
     def run(self):
         pass
@@ -191,22 +196,22 @@ class Tutorial:
 
         if next_lock is None:
             self.current += 1
-            if self.current >= self.lock_num:
+            if self.current >= self.max_lines:
                 self.end()
 
-            print("Finished: Tutorial {}/{}".format(old_current+1, self.lock_num))
+            print("Finished: Tutorial {}/{}".format(old_current+1, self.max_lines))
             self.lock_map[old_current].set()
 
-        elif next_lock in range(self.lock_num):
+        elif next_lock in range(self.max_lines):
             self.current = next_lock
-            for lock in range(self.current, self.lock_num):
+            for lock in range(self.current, self.max_lines):
                 self.lock_map[lock].clear()
 
             self.lock_map[old_current].set()
             self.lock_map[old_current].clear()
 
     def wait(self):
-        if self.current not in range(self.lock_num):
+        if self.current not in range(self.max_lines):
             return
 
         # Make timeout value be part of the lock_map
@@ -687,9 +692,7 @@ def main():
     while not END_OVER:
         # Quit conditions
         for event in pygame.event.get():
-            if event.type == QUIT:
-                END_OVER = True
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
+            if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:
                 END_OVER = True
 
         # Visuals
