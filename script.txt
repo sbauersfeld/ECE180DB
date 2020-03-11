@@ -2,16 +2,16 @@ N: 5
 T: Hello!
 B: 
 -----
-N: 3
+N: 5
 T: Welcome to this tutorial.
-B: 
+B: Press 'space' to skip ahead.
 -----
 N: 5
 T: Your task is to fight
 B: as Iron Man!
 -----
 N: 20
-T: Test speech recognition!
+T: Testing speech recognition!
 B: 
 A: voice
 -----
@@ -21,7 +21,7 @@ B: with speech recognition.
 A: 
 -----
 N: 20
-T: Test distance measurement!
+T: Testing distance measurement!
 B: ...
 A: camera
 -----
@@ -75,8 +75,19 @@ B: are displayed under yours
 A: check1 check2
 -----
 N: 7
-N: 3
 T: Good luck!
-B: Enjoy!
-A: check1 check2
+B: and have fun!
+A: 
+-----
+N: 1
+T: Starting in 3...
+B: 
+-----
+N: 1
+T: Starting in 2...
+B: 
+-----
+N: 1
+T: Starting in 1...
+B: 
 -----

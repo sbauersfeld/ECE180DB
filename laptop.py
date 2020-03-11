@@ -142,7 +142,7 @@ class Player:
         self.update_bottom(new_def)
 
 class Status(pygame.sprite.Sprite):
-    def __init__(self, value, text_type, xpos, ypos, hit_change=None,
+    def __init__(self, value, text_type, xpos, ypos, text_color=None,
                 xval=None, yval=None, background=None):
         ### Status information ###
         self.value = str(value)
@@ -150,8 +150,8 @@ class Status(pygame.sprite.Sprite):
         ### Creating the object ###
         pygame.sprite.Sprite.__init__(self)
         font, color = text_map.get(text_type)
-        if hit_change:
-            color = hit_change
+        if text_color:
+            color = text_color
         self.image = font.render(self.value, True, color, background)
         self.rect = self.image.get_rect()
 
@@ -165,11 +165,13 @@ class Tutorial:
     def __init__(self):
         # Variables
         self.OVER = False
+        self.threads = []
+
+        # Objects
         self.channel = None
-        self.run_lock = threading.RLock()
         self.microphone = None
         self.camera = None
-        self.threads = []
+        self.run_lock = threading.RLock()
 
         # State
         self.show_camera = False
@@ -430,8 +432,6 @@ def process_order_player(order, value1, value2):
         global GAME_OVER, PLAYER_WIN
         GAME_OVER = True
         PLAYER_WIN = value1
-
-        D_LOCK.set()
     
     if order == PLAYER.name:
         if value1 == HIT:
@@ -530,13 +530,13 @@ def draw_display(images=(), labels=(), enable_status=True, enable_enemy=True, te
         image, rect = blit_image
         main_surface.blit(image, rect)
 
-    top = Status(PLAYER.top, text_type, XPOS_ZERO, YPOS_TOP, hit_change=PLAYER.color)
+    top = Status(PLAYER.top, text_type, XPOS_ZERO, YPOS_TOP, text_color=PLAYER.color)
     bottom = Status(PLAYER.bottom, text_type, XPOS_ZERO, YPOS_BOTTOM)
     all_sprites = pygame.sprite.RenderPlain(top, bottom)
 
     if enable_status:
         ammo = Status(PLAYER.ammo, Text.NUM, -XPOS_SIDE, YPOS_STATUS)
-        lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, hit_change=PLAYER.color)
+        lives = Status(PLAYER.lives, Text.NUM, XPOS_ZERO, YPOS_STATUS, text_color=PLAYER.color)
         defense = Status(PLAYER.defense, Text.NUM, XPOS_SIDE, YPOS_STATUS)
         all_sprites.add(labels)
         all_sprites.add((ammo, lives, defense))
@@ -753,7 +753,6 @@ def main():
                 sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 GAME_OVER = True
-                D_LOCK.set()
                 PLAYER_WIN = PLAYER.name
 
         # Visuals
@@ -762,6 +761,7 @@ def main():
         pygame.display.update()
         clock.tick(12)
 
+    D_LOCK.set()
     for t in threads:
         t.kill()
         t.join()
