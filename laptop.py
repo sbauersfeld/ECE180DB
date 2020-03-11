@@ -32,6 +32,7 @@ headset_map = {
 start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
                 "search", "bikes", "strikes", "starks", "steps", "stopped",
                 "art", "starts"]
+cont_phrase = ["continue"]
 
 ### Camera ###
 camera_default = ([160,150,150], [180,255,255], 500)
@@ -166,6 +167,9 @@ class Tutorial:
         self.OVER = False
         self.channel = None
         self.run_lock = threading.RLock()
+        self.microphone = None
+        self.camera = None
+        self.threads = []
 
         # State
         self.show_camera = False
@@ -201,7 +205,7 @@ class Tutorial:
     ##  Tutorial Flow
     ####################
 
-    def start(self, images=None):
+    def start(self, images=None, microphone=None):
         print("\nPreparing tutorial...")
         with open("script.txt") as f:
             wait_time, top, bottom = 0, "", ""
@@ -232,32 +236,36 @@ class Tutorial:
             self.end()
             return
 
+        self.camera = cv2.VideoCapture(0)
+        self.microphone = microphone
         self.channel = sound_tutorial.play()
 
     def run(self):
-        self.run_lock.acquire()
+        with self.run_lock:
+            self.reset()
+            print("\nStarting: Tutorial {}/{}".format(self.current+1, self.max_lines))
+            period, text1, text2 = self.script_map[self.current]
+            actions = self.action_map[self.current]
 
-        self.reset()
-        print("\nStarting: Tutorial {}/{}".format(self.current+1, self.max_lines))
-        period, text1, text2 = self.script_map[self.current]
-        actions = self.action_map[self.current]
+            PLAYER.update_top(text1)
+            PLAYER.update_bottom(text2)
 
-        PLAYER.update_top(text1)
-        PLAYER.update_bottom(text2)
+            print(actions)
+            if "check1" in actions:
+                self.check1 = True
+            if "check2" in actions:
+                self.check2 = True
+            if "gesture" in actions:
+                pass
+            if "voice" in actions:
+                if self.microphone is None:
+                    return
 
-        print(actions)
-        if "check1" in actions:
-            self.check1 = True
-        if "check2" in actions:
-            self.check2 = True
-        if "gesture" in actions:
-            pass
-        if "voice" in actions:
-            pass
-        if "camera" in actions:
-            pass
-
-        self.run_lock.release()
+                t = thread_with_trace(target=detect_for_trigger, args=(self.microphone, cont_phrase))
+                t.start()
+                self.threads.append(t)
+            if "camera" in actions:
+                pass
 
     def wait(self):
         if self.current not in range(self.max_lines):
@@ -276,6 +284,9 @@ class Tutorial:
             return
 
         old_current = self.current
+        for t in self.threads:
+            t.kill()
+            t.join()
 
         if next_lock is None:
             self.current += 1
@@ -305,6 +316,12 @@ class Tutorial:
         self.OVER = True
         for num, lock in self.lock_map.items():
             lock.set()
+        for t in self.threads:
+            t.kill()
+            t.join()
+
+        self.camera.release()
+        cv2.destroyAllWindows()
 
         self.run_lock.release()
 
@@ -659,7 +676,7 @@ def main():
     ##  Tutorial
     ####################
 
-    TUTORIAL.start(splash_images)
+    TUTORIAL.start(splash_images, microphone)
     t_args = {
         handle_tutorial : [],
     }
@@ -694,22 +711,21 @@ def main():
         pygame.display.update()
         clock.tick(12)
 
-    ### This should apply after each while loop lol ###
     for t in threads:
         t.join()
-    print()
-    threads.clear()
 
 
     ####################
     ##  Start Game
     ####################
 
+    print()
+    threads.clear()
     t_args = {
         handle_distance : [microphone],
     }
     for func, args in t_args.items():
-        t = threading.Thread(target=func, args=args, daemon=True)
+        t = thread_with_trace(target=func, args=args, daemon=True)
         t.start()
         threads.append(t)
 
@@ -726,6 +742,7 @@ def main():
                 sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 GAME_OVER = True
+                D_LOCK.set()
                 PLAYER_WIN = PLAYER.name
 
         # Visuals
@@ -733,6 +750,10 @@ def main():
         
         pygame.display.update()
         clock.tick(12)
+
+    for t in threads:
+        t.kill()
+        t.join()
 
 
     ####################

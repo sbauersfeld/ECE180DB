@@ -10,6 +10,11 @@ N: 7
 T: Your task is to fight
 B: as Iron Man!
 -----
+N: 10
+T: 
+B: 
+A: voice
+-----
 N: 7
 T: Your status values
 B: are displayed here.
@@ -35,12 +40,6 @@ T: The greater the combined distance,
 B: the less damage your health takes.
 A: check1
 -----
-N: 7
-T: Your enemy's status values
-B: are displayed under yours
-A: check1 check2
------
-N: 7
 T: Your health determines
 B: if you're still alive.
 A: check1
@@ -50,6 +49,12 @@ T: You lose the game
 B: if your health reaches 0.
 A: check1
 -----
+N: 7
+T: Your enemy's status values
+B: are displayed under yours
+A: check1 check2
+-----
+N: 7
 N: 3
 T: Good luck!
 B: Enjoy!
