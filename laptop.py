@@ -103,6 +103,9 @@ class Player:
         self.ammo = ammo
         self.defense = defense
 
+        # Threads
+        self.threads = []
+
         # Display
         self.color = WHITE
         self.top = ""
@@ -517,6 +520,10 @@ def handle_voice(microphone, trigger=[], print_func=PLAYER.update_top):
 
         time.sleep(1.5)
 
+def delayed_handle_voice(microphone, delay=5, trigger=[], print_func=PLAYER.update_top):
+    time.sleep(delay)
+    handle_voice(microphone, trigger, print_func)
+
 def handle_tutorial():
     set_check = False
     while not TUTORIAL.is_finished():
@@ -540,10 +547,11 @@ def handle_distance(microphone):
         print("Range detection active!")
         D_LOCK.wait()
         while not GAME_OVER:
-            timer = threading.Timer(5, handle_voice, [microphone, start_phrase])
-            timer.start()
+            delayed_t = thread_with_trace(target=delayed_handle_voice, args=[microphone, 5, start_phrase])
+            PLAYER.threads.append(delayed_t)
+            delayed_t.start()
             
-            while timer.isAlive():
+            while delayed_t.isAlive():
                 detect_distance(cap, cap_setting)
 
             send_action(Act.DIST, PLAYER.temp_def)
@@ -814,6 +822,10 @@ def main():
                 GAME_OVER = True
                 sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                for t in PLAYER.threads:
+                    t.kill()
+                    t.join()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
                 GAME_OVER = True
                 PLAYER_WIN = PLAYER.name
 
