@@ -11,7 +11,7 @@ import numpy as np
 import cv2
 import imutils
 from range_detection.range_detection import GetDistance, TestDistance
-from speech_detection.speech_detection import speech_setup, get_speech, get_speech2, translate_speech
+from speech_detection.speech_detection import speech_setup, get_speech2, translate_speech
 
 
 ####################
@@ -27,7 +27,7 @@ client = mqtt.Client()
 ### Voice ###
 headset_map = {
     "scott" : "Headset (SoundBuds Slim Hands-F",
-    "jon" : "SP620",
+    "jon" : "Jaybird X3",
 }
 start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
                 "search", "bikes", "strikes", "starks", "steps", "stopped",
@@ -519,9 +519,9 @@ def handle_voice(microphone, trigger=[], print_func=PLAYER.update_top):
         if ret is not None:
             break
 
-        time.sleep(1.5)
+        time.sleep(1)
 
-def delayed_handle_voice(microphone, delay=5, trigger=[], print_func=PLAYER.update_top):
+def delayed_handle_voice(microphone, delay=3, trigger=[], print_func=PLAYER.update_top):
     time.sleep(delay)
     handle_voice(microphone, trigger, print_func)
 

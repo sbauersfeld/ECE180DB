@@ -305,24 +305,15 @@ def main():
     print("Listening...")
     client.loop_start()
 
-    print("Waiting to register {} players...\n".format(NUM_PLAYERS))
-    P_LOCK.wait()
-    client.subscribe(TOPIC_ACTION)
-    client.message_callback_add(TOPIC_ACTION, on_message_action)
-
 
     ####################
     ##  Tutorial
     ####################
 
-    # while True:
-    #     send_to_laptop(DISPLAY, "Training Mode!")
-    #     time.sleep(4)
-
-    #     request_for(ACTION)
-
-    #     send_to_laptop(DISPLAY, "Continue?")
-    #     request_for(VOICE)
+    print("Waiting to register {} players...\n".format(NUM_PLAYERS))
+    P_LOCK.wait()
+    client.subscribe(TOPIC_ACTION)
+    client.message_callback_add(TOPIC_ACTION, on_message_action)
 
 
     ####################
