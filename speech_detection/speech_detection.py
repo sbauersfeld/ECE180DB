@@ -46,7 +46,7 @@ def get_speech(microphone, trigger=["end", "and"], energy = 250, pause=0.5):
             if command in trigger:
                 break
 
-def get_speech2(microphone, adjust=True, energy = 300, pause=0.5):
+def get_speech2(microphone, adjust=True, energy = 250, pause=0.5):
     r = sr.Recognizer()
     r.energy_threshold = energy
     r.pause_threshold = pause
