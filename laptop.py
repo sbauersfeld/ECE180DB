@@ -31,7 +31,7 @@ headset_map = {
 }
 start_phrase = ["start", "starch", "sparks", "fart", "darts", "spikes",
                 "search", "bikes", "strikes", "starks", "steps", "stopped",
-                "art", "starts"]
+                "art", "starts", "stokes", "stats"]
 
 ### Camera ###
 camera_default = ([160,150,150], [180,255,255], 500)
@@ -49,9 +49,10 @@ clock = pygame.time.Clock()
 ### Creating the main surface ###
 if platform.system() == "Darwin":
     pygame_flags = pygame.NOFRAME
+    main_surface = pygame.display.set_mode((0, 0), pygame_flags)
 else:
     pygame_flags = pygame.FULLSCREEN
-main_surface = pygame.display.set_mode((0, 0), pygame_flags)
+    main_surface = pygame.display.set_mode((1280, 720), pygame_flags)
 main_origin = main_surface.get_rect()
 
 ### Display position ###
